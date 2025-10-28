@@ -5,15 +5,27 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="28obrbgH6zTq1AM9OF1_-3" value="Order" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="80" y="160" width="160" height="120" as="geometry" />
+          <mxGeometry x="240" y="80" width="160" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="28obrbgH6zTq1AM9OF1_-4" value="+Id" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" vertex="1" parent="28obrbgH6zTq1AM9OF1_-3">
+        <mxCell id="28obrbgH6zTq1AM9OF1_-4" value="+Id&lt;div&gt;+BillId&lt;/div&gt;&lt;div&gt;+Cost&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" vertex="1" parent="28obrbgH6zTq1AM9OF1_-3">
           <mxGeometry y="50" width="160" height="70" as="geometry" />
         </mxCell>
         <mxCell id="28obrbgH6zTq1AM9OF1_-5" value="OrderItem" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="320" y="160" width="160" height="120" as="geometry" />
+          <mxGeometry x="440" y="80" width="160" height="120" as="geometry" />
         </mxCell>
         <mxCell id="28obrbgH6zTq1AM9OF1_-6" value="+Id&lt;br&gt;&lt;div&gt;+OrderId&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" vertex="1" parent="28obrbgH6zTq1AM9OF1_-5">
+          <mxGeometry y="50" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="28obrbgH6zTq1AM9OF1_-7" value="Bill" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="160" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="28obrbgH6zTq1AM9OF1_-8" value="+Id&lt;div&gt;+TotalCost&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" vertex="1" parent="28obrbgH6zTq1AM9OF1_-7">
+          <mxGeometry y="50" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="28obrbgH6zTq1AM9OF1_-9" value="Bill" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="160" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="28obrbgH6zTq1AM9OF1_-10" value="+Id&lt;div&gt;+TotalCost&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;spacingRight=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;whiteSpace=wrap;" vertex="1" parent="28obrbgH6zTq1AM9OF1_-9">
           <mxGeometry y="50" width="160" height="70" as="geometry" />
         </mxCell>
       </root>
