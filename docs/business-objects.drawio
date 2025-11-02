@@ -13,6 +13,9 @@
         <mxCell id="cnStnmoU3zXWfK2gB2Bw-5" value="creates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="28obrbgH6zTq1AM9OF1_-9" target="28obrbgH6zTq1AM9OF1_-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="A4AcD25Cx8IHbRob6hz1-1" value="picks" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=1;entryDx=0;entryDy=0;exitX=1;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="28obrbgH6zTq1AM9OF1_-9" target="28obrbgH6zTq1AM9OF1_-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="28obrbgH6zTq1AM9OF1_-9" value="Seat" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="120" y="240" width="80" height="40" as="geometry" />
         </mxCell>
