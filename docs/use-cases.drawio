@@ -21,7 +21,7 @@
         <mxCell id="AcEXy6EqOVBOK-zODFu1-8" value="remove expired plate from belt" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="AcEXy6EqOVBOK-zODFu1-5">
           <mxGeometry x="40" y="185" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="AcEXy6EqOVBOK-zODFu1-10" value="change beld speed" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="AcEXy6EqOVBOK-zODFu1-5">
+        <mxCell id="AcEXy6EqOVBOK-zODFu1-10" value="change belt speed" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="AcEXy6EqOVBOK-zODFu1-5">
           <mxGeometry x="40" y="290" width="140" height="70" as="geometry" />
         </mxCell>
         <mxCell id="AcEXy6EqOVBOK-zODFu1-12" value="pick plate" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="AcEXy6EqOVBOK-zODFu1-5">
