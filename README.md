@@ -2,6 +2,14 @@
 
 Application simulating a Sushi Train Restaurant
 
+## Business Object Model
+
+![Business Object Model](docs\business-objects.drawio.png)
+
+## Use Cases
+
+![Use Cases](docs\use-cases.drawio.png)
+
 ## ER diagram
 
 erDiagram
