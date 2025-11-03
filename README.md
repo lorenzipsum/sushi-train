@@ -10,7 +10,7 @@ Application simulating a Sushi Train Restaurant
 
 ![Use Cases](docs/use-cases.drawio.png)
 
-## ER diagram
+## Entity-Relationship Diagram
 
 ```mermaid
 erDiagram
