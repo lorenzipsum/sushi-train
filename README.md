@@ -45,7 +45,7 @@ sushi-train/
 
 - 🗺️ **[Static Model](docs/domain-model.md)** – Business Objects, Use Cases, Entity Relationships
 - 🧠 **[Dynamic Model](https://github.com/lorenzipsum/sushi-train/blob/main/docs/domain-events.md)** – Event structure, envelopes, and example flows
-- ⚙️ **[Architecture Overview (planned)](docs/architecture.md)** – System components and deployment topology
+- ⚙️ **[Architecture Overview](docs/architecture.md)** – System components and deployment topology
 
 ---
 
