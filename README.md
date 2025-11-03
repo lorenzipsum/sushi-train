@@ -12,7 +12,8 @@ Application simulating a Sushi Train Restaurant
 
 ## ER diagram
 
-```erDiagram
+```mermaid
+erDiagram
   %% Catalog vs instance
   MENU_ITEM {
     UUID id PK
