@@ -2,7 +2,7 @@
 
 Application simulating a Sushi Train Restaurant
 
-## Business Object Model
+## Business Objects
 
 ![Business Object Model](docs/business-objects.drawio.png)
 
@@ -10,7 +10,7 @@ Application simulating a Sushi Train Restaurant
 
 ![Use Cases](docs/use-cases.drawio.png)
 
-## Entity-Relationship Diagram
+## Entity Relationships
 
 ```mermaid
 erDiagram
