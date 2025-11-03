@@ -12,71 +12,76 @@ Application simulating a Sushi Train Restaurant
 
 ## ER diagram
 
-erDiagram
-MENU_ITEM {
-uuid id PK
-text name
-text default_tier // e.g., green/red/gold
-int base_price_yen
-timestamptz created_at
-}
+```erDiagram
+  %% Catalog vs instance
+  MENU_ITEM {
+    UUID id PK
+    TEXT name
+    TEXT default_tier
+    INT  base_price_yen
+    TIMESTAMPTZ created_at
+  }
 
-PLATE {
-uuid id PK
-uuid menu_item_id FK
-text tier_snapshot // snapshot of tier when created
-int price_at_creation_yen // optional (nullable)
-timestamptz created_at
-timestamptz expires_at
-text status // ON_BELT, PICKED, EXPIRED
-}
+  PLATE {
+    UUID id PK
+    UUID menu_item_id FK
+    TEXT tier_snapshot
+    INT  price_at_creation_yen
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ expires_at
+    TEXT status
+  }
 
-BELT {
-uuid id PK
-text name
-int slot_count
-int rotation_offset // 0..slot_count-1
-int tick_interval_ms
-int speed_slots_per_tick // e.g., 1
-}
+  %% Belt with rotation offset (movement modeled as state)
+  BELT {
+    UUID id PK
+    TEXT name
+    INT  slot_count
+    INT  rotation_offset
+    INT  tick_interval_ms
+    INT  speed_slots_per_tick
+  }
 
-BELT_SLOT {
-uuid id PK
-uuid belt_id FK
-int position_index // fixed 0..slot_count-1
-uuid plate_id FK NULL
-}
+  BELT_SLOT {
+    UUID id PK
+    UUID belt_id FK
+    INT  position_index
+    UUID plate_id FK
+  }
 
-SEAT {
-uuid id PK
-text label
-uuid belt_id FK NULL // optional (for spatial link)
-int seat_position_index NULL // slot index it faces
-}
+  %% Seat (optional spatial link)
+  SEAT {
+    UUID id PK
+    TEXT label
+    UUID belt_id FK
+    INT  seat_position_index
+  }
 
-"ORDER" {
-uuid id PK
-uuid seat_id FK
-text status // OPEN, CHECKED_OUT, CANCELED
-timestamptz created_at
-timestamptz closed_at NULL
-}
+  %% Orders (rename from reserved word ORDER to ORDERS)
+  ORDERS {
+    UUID id PK
+    UUID seat_id FK
+    TEXT status
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ closed_at
+  }
 
-ORDER_LINE {
-uuid id PK
-uuid order_id FK
-uuid plate_id FK
-text menu_item_name_snapshot
-text tier_snapshot
-int price_at_pick_yen
-timestamptz picked_at
-}
+  ORDER_LINE {
+    UUID id PK
+    UUID order_id FK
+    UUID plate_id FK
+    TEXT menu_item_name_snapshot
+    TEXT tier_snapshot
+    INT  price_at_pick_yen
+    TIMESTAMPTZ picked_at
+  }
 
-%% Relationships
-MENU_ITEM ||--o{ PLATE : "instantiates"
-BELT ||--o{ BELT_SLOT : "has"
-BELT_SLOT }o--|| PLATE : "holds (0..1)"
-SEAT }o--|| BELT : "faces (optional)"
-SEAT ||--o{ "ORDER" : "opens"
-"ORDER" ||--o{ ORDER_LINE : "contains"
-ORDER_LINE }o--|| PLATE : "for plate"
+  %% Relationships
+  MENU_ITEM ||--o{ PLATE : instantiates
+  BELT      ||--o{ BELT_SLOT : has
+  BELT_SLOT }o--|| PLATE : holds
+  SEAT      }o--|| BELT : faces
+  SEAT      ||--o{ ORDERS : opens
+  ORDERS    ||--o{ ORDER_LINE : contains
+  ORDER_LINE }o--|| PLATE : for_plate
+```
