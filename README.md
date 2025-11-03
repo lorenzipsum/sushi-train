@@ -1,88 +1,153 @@
-# sushi-train
+# 🍣 Sushi-Train Simulator
 
-Application simulating a Sushi Train Restaurant
+Welcome to **Sushi-Train**, a playful yet technically robust full-stack demo app built with Spring Boot, Angular, PostgreSQL, Docker, and optionally Kafka/Redpanda.  
+It simulates a Japanese conveyor-belt sushi restaurant where plates of different value tiers circulate, customers pick them, and operators monitor the belt and orders.
 
-## Business Objects
+---
 
-![Business Object Model](docs/business-objects.drawio.png)
+## 🎯 Purpose
 
-## Use Cases
+This project combines **fun and learning**:
 
-![Use Cases](docs/use-cases.drawio.png)
+- Practice and showcase technologies: **Spring Boot**, **Angular**, **PostgreSQL**, **Docker Compose**, optionally **Kafka** & **Kubernetes**.
+- Learn architectural concepts: domain-driven design (DDD), event streaming, container orchestration.
+- Build something visually engaging (Japanese _kawaii_ theme) while architecting it for scalability and reliability.
+- Create a clean, documented **portfolio project** you can run locally or later host in the cloud.
 
-## Entity Relationships
+---
 
-```mermaid
-erDiagram
-  %% Catalog vs instance
-  MENU_ITEM {
-    UUID id PK
-    TEXT name
-    TEXT default_tier
-    INT  base_price_yen
-    TIMESTAMPTZ created_at
-  }
+## 🧩 Features (Phase 1: “Cute Demo”)
 
-  PLATE {
-    UUID id PK
-    UUID menu_item_id FK
-    TEXT tier_snapshot
-    INT  price_at_creation_yen
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ expires_at
-    TEXT status
-  }
+- Conveyor belt simulation with **rotating plates**.
+- Multiple **plate tiers** (different price categories in Yen).
+- **Seats and Orders** — customers pick plates, build orders, and check out.
+- Backend uses **DDD + ports & adapters** pattern.
+- Local setup via **Docker Compose** (backend, frontend, PostgreSQL).
+- Built for future extensions like event streaming and monitoring.
 
-  %% Belt with rotation offset (movement modeled as state)
-  BELT {
-    UUID id PK
-    TEXT name
-    INT  slot_count
-    INT  rotation_offset
-    INT  tick_interval_ms
-    INT  speed_slots_per_tick
-  }
+---
 
-  BELT_SLOT {
-    UUID id PK
-    UUID belt_id FK
-    INT  position_index
-    UUID plate_id FK
-  }
+## 🗂️ Project Structure
 
-  %% Seat (optional spatial link)
-  SEAT {
-    UUID id PK
-    TEXT label
-    UUID belt_id FK
-    INT  seat_position_index
-  }
-
-  %% Orders (rename from reserved word ORDER to ORDERS)
-  ORDERS {
-    UUID id PK
-    UUID seat_id FK
-    TEXT status
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ closed_at
-  }
-
-  ORDER_LINE {
-    UUID id PK
-    UUID order_id FK
-    UUID plate_id FK
-    TEXT menu_item_name_snapshot
-    TEXT tier_snapshot
-    INT  price_at_pick_yen
-    TIMESTAMPTZ picked_at
-  }
-
-  %% Relationships
-  MENU_ITEM ||--o{ PLATE : instantiates
-  BELT      ||--o{ BELT_SLOT : has
-  BELT_SLOT }o--|| PLATE : holds
-  SEAT      }o--|| BELT : faces
-  SEAT      ||--o{ ORDERS : opens
-  ORDERS    ||--o{ ORDER_LINE : contains
-  ORDER_LINE }o--|| PLATE : for_plate
 ```
+sushi-train/
+ ├── backend/        → Spring Boot API & domain logic
+ ├── frontend/       → Angular UI
+ ├── docs/           → Architecture, domain events, ERDs, diagrams
+ ├── docker-compose.yml
+ ├── k8s/            → (future) Kubernetes manifests/Helm
+ └── README.md
+```
+
+---
+
+## 📖 Documentation
+
+- 🗺️ **[Static Model](docs/domain-model.md)** – Business Objects, Use Cases, Entity Relationships
+- 🧠 **[Dynamic Model](https://github.com/lorenzipsum/sushi-train/blob/main/docs/domain-events.md)** – Event structure, envelopes, and example flows
+- ⚙️ **[Architecture Overview (planned)](docs/architecture.md)** – System components and deployment topology
+
+---
+
+## ⚙️ Getting Started (Local Development)
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/lorenzipsum/sushi-train.git
+   cd sushi-train
+   ```
+
+2. **Start the stack**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Open in your browser**
+
+   - Frontend (Angular): [http://localhost:4200](http://localhost:4200)
+   - Backend API: [http://localhost:8088](http://localhost:8088)
+   - Swagger UI (if enabled): [http://localhost:8088/swagger-ui.html](http://localhost:8088/swagger-ui.html)
+
+4. **Play around!**
+   - Use the Operator view to add plates and adjust the belt speed.
+   - Use the Seat view to pick plates and watch your order grow.
+
+---
+
+## 🧭 Roadmap
+
+| Phase | Title          | Description                                             |
+| ----- | -------------- | ------------------------------------------------------- |
+| **1** | Cute Demo      | Core simulation: belt, plates, seats, orders            |
+| **2** | Real-Time Mode | Add Kafka/Redpanda, live belt rotation, event streaming |
+| **3** | Stress Lab     | Load testing, autoscaling, performance dashboards       |
+| **4** | Cloud Deploy   | Run on Kubernetes with Prometheus & Grafana monitoring  |
+
+---
+
+## 🧰 Technology Stack
+
+| Layer            | Technology                       |
+| ---------------- | -------------------------------- |
+| Backend          | Spring Boot (Java 21), REST, DDD |
+| Frontend         | Angular 18 +, TypeScript         |
+| Database         | PostgreSQL                       |
+| Messaging        | Kafka or Redpanda _(optional)_   |
+| Containerization | Docker / Docker Compose          |
+| Future Ops       | Kubernetes, Prometheus, Grafana  |
+
+---
+
+## 📊 Architecture Highlights
+
+- Clear domain boundaries (entities, aggregates, services).
+- Event-driven backbone (see **Domain Events**).
+- Easily replaceable infrastructure adapters (database, broker).
+- “Ports & Adapters” / Hexagonal structure → clean separation of core logic and I/O.
+- Realistic but small enough for personal use and demos.
+
+---
+
+## 🧪 Testing
+
+- **Unit tests:** domain services and aggregates.
+- **Integration tests:** repository adapters and REST controllers.
+- **Event tests:** verify domain events publish correctly.
+- **Load tests:** (planned) simulate high-frequency plate picks.
+
+---
+
+## 📸 Screenshots (coming soon)
+
+| Operator View                | Seat View                        |
+| ---------------------------- | -------------------------------- |
+| _(Add plates, control belt)_ | _(Pick plates, see order total)_ |
+
+---
+
+## 🧱 How to Contribute or Reuse
+
+- Fork this repo and use it freely — licensed under **MIT**.
+- Open an issue for ideas, bugs, or improvements.
+- Contributions are welcome: design, docs, or code.
+- Perfect base for learning event-driven microservice design.
+
+---
+
+## 👤 Author
+
+**Lorenz Schmid**  
+with a little help from _Janet_, your friendly AI assistant 🍀
+
+---
+
+## 📝 License
+
+This project is released under the [MIT License](LICENSE).
+
+---
+
+Thank you for checking out **Sushi-Train** —  
+may your code be clean, your plates delicious, and your CI/CD pipelines ever green! 🍥
