@@ -174,12 +174,3 @@ Non-breaking design choices: ports and adapters, domain events, rotation offset 
 - **Runbook**: (optional) `docs/runbook.md` for commands and gotchas
 
 ---
-
-### How to update this page
-
-- Keep diagrams in **Mermaid** for quick edits.
-- If you draw in Draw.io or Excalidraw, commit both the **source** and exported **PNG/SVG** in `docs/`.
-- Keep links and filenames consistent (`domain-events.md`, `domain-model.md`, etc.).
-- Make small PRs: when architecture changes (new topic, new container), update the relevant diagram and add one sentence of context.
-
----
