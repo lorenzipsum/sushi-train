@@ -1,3 +1,44 @@
+# ---- General OS / Editor clutter ----
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# ---- Environment files (keep local only) ----
+.env
+.env.*.local
+*.local.yml
+
+# ---- IDEs ----
+# IntelliJ / IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Eclipse / STS
+.project
+.classpath
+.settings/
+.sts4-cache
+.springBeans
+.apt_generated
+.factorypath
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ---- Java / Build systems ----
+# Maven
 target/
 pom.xml.tag
 pom.xml.releaseBackup
@@ -6,12 +47,54 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-.mvn/timing.properties
-# https://maven.apache.org/wrapper/#usage-without-binary-jar
-.mvn/wrapper/maven-wrapper.jar
 
-# Eclipse m2e generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
+# Maven wrapper (ignore the JAR; keep scripts)
+.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# Gradle (if ever used)
+build/
+out/
+
+# Test reports
+**/surefire-reports/
+**/failsafe-reports/
+
+# Spring Boot runtime bits
+*.log
+*.pid
+*.pid.lock
+logs/
+log/
+
+# ---- Node / Angular (frontend) ----
+# Any package managers (monorepo-safe)
+**/node_modules/
+**/dist/
+**/coverage/
+**/.angular/cache/
+
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- Docker / local data ----
+# Keep compose files tracked; ignore local overrides & volumes
+docker-data/
+**/tmp/
+**/data/
+
+# ---- Docs / design tools (optional; keep sources & exports you want) ----
+# Uncomment if you export heavy intermediates
+# docs/**/*.psd
+# docs/**/*.xcf
+# docs/**/*.ai
+
+# ---- Keep these if generated in src trees (rare) ----
+# (Only needed if you ever create folders named 'target' or 'build' under src/)
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/

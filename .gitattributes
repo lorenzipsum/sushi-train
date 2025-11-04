@@ -1,0 +1,53 @@
+# --- Core behavior ---
+# Let Git treat text files as text and normalize to LF in repo
+*          text=auto eol=lf
+
+# --- OS-specific launchers / scripts ---
+# Unix shell scripts (keep LF)
+*.sh       text eol=lf
+mvnw       text eol=lf
+
+# Windows launchers (use CRLF on checkout)
+*.cmd      text eol=crlf
+*.bat      text eol=crlf
+mvnw.cmd   text eol=crlf
+*.ps1      text eol=crlf
+
+# --- Source files (explicit LF) ---
+*.java     text eol=lf
+*.kt       text eol=lf
+*.xml      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.properties text eol=lf
+*.sql      text eol=lf
+*.ts       text eol=lf
+*.js       text eol=lf
+*.json     text eol=lf
+*.html     text eol=lf
+*.css      text eol=lf
+*.md       text eol=lf
+
+# --- Binary assets (never modify line endings) ---
+*.png      -text
+*.jpg      -text
+*.jpeg     -text
+*.gif      -text
+*.webp     -text
+*.ico      -text
+*.pdf      -text
+*.zip      -text
+*.jar      -text
+*.wasm     -text
+
+# --- Fonts / vectors ---
+*.ttf      -text
+*.otf      -text
+*.woff     -text
+*.woff2    -text
+*.svg      text eol=lf  # keep as text to allow diffs/changes
+
+# --- IDE project files (if committed) ---
+*.iml      text eol=lf
+.idea/**   text eol=lf
+.vscode/** text eol=lf
