@@ -49,7 +49,7 @@ Swagger UI (if enabled):
 ## 🧩 Project Layout
 
 ```
-src/main/java/com/lorenzipsum/sushitrain/
+src/main/java/com/lorenzipsum/sushitrain/backend
  ├── domain/           # Core business logic (DDD entities, value objects)
  ├── application/      # Services, use cases, domain events
  ├── infrastructure/   # Persistence, configuration, adapters
