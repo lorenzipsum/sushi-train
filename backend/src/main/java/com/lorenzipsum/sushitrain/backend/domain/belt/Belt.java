@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -58,5 +59,9 @@ public class Belt {
 
     public void setSpeedSlotsPerTick(int s) {
         this.speedSlotsPerTick = Math.max(1, s);
+    }
+
+    public List<BeltSlot> getSlots() {
+        return Collections.unmodifiableList(slots);
     }
 }
