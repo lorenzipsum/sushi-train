@@ -16,15 +16,16 @@ class BeltTest {
     void create_initializeSlotsAndDefaults() {
         Belt belt = Belt.create("Main", 8);
 
-        assertNotNull(belt.getId(), "ID should be generated");
-        assertEquals("Main", belt.getName(), "Belt name should be assigned correctly");
-        assertEquals(8, belt.getSlotCount(), "Slot count should be assigend correctly");
-        assertEquals(0, belt.getRotationOffset(), "Rotation offset should start with 0");
-        assertEquals(1000, belt.getTickIntervalMs(), "Default tick should be 1000ms");
-        assertEquals(1, belt.getSpeedSlotsPerTick(), "Default speed should be 1 slot per tick");
-
-        assertNotNull(belt.getSlots(), "Slots should be initialized");
-        assertEquals(8, belt.getSlots().size(), "One slot per index 0, 1, ... 7");
+        assertAll("Asserting sane defaults after creation",
+                () -> assertNotNull(belt.getId(), "ID should be generated"),
+                () -> assertEquals("Main", belt.getName(), "Belt name should be assigned correctly"),
+                () -> assertEquals(8, belt.getSlotCount(), "Slot count should be assigend correctly"),
+                () -> assertEquals(0, belt.getRotationOffset(), "Rotation offset should start with 0"),
+                () -> assertEquals(1000, belt.getTickIntervalMs(), "Default tick should be 1000ms"),
+                () -> assertEquals(1, belt.getSpeedSlotsPerTick(), "Default speed should be 1 slot per tick"),
+                () -> assertNotNull(belt.getSlots(), "Slots should be initialized"),
+                () -> assertEquals(8, belt.getSlots().size(), "One slot per index 0, 1, ... 7")
+        );
 
         Set<Integer> indices = new HashSet<>();
         belt.getSlots().forEach(item -> indices.add(item.getPositionIndex()));
