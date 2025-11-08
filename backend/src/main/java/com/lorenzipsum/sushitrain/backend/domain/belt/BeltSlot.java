@@ -42,6 +42,12 @@ public class BeltSlot {
     }
 
     public void place(Plate p) {
+        if (p == null) {
+            throw new IllegalArgumentException("Plate cannot be null");
+        }
+        if (this.plate != null) {
+            throw new IllegalStateException("Plate is already assigned to belt slot");
+        }
         this.plate = p;
     }
 
@@ -49,5 +55,10 @@ public class BeltSlot {
         Plate p = this.plate;
         this.plate = null;
         return p;
+    }
+
+    public Plate takeStrict() {
+        if (isEmpty()) throw new IllegalStateException("No plate to take");
+        return take();
     }
 }

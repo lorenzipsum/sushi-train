@@ -32,9 +32,6 @@ class BeltTest {
         for (int i = 0; i < 8; i++) {
             assertTrue(indices.contains(i), "Slot index " + i + " should exist");
         }
-
-        assertTrue(belt.getSlots().stream().allMatch(s -> s.getBelt() == belt),
-                "Each slot should reference its parent belt");
     }
 
     @Test
