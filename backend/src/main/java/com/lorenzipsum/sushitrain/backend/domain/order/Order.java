@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -73,4 +74,6 @@ public class Order {
         this.status = OrderStatus.CHECKED_OUT;
         this.closedAt = Instant.now();
     }
+
+    public List<OrderLine> getLines() { return Collections.unmodifiableList(lines); }
 }
