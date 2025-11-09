@@ -5,6 +5,7 @@ import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
+@Getter
 public class Order {
     @Id
     private UUID id;
@@ -23,7 +25,6 @@ public class Order {
     private Seat seat;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "id")
     private final List<OrderLine> lines = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -63,7 +64,7 @@ public class Order {
     }
 
     public MoneyYen total() {
-        int sum = lines.stream().mapToInt(l -> l.getPriceAtPickYen().getAmount()).sum();
+        int sum = lines.stream().mapToInt(l -> l.getPriceAtPick().getAmount()).sum();
         return new MoneyYen(sum);
     }
 

@@ -19,7 +19,7 @@ public class MoneyYen {
     }
 
     public MoneyYen(int amount) {
-        if (amount < 0) throw new IllegalArgumentException("amount < 0");
+        if (amount < 0) throw new IllegalArgumentException("Amount cannot be a negative value");
         this.amount = amount;
     }
 
@@ -61,6 +61,11 @@ public class MoneyYen {
         return Integer.hashCode(amount);
     }
 
-    public boolean isZero() { return amount == 0; }
-    public static MoneyYen of(int amount) { return new MoneyYen(amount); }
+    public boolean isZero() {
+        return amount == 0;
+    }
+
+    public static MoneyYen of(int amount) {
+        return new MoneyYen(amount);
+    }
 }
