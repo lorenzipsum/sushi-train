@@ -23,9 +23,9 @@ class OrderLineTest {
     @Test
     @DisplayName("Order line can be created with sane defaults")
     void create_ok() {
-        Instant before = Instant.now();
-        OrderLine orderLine = OrderLine.create(plate, order, 450);
-        Instant after = Instant.now();
+        var before = Instant.now();
+        var orderLine = OrderLine.create(plate, order, 450);
+        var after = Instant.now();
 
         assertAll("Asserting sane defaults for order line",
                 () -> assertNotNull(orderLine.getId()),
@@ -43,7 +43,7 @@ class OrderLineTest {
     @Test
     @DisplayName("Zero price is allowed (comped/discounted)")
     void zero_price_allowed() {
-        OrderLine line = OrderLine.create(plate, order, 0);
+        var line = OrderLine.create(plate, order, 0);
         assertEquals(MoneyYen.of(0), line.getPriceAtPick());
     }
 
@@ -61,16 +61,16 @@ class OrderLineTest {
     @Test
     @DisplayName("Order line keeps snapshots ")
     void create_snapshots_ok() {
-        Plate specialPlate = Plate.create(menuItem, PlateTier.RED, MoneyYen.of(250), Instant.now().plusSeconds(7200));
+        var specialPlate = Plate.create(menuItem, PlateTier.RED, MoneyYen.of(250), Instant.now().plusSeconds(7200));
 
-        OrderLine orderLine1 = OrderLine.create(specialPlate, order, specialPlate.getPriceAtCreation().getAmount());
+        var orderLine1 = OrderLine.create(specialPlate, order, specialPlate.getPriceAtCreation().getAmount());
         assertAll("Asserting sane defaults for order line 1",
                 () -> assertEquals("Salmon Nigiri", orderLine1.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.RED, orderLine1.getTierSnapshot()),
                 () -> assertEquals(MoneyYen.of(250), orderLine1.getPriceAtPick())
         );
 
-        OrderLine orderLine2 = OrderLine.create(specialPlate, order, 550);
+        var orderLine2 = OrderLine.create(specialPlate, order, 550);
         assertEquals(MoneyYen.of(550), orderLine2.getPriceAtPick());
     }
 }

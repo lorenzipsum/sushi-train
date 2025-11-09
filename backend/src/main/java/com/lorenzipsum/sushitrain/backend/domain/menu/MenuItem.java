@@ -27,6 +27,7 @@ public class MenuItem {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @SuppressWarnings("unused")
     protected MenuItem() {
     }
 
@@ -45,6 +46,7 @@ public class MenuItem {
         return new MenuItem(UUID.randomUUID(), name.trim(), defaultTier, basePrice, Instant.now());
     }
 
+    @SuppressWarnings("unused")
     @PrePersist
     void prePersist() {
         if (createdAt == null) createdAt = Instant.now();

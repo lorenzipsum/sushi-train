@@ -21,6 +21,7 @@ public class Seat {
 
     private int seatPositionIndex;
 
+    @SuppressWarnings("unused")
     protected Seat() {
     }
 

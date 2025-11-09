@@ -20,11 +20,11 @@ class BeltSlotTest {
     @Test
     @DisplayName("Belt slot can be created with sane defaults")
     void emptyAt_creation_ok() {
-        Belt belt = Belt.create("Default", 5);
+        var belt = Belt.create("Default", 5);
 
-        BeltSlot firstSlot = belt.getSlots().getFirst();
-        BeltSlot nextSlot = belt.getSlots().get(1);
-        BeltSlot lastSlot = belt.getSlots().getLast();
+        var firstSlot = belt.getSlots().getFirst();
+        var nextSlot = belt.getSlots().get(1);
+        var lastSlot = belt.getSlots().getLast();
 
         assertAll("Assert first belt slot",
                 () -> assertNotNull(firstSlot.getId()),
@@ -50,7 +50,7 @@ class BeltSlotTest {
     @Test
     @DisplayName("All belt slots are empty in the beginning")
     void isEmpty_ok() {
-        Belt belt = Belt.create("Default", 5);
+        var belt = Belt.create("Default", 5);
 
         assertTrue(belt.getSlots().stream().allMatch(BeltSlot::isEmpty), "all slots should be empty initially");
     }
@@ -59,10 +59,10 @@ class BeltSlotTest {
     @DisplayName("Plate can be placed on belt slot")
     void place_ok() {
         // given
-        Belt belt = Belt.create("Default", 5);
+        var belt = Belt.create("Default", 5);
 
         // when
-        BeltSlot slot = belt.getSlots().getFirst();
+        var slot = belt.getSlots().getFirst();
         slot.place(plate);
 
         // then
@@ -74,10 +74,10 @@ class BeltSlotTest {
     @DisplayName("Only 1 plate can be placed on 1 belt slot")
     void place_only_one_plate_per_slot() {
         // given
-        Belt belt = Belt.create("Default", 5);
+        var belt = Belt.create("Default", 5);
 
         // when
-        BeltSlot slot = belt.getSlots().getFirst();
+        var slot = belt.getSlots().getFirst();
         slot.place(plate);
 
         // then
@@ -87,8 +87,8 @@ class BeltSlotTest {
     @Test
     @DisplayName("An empty plate (null) cannot be placed")
     void place_null_not_allowed() {
-        Belt belt = Belt.create("Default", 5);
-        BeltSlot slot = belt.getSlots().getFirst();
+        var belt = Belt.create("Default", 5);
+        var slot = belt.getSlots().getFirst();
 
         assertThrows(IllegalArgumentException.class, () -> slot.place(null));
     }
@@ -96,8 +96,8 @@ class BeltSlotTest {
     @Test
     @DisplayName("place → take empties slot; can place again and take again; take() is idempotent")
     void place_take_place_again_ok() {
-        Belt belt = Belt.create("Default", 5);
-        BeltSlot slot = belt.getSlots().getFirst();
+        var belt = Belt.create("Default", 5);
+        var slot = belt.getSlots().getFirst();
 
         slot.place(plate);
         assertAll("Assert after first place/take",
@@ -113,8 +113,8 @@ class BeltSlotTest {
     @Test
     @DisplayName("Plate can only be picked from belt slot if it exists")
     void takeStrict_happy_then_empty_throws() {
-        Belt belt = Belt.create("Default", 5);
-        BeltSlot slot = belt.getSlots().getFirst();
+        var belt = Belt.create("Default", 5);
+        var slot = belt.getSlots().getFirst();
         slot.place(plate);
 
         assertAll("Assert belt slot",

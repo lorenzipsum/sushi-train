@@ -14,9 +14,9 @@ class MenuItemTest {
     @Test
     @DisplayName("Menu item can be created with sane defaults")
     void create_ok() {
-        Instant before = Instant.now();
-        MenuItem salmonNigiri = MenuItem.create("Salmon Nigiri", PlateTier.GREEN, MoneyYen.of(450));
-        Instant after = Instant.now();
+        var before = Instant.now();
+        var salmonNigiri = MenuItem.create("Salmon Nigiri", PlateTier.GREEN, MoneyYen.of(450));
+        var after = Instant.now();
 
         assertAll("Asserting instantiated menu item",
                 () -> assertNotNull(salmonNigiri.getId()),

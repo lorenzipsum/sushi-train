@@ -15,6 +15,7 @@ import java.util.Locale;
 public class MoneyYen {
     private int amount;
 
+    @SuppressWarnings("unused")
     protected MoneyYen() {
     }
 
@@ -43,7 +44,7 @@ public class MoneyYen {
      * @return formatted string like "¥980" or "¥12,800"
      */
     private String formatYen(int amount) {
-        NumberFormat yenFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN);
+        var yenFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN);
         yenFormat.setMaximumFractionDigits(0); // ensure no decimals
         return yenFormat.format(amount);
     }

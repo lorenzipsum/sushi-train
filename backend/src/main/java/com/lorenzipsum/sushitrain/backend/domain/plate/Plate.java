@@ -39,6 +39,7 @@ public class Plate {
     @Column(name = "status", nullable = false)
     private PlateStatus status;
 
+    @SuppressWarnings("unused")
     protected Plate() {
     }
 

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,7 +13,7 @@ class BeltTest {
     @Test
     @DisplayName("create(name, slotCount) initializes belt with slots and sane defaults")
     void create_initializeSlotsAndDefaults() {
-        Belt belt = Belt.create("Main", 8);
+        var belt = Belt.create("Main", 8);
 
         assertAll("Asserting sane defaults after creation",
                 () -> assertNotNull(belt.getId(), "ID should be generated"),
@@ -27,7 +26,7 @@ class BeltTest {
                 () -> assertEquals(8, belt.getSlots().size(), "One slot per index 0, 1, ... 7")
         );
 
-        Set<Integer> indices = new HashSet<>();
+        var indices = new HashSet<>();
         belt.getSlots().forEach(item -> indices.add(item.getPositionIndex()));
         assertEquals(8, indices.size(), "Each slot index from 0 to 7 must exist exactly once");
         for (int i = 0; i < 8; i++) {
@@ -38,7 +37,7 @@ class BeltTest {
     @Test
     @DisplayName("advanceOffset increases offset and wraps around modulo slotCount")
     void advanceOffset_wraps() {
-        Belt belt = Belt.create("Wrap", 4);
+        var belt = Belt.create("Wrap", 4);
         assertEquals(0, belt.getRotationOffset());
 
         belt.advanceOffset();
@@ -58,7 +57,7 @@ class BeltTest {
     @DisplayName("advanceOffset respects speedSlotsPerTick")
     void advanceOffset_customSpeedWraps() {
         // given
-        Belt belt = Belt.create("Speedy", 10);
+        var belt = Belt.create("Speedy", 10);
 
         // when
         belt.setSpeedSlotsPerTick(3);
@@ -80,7 +79,7 @@ class BeltTest {
     @Test
     @DisplayName("setSpeedSlotsPerTick enforces minimum of 1")
     void setSpeed_minimumOne() {
-        Belt belt = Belt.create("Speed", 10);
+        var belt = Belt.create("Speed", 10);
 
         belt.setSpeedSlotsPerTick(0);
         assertEquals(1, belt.getSpeedSlotsPerTick());
@@ -95,7 +94,7 @@ class BeltTest {
     @Test
     @DisplayName("tickIntervalMs can be updated")
     void setTickInterval_updates() {
-        Belt belt = Belt.create("Slowy", 10);
+        var belt = Belt.create("Slowy", 10);
 
         belt.setTickIntervalMs(2000);
         assertEquals(2000, belt.getTickIntervalMs());
@@ -104,7 +103,7 @@ class BeltTest {
     @Test
     @DisplayName("getSlots returns an unmodifiable view")
     void slots_areUnmodifiable() {
-        Belt belt = Belt.create("Immutable", 10);
+        var belt = Belt.create("Immutable", 10);
 
         var slots = belt.getSlots();
 
@@ -115,10 +114,10 @@ class BeltTest {
     @Test
     @DisplayName("slotCount is clamped to at least 1")
     void slotCount_minimumOne() {
-        Belt belt = Belt.create("ZeroTest", 0);
+        var belt = Belt.create("ZeroTest", 0);
         assertEquals(1, belt.getSlotCount());
 
-        Belt belt2 = Belt.create("BelowZeroTest", -5);
-        assertEquals(1, belt.getSlotCount());
+        var belt2 = Belt.create("BelowZeroTest", -5);
+        assertEquals(1, belt2.getSlotCount());
     }
 }

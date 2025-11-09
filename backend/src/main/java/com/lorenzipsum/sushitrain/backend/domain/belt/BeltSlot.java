@@ -23,6 +23,7 @@ public class BeltSlot {
     @JoinColumn(name = "plate_id")
     private Plate plate;
 
+    @SuppressWarnings("unused")
     protected BeltSlot() {
     }
 
@@ -52,7 +53,7 @@ public class BeltSlot {
     }
 
     public Plate take() {
-        Plate p = this.plate;
+        var p = this.plate;
         this.plate = null;
         return p;
     }

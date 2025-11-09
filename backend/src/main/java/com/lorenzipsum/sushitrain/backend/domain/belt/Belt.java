@@ -38,6 +38,7 @@ public class Belt {
     @OneToMany(mappedBy = "belt", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<BeltSlot> slots = new ArrayList<>();
 
+    @SuppressWarnings("unused")
     protected Belt() {
     }
 
@@ -48,7 +49,7 @@ public class Belt {
     }
 
     public static Belt create(String name, int slotCount) {
-        Belt belt = new Belt(UUID.randomUUID(), name, slotCount);
+        var belt = new Belt(UUID.randomUUID(), name, slotCount);
         IntStream.range(0, belt.slotCount).forEach(i -> belt.slots.add(BeltSlot.emptyAt(belt, i)));
         return belt;
     }

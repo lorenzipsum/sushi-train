@@ -20,22 +20,29 @@ class MoneyYenTest {
     }
 
     @Test
-    @DisplayName("equals and hashCode are based on amount")
+    @DisplayName("Equals and hashCode are based on amount")
     void equals_hashcode() {
-        assertAll("Assert equality",
-                () -> assertEquals(new MoneyYen(500), new MoneyYen(500)),
-                () -> assertNotEquals(new MoneyYen(500), new MoneyYen(400)),
-                () -> assertEquals(new MoneyYen(500).hashCode(), new MoneyYen(500).hashCode()));
+        var a = new MoneyYen(500);
+        var b = new MoneyYen(500);
+        var c = new MoneyYen(400);
+
+        assertAll("Assert equality and hashCode consistency",
+                () -> assertEquals(a, b),
+                () -> assertNotEquals(a, c),
+                () -> assertEquals(a.hashCode(), b.hashCode())
+        );
     }
+
 
     @Test
     @DisplayName("equals is reflexive and transitive")
+    @SuppressWarnings("AssertEqualsCalledOnItself")
     void equals_laws() {
-        MoneyYen a = new MoneyYen(700);
-        MoneyYen b = new MoneyYen(700);
-        MoneyYen c = new MoneyYen(700);
+        var a = new MoneyYen(700);
+        var b = new MoneyYen(700);
+        var c = new MoneyYen(700);
         assertAll("Assert equality",
-                () -> assertEquals(a, a),        // reflexive
+                () -> assertEquals(a, a),
                 () -> assertEquals(a, b),
                 () -> assertEquals(b, c),
                 () -> assertEquals(a, c)        // transitive
@@ -45,7 +52,7 @@ class MoneyYenTest {
     @Test
     @DisplayName("Addition works fine")
     void plus_ok() {
-        MoneyYen eight = FIVE.plus(THREE);
+        var eight = FIVE.plus(THREE);
 
         assertAll("Assert addition of amounts",
                 () -> assertEquals(8, eight.getAmount()),
@@ -55,7 +62,7 @@ class MoneyYenTest {
     @Test
     @DisplayName("Plus returns new instance and does not mutate operands")
     void plus_immutability() {
-        MoneyYen eight = FIVE.plus(THREE);
+        var eight = FIVE.plus(THREE);
         assertNotSame(FIVE, eight);
         assertEquals(5, FIVE.getAmount());
         assertEquals(3, THREE.getAmount());
@@ -65,16 +72,16 @@ class MoneyYenTest {
     @Test
     @DisplayName("plus throws on integer overflow")
     void plus_overflow() {
-        MoneyYen big = new MoneyYen(Integer.MAX_VALUE);
+        var big = new MoneyYen(Integer.MAX_VALUE);
         assertThrows(ArithmeticException.class, () -> big.plus(new MoneyYen(1)));
     }
 
     @Test
     @DisplayName("ToString method works correctly")
     void testToString() {
-        MoneyYen amountFiveHundred = new MoneyYen(500);
-        MoneyYen amountOverThousand = new MoneyYen(1250);
-        MoneyYen amountOverTenThousand = new MoneyYen(25432);
+        var amountFiveHundred = new MoneyYen(500);
+        var amountOverThousand = new MoneyYen(1250);
+        var amountOverTenThousand = new MoneyYen(25432);
 
         assertEquals("￥5", FIVE.toString());
         assertEquals("￥500", amountFiveHundred.toString());
