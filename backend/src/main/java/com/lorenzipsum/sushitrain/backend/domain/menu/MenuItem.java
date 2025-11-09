@@ -39,6 +39,14 @@ public class MenuItem {
     }
 
     public static MenuItem create(String name, PlateTier defaultTier, MoneyYen basePrice) {
-        return new MenuItem(UUID.randomUUID(), name, defaultTier, basePrice, Instant.now());
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("Name must not be blank");
+        if (defaultTier == null) throw new IllegalArgumentException("Default tier cannot be null");
+        if (basePrice == null) throw new IllegalArgumentException("Base price cannot be null");
+        return new MenuItem(UUID.randomUUID(), name.trim(), defaultTier, basePrice, Instant.now());
+    }
+
+    @PrePersist
+    void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
     }
 }
