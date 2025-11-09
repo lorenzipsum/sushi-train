@@ -17,6 +17,8 @@ import java.util.UUID;
 @Table(name = "orders")
 @Getter
 public class Order {
+    private static final String ERR_ORDER_NOT_OPEN = "Order must be OPEN";
+
     @Id
     private UUID id;
 
@@ -31,7 +33,7 @@ public class Order {
     @Column(name = "status", nullable = false)
     private OrderStatus status = OrderStatus.OPEN;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(name = "closed_at")
@@ -39,8 +41,10 @@ public class Order {
 
     //optimistic concurrency
     @Version
+    @SuppressWarnings("unused")
     private long version;
 
+    @SuppressWarnings("unused")
     protected Order() {
     }
 
@@ -51,14 +55,16 @@ public class Order {
     }
 
     public static Order open(Seat seat) {
+        if (seat == null) throw new IllegalArgumentException("Seat cannot be null");
         return new Order(UUID.randomUUID(), seat);
     }
 
-    public OrderLine addLineFromPlate(Plate plate, int priceAtPickYen) {
-        if (status != OrderStatus.OPEN) {
-            throw new IllegalStateException("order is not OPEN");
-        }
-        OrderLine orderLine = OrderLine.create(plate, this, priceAtPickYen);
+    public OrderLine addLineFromPlate(Plate plate, int priceAtPickInYen) {
+        if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
+        if (status != OrderStatus.OPEN) throw new IllegalStateException(ERR_ORDER_NOT_OPEN);
+        if (priceAtPickInYen < 0) throw new IllegalArgumentException("Price cannot be a negative value");
+
+        OrderLine orderLine = OrderLine.create(plate, this, priceAtPickInYen);
         this.lines.add(orderLine);
         return orderLine;
     }
@@ -70,11 +76,29 @@ public class Order {
 
     public void checkout() {
         if (status != OrderStatus.OPEN) {
-            throw new IllegalStateException("order is not OPEN");
+            throw new IllegalStateException(ERR_ORDER_NOT_OPEN);
         }
         this.status = OrderStatus.CHECKED_OUT;
         this.closedAt = Instant.now();
     }
 
-    public List<OrderLine> getLines() { return Collections.unmodifiableList(lines); }
+    public List<OrderLine> getLines() {
+        return Collections.unmodifiableList(lines);
+    }
+
+    @PrePersist
+    @SuppressWarnings("unused")
+    void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
+    }
+
+    public void removeLine(OrderLine line) {
+        if (status != OrderStatus.OPEN) throw new IllegalStateException(ERR_ORDER_NOT_OPEN);
+        if (line == null) return;
+        if (line.getOrder() != this) {
+            throw new IllegalArgumentException("OrderLine does not belong to this Order");
+        }
+        lines.remove(line); // orphanRemoval will delete the row
+        line.clearOrder(); // keep both sides consistent
+    }
 }

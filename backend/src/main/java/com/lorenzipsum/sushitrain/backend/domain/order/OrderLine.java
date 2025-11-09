@@ -38,6 +38,7 @@ public class OrderLine {
     @Column(name = "picked_at", nullable = false, updatable = false)
     private Instant pickedAt;
 
+    @SuppressWarnings("unused")
     protected OrderLine() {
     }
 
@@ -59,7 +60,10 @@ public class OrderLine {
     }
 
     @PrePersist
+    @SuppressWarnings("unused")
     void prePersist() {
         if (pickedAt == null) pickedAt = Instant.now();
     }
+
+    void clearOrder() { this.order = null; }
 }
