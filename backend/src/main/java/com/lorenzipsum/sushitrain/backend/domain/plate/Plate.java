@@ -22,7 +22,7 @@ public class Plate {
     private MenuItem menuItem;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tier_snapshot", nullable = false)
+    @Column(name = "tier_snapshot", nullable = false, length = 16)
     private PlateTier tierSnapshot;
 
     @Embedded
@@ -36,7 +36,7 @@ public class Plate {
     private Instant expiresAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 16)
     private PlateStatus status;
 
     @SuppressWarnings("unused")

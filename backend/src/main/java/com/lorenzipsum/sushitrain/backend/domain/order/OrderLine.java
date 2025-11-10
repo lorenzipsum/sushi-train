@@ -24,11 +24,11 @@ public class OrderLine {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(name = "menu_item_name_snapshot", nullable = false)
+    @Column(name = "menu_item_name_snapshot", nullable = false, length = 128)
     private String menuItemNameSnapshot;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tier_snapshot", nullable = false)
+    @Column(name = "tier_snapshot", nullable = false, length = 16)
     private PlateTier tierSnapshot;
 
     @Embedded
@@ -65,5 +65,7 @@ public class OrderLine {
         if (pickedAt == null) pickedAt = Instant.now();
     }
 
-    void clearOrder() { this.order = null; }
+    void clearOrder() {
+        this.order = null;
+    }
 }

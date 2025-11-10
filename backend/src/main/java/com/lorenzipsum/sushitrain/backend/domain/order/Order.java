@@ -30,7 +30,7 @@ public class Order {
     private final List<OrderLine> lines = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 16)
     private OrderStatus status = OrderStatus.OPEN;
 
     @Column(name = "created_at", nullable = false, updatable = false)
