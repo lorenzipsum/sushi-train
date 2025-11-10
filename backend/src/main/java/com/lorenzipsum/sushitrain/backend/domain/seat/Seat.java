@@ -4,21 +4,24 @@ import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
-@Table(name = "seats")
+@Table(name = "seats", uniqueConstraints = @UniqueConstraint(name = "uk_belt_label", columnNames = {"belt_id", "label"}))
 @Getter
 public class Seat {
     @Id
     private UUID id;
 
+    @Column(nullable = false)
     private String label;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "belt_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "belt_id", nullable = false)
     private Belt belt;
 
+    @Column(nullable = false)
     private int seatPositionIndex;
 
     @SuppressWarnings("unused")
@@ -33,6 +36,23 @@ public class Seat {
     }
 
     public static Seat create(String label, Belt belt, int seatPositionIndex) {
-        return new Seat(UUID.randomUUID(), label, belt, seatPositionIndex);
+        if (belt == null) throw new IllegalArgumentException("Belt cannot be null");
+        if (seatPositionIndex < 0 || seatPositionIndex >= belt.getSlotCount()) {
+            throw new IllegalArgumentException(
+                    "Seat position index out of range: " + seatPositionIndex +
+                            " (valid: 0.." + (belt.getSlotCount() - 1) + ")"
+            );
+        }
+        String cleanLabel = normalizeLabel(label);
+        return new Seat(UUID.randomUUID(), cleanLabel, belt, seatPositionIndex);
+    }
+
+    private static String normalizeLabel(String raw) {
+        if (raw == null) throw new IllegalArgumentException("Label cannot be null");
+        String s = raw.trim().toUpperCase(Locale.ROOT);
+        if (s.isEmpty()) throw new IllegalArgumentException("Label cannot be null or empty");
+        if (!s.matches("[A-Z0-9]+"))
+            throw new IllegalArgumentException("Label must be alphanumeric (A–Z, 0–9), got: '" + s + "'");
+        return s;
     }
 }

@@ -15,13 +15,15 @@ public class MenuItem {
     @Id
     private UUID id;
 
+    @Column(nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PlateTier defaultTier;
 
     @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "base_price_yen"))
+    @AttributeOverride(name = "amount", column = @Column(name = "base_price_yen", nullable = false))
     private MoneyYen basePrice;
 
     @Column(name = "created_at", nullable = false)

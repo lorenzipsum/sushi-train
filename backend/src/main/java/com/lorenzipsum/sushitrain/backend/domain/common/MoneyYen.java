@@ -1,6 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.domain.common;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 
@@ -13,6 +14,7 @@ import java.util.Locale;
 @Embeddable
 @Getter
 public class MoneyYen {
+    @Column(nullable = false)
     private int amount;
 
     @SuppressWarnings("unused")

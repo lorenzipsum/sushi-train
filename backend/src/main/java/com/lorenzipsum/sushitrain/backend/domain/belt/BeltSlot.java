@@ -14,7 +14,7 @@ public class BeltSlot {
     private UUID id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "belt_id")
+    @JoinColumn(name = "belt_id", nullable = false)
     private Belt belt;
 
     private int positionIndex;
