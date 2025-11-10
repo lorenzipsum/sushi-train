@@ -1,11 +1,9 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
+import com.lorenzipsum.sushitrain.backend.domain.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,11 +12,9 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderLineTest {
-    private final Belt belt = Belt.create("Default", 10);
-    private final Seat seat = Seat.create("1", belt, 5);
-    private final Order order = Order.open(seat);
-    private final MenuItem menuItem = MenuItem.create("Salmon Nigiri", PlateTier.GREEN, MoneyYen.of(450));
-    private final Plate plate = Plate.create(menuItem, PlateTier.GREEN, MoneyYen.of(450), Instant.now().plusSeconds(7200));
+
+    private final Order order = Order.open(TestData.defaultSeat());
+    private final Plate plate = TestData.plateSalmonNigiri();
 
     @Test
     @DisplayName("Order line can be created with sane defaults")
@@ -61,7 +57,7 @@ class OrderLineTest {
     @Test
     @DisplayName("Order line keeps snapshots ")
     void create_snapshots_ok() {
-        var specialPlate = Plate.create(menuItem, PlateTier.RED, MoneyYen.of(250), Instant.now().plusSeconds(7200));
+        var specialPlate = Plate.create(TestData.menuItemSalmonNigiri(), PlateTier.RED, MoneyYen.of(250), TestData.soon());
 
         var orderLine1 = OrderLine.create(specialPlate, order, specialPlate.getPriceAtCreation().getAmount());
         assertAll("Asserting sane defaults for order line 1",

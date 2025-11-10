@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BeltTest {
 
-
     @Test
     @DisplayName("create(name, slotCount) initializes belt with slots and sane defaults")
     void create_initializeSlotsAndDefaults() {
@@ -79,7 +78,7 @@ class BeltTest {
     @Test
     @DisplayName("setSpeedSlotsPerTick enforces minimum of 1")
     void setSpeed_minimumOne() {
-        var belt = Belt.create("Speed", 10);
+        var belt = Belt.create("Speedy", 10);
 
         belt.setSpeedSlotsPerTick(0);
         assertEquals(1, belt.getSpeedSlotsPerTick());

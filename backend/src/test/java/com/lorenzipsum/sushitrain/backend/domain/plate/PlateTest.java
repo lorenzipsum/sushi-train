@@ -1,5 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.plate;
 
+import com.lorenzipsum.sushitrain.backend.domain.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
@@ -12,8 +13,8 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PlateTest {
-    private final Instant expiration = Instant.now().plusSeconds(7200);
-    private final MenuItem menuItem = MenuItem.create("Maguro Nigiri", PlateTier.GREEN, MoneyYen.of(500));
+    private final Instant expiration = TestData.soon();
+    private final MenuItem menuItem = TestData.menuItemMaguroNigiri();
 
     @Test
     @DisplayName("Plate can be created with sane defaults")

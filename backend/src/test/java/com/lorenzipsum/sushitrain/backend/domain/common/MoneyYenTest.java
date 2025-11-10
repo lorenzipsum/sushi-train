@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MoneyYenTest {
-    public static final MoneyYen ZERO = new MoneyYen(0);
-    public static final MoneyYen THREE = new MoneyYen(3);
-    public static final MoneyYen FIVE = new MoneyYen(5);
+    private final MoneyYen ZERO = new MoneyYen(0);
+    private final MoneyYen THREE = new MoneyYen(3);
+    private final MoneyYen FIVE = new MoneyYen(5);
 
     @Test
     @DisplayName("MoneyYen can be instantiated but no negative amounts are allowed")

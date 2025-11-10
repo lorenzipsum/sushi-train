@@ -1,10 +1,9 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
+import com.lorenzipsum.sushitrain.backend.domain.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import org.junit.jupiter.api.DisplayName;
@@ -16,12 +15,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderTest {
 
-    private final Belt belt = Belt.create("Default", 10);
-    private final Seat seat = Seat.create("1", belt, 5);
-    private final MenuItem chickenKaraage = MenuItem.create("Chicken Karaage", PlateTier.GOLD, MoneyYen.of(800));
-    private final MenuItem salmonNigiri = MenuItem.create("Salmon Nigiri", PlateTier.GREEN, MoneyYen.of(450));
-    private final Plate chickenKaraagePlate = Plate.create(chickenKaraage, PlateTier.GOLD, MoneyYen.of(800), Instant.now().plusSeconds(7200));
-    private final Plate salmonNigiriPlate = Plate.create(salmonNigiri, PlateTier.GREEN, MoneyYen.of(450), Instant.now().plusSeconds(7200));
+    private final Seat seat = TestData.defaultSeat();
+    private final Plate chickenKaraagePlate = TestData.plateChickenKaraage();
+    private final Plate salmonNigiriPlate = TestData.plateSalmonNigiri();
 
     @Test
     @DisplayName("Order is opened with sane defaults")
