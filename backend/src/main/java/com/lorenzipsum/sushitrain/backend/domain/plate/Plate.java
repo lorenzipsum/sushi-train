@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "plates")
+@Table(name = "plate")
 @Getter
 public class Plate {
     @Id
@@ -38,6 +38,11 @@ public class Plate {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 16)
     private PlateStatus status;
+
+    //optimistic concurrency
+    @Version
+    @SuppressWarnings("unused")
+    private long version;
 
     @SuppressWarnings("unused")
     protected Plate() {

@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 @Entity
-@Table(name = "belts")
+@Table(name = "belt")
 @Getter
 public class Belt {
     @Id

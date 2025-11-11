@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 @Entity
-@Table(name = "seats", uniqueConstraints = @UniqueConstraint(name = "uk_belt_label", columnNames = {"belt_id", "label"}))
+@Table(name = "seat", uniqueConstraints = @UniqueConstraint(name = "uk_belt_label", columnNames = {"belt_id", "label"}))
 @Getter
 public class Seat {
     @Id

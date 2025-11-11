@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "order_lines")
+@Table(name = "order_line")
 @Getter
 public class OrderLine {
     @Id

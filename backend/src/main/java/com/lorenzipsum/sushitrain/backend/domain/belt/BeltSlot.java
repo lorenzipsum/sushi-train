@@ -7,7 +7,7 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "belt_slots")
+@Table(name = "belt_slot")
 @Getter
 public class BeltSlot {
     @Id
