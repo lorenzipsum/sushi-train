@@ -2,31 +2,18 @@ package com.lorenzipsum.sushitrain.backend.domain.menu;
 
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import jakarta.persistence.*;
-import lombok.Getter;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
-@Entity
-@Table(name = "menu_item")
-@Getter
+
+@SuppressWarnings("LombokGetterMayBeUsed")
 public class MenuItem {
-    @Id
     private UUID id;
-
-    @Column(nullable = false)
     private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PlateTier defaultTier;
-
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "base_price_yen", nullable = false))
     private MoneyYen basePrice;
-
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @SuppressWarnings("unused")
@@ -48,9 +35,35 @@ public class MenuItem {
         return new MenuItem(UUID.randomUUID(), name.trim(), defaultTier, basePrice, Instant.now());
     }
 
-    @SuppressWarnings("unused")
-    @PrePersist
-    void prePersist() {
-        if (createdAt == null) createdAt = Instant.now();
+    /**
+     * Rehydration factory for adapters (persistence).
+     */
+    public static MenuItem rehydrate(UUID id, String name, PlateTier defaultTier, MoneyYen basePrice, Instant createdAt) {
+        Objects.requireNonNull(id, "id");
+        Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(defaultTier, "defaultTier");
+        Objects.requireNonNull(basePrice, "basePrice");
+        Objects.requireNonNull(createdAt, "createdAt");
+        return new MenuItem(id, name, defaultTier, basePrice, createdAt);
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public PlateTier getDefaultTier() {
+        return defaultTier;
+    }
+
+    public MoneyYen getBasePrice() {
+        return basePrice;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 }

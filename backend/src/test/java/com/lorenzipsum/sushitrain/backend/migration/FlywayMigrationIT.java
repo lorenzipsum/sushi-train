@@ -15,7 +15,7 @@ import java.sql.ResultSet;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
-class FlywayMigrationTest {
+class FlywayMigrationIT {
     @SuppressWarnings("resource")
     static PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>("postgres:18-alpine")
