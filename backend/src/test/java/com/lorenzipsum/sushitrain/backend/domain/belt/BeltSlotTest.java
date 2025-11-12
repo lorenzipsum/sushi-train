@@ -14,7 +14,7 @@ class BeltSlotTest {
 
     @Test
     @DisplayName("Belt slot can be created with sane defaults")
-    void emptyAt_creation_ok() {
+    void createEmptyAt_creation_ok() {
         var belt = TestData.defaultBelt();
 
         var firstSlot = belt.getSlots().getFirst();
@@ -24,22 +24,22 @@ class BeltSlotTest {
         assertAll("Assert first belt slot",
                 () -> assertNotNull(firstSlot.getId()),
                 () -> assertEquals(0, firstSlot.getPositionIndex()),
-                () -> assertSame(belt, firstSlot.getBelt()),
-                () -> assertNull(firstSlot.getPlate()));
+                () -> assertEquals(belt.getId(), firstSlot.getBeltId()),
+                () -> assertNull(firstSlot.getPlateId()));
 
         assertAll("Assert belt slot after first slot",
                 () -> assertNotNull(nextSlot.getId()),
                 () -> assertEquals(1, nextSlot.getPositionIndex()),
-                () -> assertSame(belt, nextSlot.getBelt()),
-                () -> assertNull(nextSlot.getPlate()));
+                () -> assertEquals(belt.getId(), firstSlot.getBeltId()),
+                () -> assertNull(nextSlot.getPlateId()));
 
         assertAll("Assert last belt slot",
                 () -> assertNotNull(lastSlot.getId()),
                 () -> assertEquals(9, lastSlot.getPositionIndex()),
-                () -> assertSame(belt, lastSlot.getBelt()),
-                () -> assertNull(lastSlot.getPlate()));
+                () -> assertEquals(belt.getId(), firstSlot.getBeltId()),
+                () -> assertNull(lastSlot.getPlateId()));
 
-        belt.getSlots().forEach(slot -> assertSame(belt, slot.getBelt(), "each slot must reference its parent belt"));
+        belt.getSlots().forEach(slot -> assertEquals(belt.getId(), firstSlot.getBeltId(), "each slot must reference its parent belt"));
     }
 
     @Test
@@ -58,11 +58,11 @@ class BeltSlotTest {
 
         // when
         var slot = belt.getSlots().getFirst();
-        slot.place(plate1);
+        slot.place(plate1.getId());
 
         // then
         assertFalse(slot.isEmpty());
-        assertSame(plate1, slot.getPlate());
+        assertEquals(plate1.getId(), slot.getPlateId());
     }
 
     @Test
@@ -73,10 +73,10 @@ class BeltSlotTest {
 
         // when
         var slot = belt.getSlots().getFirst();
-        slot.place(plate1);
+        slot.place(plate1.getId());
 
         // then
-        assertThrows(IllegalStateException.class, () -> slot.place(plate2));
+        assertThrows(IllegalStateException.class, () -> slot.place(plate2.getId()));
     }
 
     @Test
@@ -94,14 +94,14 @@ class BeltSlotTest {
         var belt = TestData.defaultBelt();
         var slot = belt.getSlots().getFirst();
 
-        slot.place(plate1);
+        slot.place(plate1.getId());
         assertAll("Assert after first place/take",
-                () -> assertSame(plate1, slot.take()),
+                () -> assertEquals(plate1.getId(), slot.take()),
                 () -> assertTrue(slot.isEmpty()));
 
-        slot.place(plate2);
+        slot.place(plate2.getId());
         assertAll("Assert after second place/take",
-                () -> assertSame(plate2, slot.take()),
+                () -> assertEquals(plate2.getId(), slot.take()),
                 () -> assertNull(slot.take()));
     }
 
@@ -110,10 +110,10 @@ class BeltSlotTest {
     void takeStrict_happy_then_empty_throws() {
         var belt = TestData.defaultBelt();
         var slot = belt.getSlots().getFirst();
-        slot.place(plate1);
+        slot.place(plate1.getId());
 
         assertAll("Assert belt slot",
-                () -> assertSame(plate1, slot.takeStrict(), "takeStrict should return the exact placed plate"),
+                () -> assertEquals(plate1.getId(), slot.takeStrict(), "takeStrict should return the exact placed plate"),
                 () -> assertTrue(slot.isEmpty(), "slot must be empty after takeStrict"),
                 () -> assertThrows(IllegalStateException.class, slot::takeStrict, "taking again from empty should throw"));
     }

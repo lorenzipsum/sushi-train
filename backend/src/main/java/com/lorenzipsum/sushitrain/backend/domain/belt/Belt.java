@@ -1,65 +1,85 @@
 package com.lorenzipsum.sushitrain.backend.domain.belt;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-@Entity
-@Table(name = "belt")
-@Getter
+
+/**
+ * Belt rotation is simulated using 'rotationOffset' containing a value from '0' to 'slotCount-1'
+ * UI computes positions as (positionIndex + rotationOffset) % slotCount
+ */
+@SuppressWarnings("LombokGetterMayBeUsed")
 public class Belt {
-    @Id
-    private UUID id;
-
-    private String name;
-
-    @Column(name = "slot_count", nullable = false)
-    private int slotCount;
-
-    /**
-     * 0..slotCount-1; UI computes positions as (positionIndex + rotationOffset) % slotCount
-     */
-    @Column(name = "rotation_offset", nullable = false)
-    private int rotationOffset = 0;
-
-    @Setter
-    @Column(name = "tick_interval_ms", nullable = false)
-    private int tickIntervalMs = 1000;
-
-    @Column(name = "speed_slots_per_tick", nullable = false)
-    private int speedSlotsPerTick = 1;
-
-    @OneToMany(mappedBy = "belt", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final UUID id;
+    private final String name;
+    private final int slotCount;
     private final List<BeltSlot> slots = new ArrayList<>();
+    private int rotationOffset;
+    private int tickIntervalMs;
+    private int speedSlotsPerTick;
 
-    @SuppressWarnings("unused")
-    protected Belt() {
-    }
-
-    private Belt(UUID id, String name, int slotCount) {
+    private Belt(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick) {
         this.id = id;
         this.name = name;
-        this.slotCount = Math.max(1, slotCount);
+        this.slotCount = slotCount;
+        this.rotationOffset = ((rotationOffset % slotCount) + slotCount) % slotCount; // normalize
+        this.tickIntervalMs = Math.max(1, tickIntervalMs);
+        this.speedSlotsPerTick = Math.max(1, speedSlotsPerTick);
+        IntStream.range(0, slotCount).forEach(i ->
+                this.slots.add(BeltSlot.createEmptyAt(id, i)));
     }
 
     public static Belt create(String name, int slotCount) {
-        var belt = new Belt(UUID.randomUUID(), name, slotCount);
-        IntStream.range(0, belt.slotCount).forEach(i -> belt.slots.add(BeltSlot.emptyAt(belt, i)));
-        return belt;
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("name must not be blank");
+        if (slotCount <= 0) throw new IllegalArgumentException("slotCount must be > 0");
+        return new Belt(UUID.randomUUID(), name, slotCount, 0, 1000, 1);
     }
 
+    public static Belt rehydrate(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick) {
+        return new Belt(id, name, Math.max(1, slotCount), rotationOffset, tickIntervalMs, speedSlotsPerTick);
+    }
+
+    // public setters containing invariants
     public void advanceOffset() {
         rotationOffset = (rotationOffset + speedSlotsPerTick) % slotCount;
     }
 
-    public void setSpeedSlotsPerTick(int s) {
-        this.speedSlotsPerTick = Math.max(1, s);
+    public void setSpeedSlotsPerTick(int speedSlotsPerTick) {
+        if (speedSlotsPerTick >= slotCount)
+            throw new IllegalArgumentException("Speed slots per tick cannot has to be smaller than amount of slots");
+        this.speedSlotsPerTick = Math.max(1, speedSlotsPerTick);
+    }
+
+    public void setTickIntervalMs(int tickIntervalMs) {
+        this.tickIntervalMs = Math.max(1, tickIntervalMs);
+    }
+
+    // public getters
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getSlotCount() {
+        return slotCount;
+    }
+
+    public int getRotationOffset() {
+        return rotationOffset;
+    }
+
+    public int getTickIntervalMs() {
+        return tickIntervalMs;
+    }
+
+    public int getSpeedSlotsPerTick() {
+        return speedSlotsPerTick;
     }
 
     public List<BeltSlot> getSlots() {

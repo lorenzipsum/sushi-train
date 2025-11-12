@@ -11,7 +11,7 @@ class BeltTest {
 
     @Test
     @DisplayName("create(name, slotCount) initializes belt with slots and sane defaults")
-    void create_initializeSlotsAndDefaults() {
+    void create_ok_initializeSlotsAndDefaults() {
         var belt = Belt.create("Main", 8);
 
         assertAll("Asserting sane defaults after creation",
@@ -31,6 +31,18 @@ class BeltTest {
         for (int i = 0; i < 8; i++) {
             assertTrue(indices.contains(i), "Slot index " + i + " should exist");
         }
+    }
+
+    @Test
+    @DisplayName("slotCount is clamped to at least 1")
+    void create_not_ok() {
+        assertAll("Asserting handling of unsuccessful creation",
+                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("Default", 0)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("Default", -1)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create(null, 1)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("", 1)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create(" ", 1))
+        );
     }
 
     @Test
@@ -91,12 +103,51 @@ class BeltTest {
     }
 
     @Test
+    @DisplayName("speedSlotsPerTick can be updated")
+    void setSpeedSlotsPerTick_updates() {
+        var belt = Belt.create("Default", 10);
+
+        assertEquals(1, belt.getSpeedSlotsPerTick());
+
+        belt.setSpeedSlotsPerTick(5);
+        assertEquals(5, belt.getSpeedSlotsPerTick());
+
+        belt.setSpeedSlotsPerTick(2);
+        assertEquals(2, belt.getSpeedSlotsPerTick());
+
+        belt.setSpeedSlotsPerTick(1);
+        assertEquals(1, belt.getSpeedSlotsPerTick());
+
+        belt.setSpeedSlotsPerTick(0);
+        assertEquals(1, belt.getSpeedSlotsPerTick());
+
+        belt.setSpeedSlotsPerTick(-1);
+        assertEquals(1, belt.getSpeedSlotsPerTick());
+
+        assertThrows(IllegalArgumentException.class, () -> belt.setSpeedSlotsPerTick(10));
+    }
+
+    @Test
     @DisplayName("tickIntervalMs can be updated")
     void setTickInterval_updates() {
         var belt = Belt.create("Slowy", 10);
 
+        assertEquals(1000, belt.getTickIntervalMs());
+
         belt.setTickIntervalMs(2000);
         assertEquals(2000, belt.getTickIntervalMs());
+
+        belt.setTickIntervalMs(2);
+        assertEquals(2, belt.getTickIntervalMs());
+
+        belt.setTickIntervalMs(1);
+        assertEquals(1, belt.getTickIntervalMs());
+
+        belt.setTickIntervalMs(0);
+        assertEquals(1, belt.getTickIntervalMs());
+
+        belt.setTickIntervalMs(-1);
+        assertEquals(1, belt.getTickIntervalMs());
     }
 
     @Test
@@ -108,15 +159,5 @@ class BeltTest {
 
         assertThrows(UnsupportedOperationException.class, slots::clear);
         assertThrows(UnsupportedOperationException.class, slots::removeFirst);
-    }
-
-    @Test
-    @DisplayName("slotCount is clamped to at least 1")
-    void slotCount_minimumOne() {
-        var belt = Belt.create("ZeroTest", 0);
-        assertEquals(1, belt.getSlotCount());
-
-        var belt2 = Belt.create("BelowZeroTest", -5);
-        assertEquals(1, belt2.getSlotCount());
     }
 }

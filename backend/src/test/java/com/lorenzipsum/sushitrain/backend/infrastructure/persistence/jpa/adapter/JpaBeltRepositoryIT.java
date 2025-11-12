@@ -1,12 +1,11 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
-import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
-import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.MenuItemEntity;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.MenuItemMapper;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
+import com.lorenzipsum.sushitrain.backend.domain.TestData;
+import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
+import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltMapper;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltJpaDao;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +23,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackageClasses = MenuItemEntity.class)
-@EnableJpaRepositories(basePackageClasses = MenuItemJpaDao.class)
-@Import({JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
-class JpaMenuItemRepositoryIT {
+@EntityScan(basePackageClasses = BeltEntity.class)
+@EnableJpaRepositories(basePackageClasses = BeltJpaDao.class)
+@Import({JpaBeltRepository.class, BeltMapper.class}) // <-- import adapter + mapper only
+class JpaBeltRepositoryIT {
 
     @Container
     static final PostgreSQLContainer<?> DB = createDb();
@@ -44,27 +45,32 @@ class JpaMenuItemRepositoryIT {
 
     @Autowired
     @SuppressWarnings("unused")
-    private MenuItemRepository menuItems; // the hex port implemented by JpaMenuItemRepository
+    private BeltRepository repository; // the hex port implemented by JpaMenuItemRepository
 
     @Test
-    @DisplayName("persist and load a MenuItem via hex adapter")
-    void persistAndLoadMenuItem() {
+    @DisplayName("persist and load a Belt via adapter")
+    void persistAndLoadBelt() {
         // Arrange
-        MenuItem salmon = MenuItem.create("Salmon Nigiri", PlateTier.GREEN, new MoneyYen(120));
+        var belt = TestData.defaultBelt();
 
         // Act
-        MenuItem saved = menuItems.save(salmon);
-        var reloadedOpt = menuItems.findById(saved.getId());
+        var saved = repository.save(belt);
+        var reloadedOpt = repository.findById(saved.getId());
 
         // Assert
         assertThat(saved.getId()).isNotNull();
         assertThat(reloadedOpt).isPresent();
 
-        MenuItem reloaded = reloadedOpt.get();
-        assertThat(reloaded.getId()).isEqualTo(saved.getId());
-        assertThat(reloaded.getName()).isEqualTo("Salmon Nigiri");
-        assertThat(reloaded.getDefaultTier()).isEqualTo(PlateTier.GREEN);
-        assertThat(reloaded.getBasePrice().getAmount()).isEqualTo(120);
-        assertThat(reloaded.getCreatedAt()).isNotNull();
+        Belt reloaded = reloadedOpt.get();
+
+        assertAll("Asserting reloaded values correct",
+                () -> assertEquals(saved.getId(), reloaded.getId()),
+                () -> assertEquals("Default", reloaded.getName()),
+                () -> assertEquals(10, reloaded.getSlotCount()),
+                () -> assertEquals(0, reloaded.getRotationOffset()),
+                () -> assertEquals(1000, reloaded.getTickIntervalMs()),
+                () -> assertEquals(1, reloaded.getSpeedSlotsPerTick()),
+                () -> assertEquals(10, reloaded.getSlots().size())
+        );
     }
 }

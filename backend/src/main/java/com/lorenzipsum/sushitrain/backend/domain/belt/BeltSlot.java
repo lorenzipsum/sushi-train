@@ -1,65 +1,66 @@
 package com.lorenzipsum.sushitrain.backend.domain.belt;
 
-import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import jakarta.persistence.*;
-import lombok.Getter;
-
 import java.util.UUID;
 
-@Entity
-@Table(name = "belt_slot")
-@Getter
+@SuppressWarnings("LombokGetterMayBeUsed")
 public class BeltSlot {
-    @Id
-    private UUID id;
+    private final UUID id;
+    private final UUID beltId;
+    private final int positionIndex;
+    private UUID plateId;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "belt_id", nullable = false)
-    private Belt belt;
-
-    private int positionIndex;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plate_id")
-    private Plate plate;
-
-    @SuppressWarnings("unused")
-    protected BeltSlot() {
-    }
-
-    private BeltSlot(UUID id, Belt belt, int positionIndex, Plate plate) {
+    public BeltSlot(UUID id, UUID beltId, int positionIndex, UUID plateId) {
         this.id = id;
-        this.belt = belt;
+        this.beltId = beltId;
         this.positionIndex = positionIndex;
-        this.plate = plate;
+        this.plateId = plateId;
     }
 
-    public static BeltSlot emptyAt(Belt belt, int positionIndex) {
-        return new BeltSlot(UUID.randomUUID(), belt, positionIndex, null);
+    static BeltSlot createEmptyAt(UUID beltId, int positionIndex) {
+        return new BeltSlot(UUID.randomUUID(), beltId, positionIndex, null);
     }
 
     public boolean isEmpty() {
-        return plate == null;
+        return plateId == null;
     }
 
-    public void place(Plate p) {
-        if (p == null) {
-            throw new IllegalArgumentException("Plate cannot be null");
-        }
-        if (this.plate != null) {
-            throw new IllegalStateException("Plate is already assigned to belt slot");
-        }
-        this.plate = p;
+    public void place(UUID plateId) {
+        if (plateId == null) throw new IllegalArgumentException("plateId must not be null");
+        if (this.plateId != null) throw new IllegalStateException("slot already occupied");
+        this.plateId = plateId;
     }
 
-    public Plate take() {
-        var p = this.plate;
-        this.plate = null;
+    public UUID take() {
+        UUID p = this.plateId;
+        this.plateId = null;
         return p;
     }
 
-    public Plate takeStrict() {
-        if (isEmpty()) throw new IllegalStateException("No plate to take");
+    public UUID takeStrict() {
+        if (this.plateId == null) throw new IllegalStateException("slot is empty");
         return take();
+    }
+
+    // Getters
+    public UUID getId() {
+        return id;
+    }
+
+    public UUID getBeltId() {
+        return beltId;
+    }
+
+    public int getPositionIndex() {
+        return positionIndex;
+    }
+
+    public UUID getPlateId() {
+        return plateId;
+    }
+
+    // package-private setter for mapper
+    @SuppressWarnings("unused")
+    void setPlateId(UUID plateId) {
+        this.plateId = plateId;
     }
 }

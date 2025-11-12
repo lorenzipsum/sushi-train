@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-
 @SuppressWarnings("LombokGetterMayBeUsed")
 public class MenuItem {
     private UUID id;
