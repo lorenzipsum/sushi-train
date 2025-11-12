@@ -57,10 +57,4 @@ public class BeltSlot {
     public UUID getPlateId() {
         return plateId;
     }
-
-    // package-private setter for mapper
-    @SuppressWarnings("unused")
-    void setPlateId(UUID plateId) {
-        this.plateId = plateId;
-    }
 }
