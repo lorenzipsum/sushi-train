@@ -3,7 +3,6 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapte
 import com.lorenzipsum.sushitrain.backend.domain.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltJpaDao;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackageClasses = BeltEntity.class)
+@EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
 @EnableJpaRepositories(basePackageClasses = BeltJpaDao.class)
 @Import({JpaBeltRepository.class, BeltMapper.class}) // <-- import adapter + mapper only
 class JpaBeltRepositoryIT {

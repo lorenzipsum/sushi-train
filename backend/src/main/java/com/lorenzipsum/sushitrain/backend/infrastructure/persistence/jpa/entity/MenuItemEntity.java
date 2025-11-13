@@ -1,5 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity;
 
+import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -28,7 +29,7 @@ public class MenuItemEntity {
     private PlateTier defaultTier;
 
     @Column(name = "base_price_yen", nullable = false)
-    private int basePriceYen;
+    private MoneyYen basePriceYen;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -37,7 +38,7 @@ public class MenuItemEntity {
     protected MenuItemEntity() {
     }
 
-    public MenuItemEntity(UUID id, String name, PlateTier defaultTier, int basePriceYen, Instant createdAt) {
+    public MenuItemEntity(UUID id, String name, PlateTier defaultTier, MoneyYen basePriceYen, Instant createdAt) {
         this.id = id;
         this.name = name;
         this.defaultTier = defaultTier;

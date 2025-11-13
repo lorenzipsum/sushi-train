@@ -61,7 +61,7 @@ class OrderLineTest {
     void create_snapshots_ok() {
         var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(250), TestData.inTwoHours());
 
-        var orderLine1 = OrderLine.create(specialPlate, order, SALMON_NIGIRI, specialPlate.getPriceAtCreation().getAmount());
+        var orderLine1 = OrderLine.create(specialPlate, order, SALMON_NIGIRI, specialPlate.getPriceAtCreation().amount());
         assertAll("Asserting sane defaults for order line 1",
                 () -> assertEquals(SALMON_NIGIRI, orderLine1.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.RED, orderLine1.getTierSnapshot()),

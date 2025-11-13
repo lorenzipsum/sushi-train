@@ -98,11 +98,11 @@ class OrderTest {
     void total_ok() {
         var order = Order.open(seat);
 
-        var orderLine1 = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().getAmount());
-        var orderLine2 = order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().getAmount());
+        var orderLine1 = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().amount());
+        var orderLine2 = order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().amount());
 
         assertAll("Asserting order and lines",
-                () -> assertEquals(1250, order.total().getAmount()),
+                () -> assertEquals(1250, order.total().amount()),
                 () -> assertEquals(2, order.getLines().size()),
                 () -> assertSame(orderLine1, order.getLines().getFirst()),
                 () -> assertSame(orderLine2, order.getLines().getLast())
@@ -115,7 +115,7 @@ class OrderTest {
 
         var order = Order.open(seat);
 
-        order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().getAmount());
+        order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().amount());
 
         var before = Instant.now();
         order.checkout();
@@ -124,13 +124,13 @@ class OrderTest {
         assertAll("Asserting order after checkout",
                 () -> assertEquals(OrderStatus.CHECKED_OUT, order.getStatus()),
                 () -> assertEquals(1, order.getLines().size()),
-                () -> assertEquals(800, order.total().getAmount()),
+                () -> assertEquals(800, order.total().amount()),
                 () -> assertTrue(!order.getClosedAt().isBefore(before)
                                 && !order.getClosedAt().isAfter(after),
                         "closedAt should be between 'before' and 'after'"));
 
         assertThrows(IllegalStateException.class, () ->
-                order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().getAmount()));
+                order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().amount()));
     }
 
     @Test
@@ -154,8 +154,8 @@ class OrderTest {
     void removeLine_ok() {
         Order order = Order.open(seat);
 
-        OrderLine orderLine1 = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().getAmount());
-        OrderLine orderLine2 = order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().getAmount());
+        OrderLine orderLine1 = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().amount());
+        OrderLine orderLine2 = order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().amount());
 
         order.removeLine(orderLine1);
 

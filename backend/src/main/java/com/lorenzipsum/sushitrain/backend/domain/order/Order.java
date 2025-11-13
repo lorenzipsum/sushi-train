@@ -72,7 +72,7 @@ public class Order {
     }
 
     public MoneyYen total() {
-        int sum = lines.stream().mapToInt(l -> l.getPriceAtPick().getAmount()).sum();
+        int sum = lines.stream().mapToInt(l -> l.getPriceAtPick().amount()).sum();
         return new MoneyYen(sum);
     }
 

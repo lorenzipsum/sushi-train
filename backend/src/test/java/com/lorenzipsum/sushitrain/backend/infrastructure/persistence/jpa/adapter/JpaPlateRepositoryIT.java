@@ -7,8 +7,6 @@ import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.MenuItemEntity;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.MenuItemMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.PlateMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
@@ -36,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackageClasses = {PlateEntity.class, MenuItemEntity.class})
+@EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
 @EnableJpaRepositories(basePackageClasses = {PlateJpaDao.class, MenuItemJpaDao.class})
 @Import({JpaPlateRepository.class, PlateMapper.class, JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
 class JpaPlateRepositoryIT {

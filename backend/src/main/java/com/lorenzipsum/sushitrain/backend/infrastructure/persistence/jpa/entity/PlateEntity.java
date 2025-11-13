@@ -25,8 +25,7 @@ public class PlateEntity {
     @Column(name = "tier_snapshot", nullable = false, length = 16)
     private PlateTier tierSnapshot;
 
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "price_at_creation_yen", nullable = false))
+    @Column(name = "price_at_creation_yen", nullable = false)
     private MoneyYen priceAtCreation;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -14,8 +14,8 @@ class MoneyYenTest {
     @DisplayName("MoneyYen can be instantiated but no negative amounts are allowed")
     void instantiate_ok() {
         assertAll("Assert instantiation",
-                () -> assertEquals(5, FIVE.getAmount()),
-                () -> assertEquals(0, ZERO.getAmount()),
+                () -> assertEquals(5, FIVE.amount()),
+                () -> assertEquals(0, ZERO.amount()),
                 () -> assertThrows(IllegalArgumentException.class, () -> new MoneyYen(-4)));
     }
 
@@ -55,7 +55,7 @@ class MoneyYenTest {
         var eight = FIVE.plus(THREE);
 
         assertAll("Assert addition of amounts",
-                () -> assertEquals(8, eight.getAmount()),
+                () -> assertEquals(8, eight.amount()),
                 () -> assertThrows(IllegalArgumentException.class, () -> FIVE.plus(null)));
     }
 
@@ -64,9 +64,9 @@ class MoneyYenTest {
     void plus_immutability() {
         var eight = FIVE.plus(THREE);
         assertNotSame(FIVE, eight);
-        assertEquals(5, FIVE.getAmount());
-        assertEquals(3, THREE.getAmount());
-        assertEquals(8, eight.getAmount());
+        assertEquals(5, FIVE.amount());
+        assertEquals(3, THREE.amount());
+        assertEquals(8, eight.amount());
     }
 
     @Test

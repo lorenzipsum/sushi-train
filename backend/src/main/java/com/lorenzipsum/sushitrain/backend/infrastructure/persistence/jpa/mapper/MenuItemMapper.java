@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.MenuItemEntity;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,7 @@ public class MenuItemMapper {
                 e.getId(),
                 e.getName(),
                 e.getDefaultTier(),
-                new MoneyYen(e.getBasePriceYen()),
+                e.getBasePriceYen(),
                 e.getCreatedAt()
         );
     }
@@ -29,7 +28,7 @@ public class MenuItemMapper {
                 d.getId(),
                 d.getName(),
                 d.getDefaultTier(),
-                d.getBasePrice().getAmount(),
+                d.getBasePrice(),
                 d.getCreatedAt()
         );
     }

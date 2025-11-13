@@ -25,7 +25,7 @@ class MenuItemTest {
                 () -> assertEquals(SALMON_NIGIRI, salmonNigiri.getName()),
                 () -> assertEquals(PlateTier.GREEN, salmonNigiri.getDefaultTier()),
                 () -> assertEquals(MoneyYen.of(450), salmonNigiri.getBasePrice()),
-                () -> assertEquals(450, salmonNigiri.getBasePrice().getAmount()),
+                () -> assertEquals(450, salmonNigiri.getBasePrice().amount()),
                 () -> assertNotNull(salmonNigiri.getCreatedAt()),
                 () -> assertTrue(!salmonNigiri.getCreatedAt().isBefore(before) &&
                                 !salmonNigiri.getCreatedAt().isAfter(after),

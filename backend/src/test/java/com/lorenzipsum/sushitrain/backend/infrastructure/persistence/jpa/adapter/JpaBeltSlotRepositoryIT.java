@@ -4,8 +4,6 @@ import com.lorenzipsum.sushitrain.backend.domain.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltSlot;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltSlotRepository;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltSlotEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltSlotMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltJpaDao;
@@ -34,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackageClasses = {BeltSlotEntity.class, BeltEntity.class})
+@EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
 @EnableJpaRepositories(basePackageClasses = {BeltSlotJpaDao.class, BeltJpaDao.class})
 @Import({JpaBeltSlotRepository.class, BeltSlotMapper.class, JpaBeltRepository.class, BeltMapper.class}) // <-- import adapter + mapper only
 class JpaBeltSlotRepositoryIT {

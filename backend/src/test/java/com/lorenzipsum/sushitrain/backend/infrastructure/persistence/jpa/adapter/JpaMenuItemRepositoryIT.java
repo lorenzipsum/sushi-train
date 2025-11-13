@@ -4,7 +4,6 @@ import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.MenuItemEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.MenuItemMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackageClasses = MenuItemEntity.class)
+@EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
 @EnableJpaRepositories(basePackageClasses = MenuItemJpaDao.class)
 @Import({JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
 class JpaMenuItemRepositoryIT {
@@ -67,7 +66,7 @@ class JpaMenuItemRepositoryIT {
         assertThat(reloaded.getId()).isEqualTo(saved.getId());
         assertThat(reloaded.getName()).isEqualTo(SALMON_NIGIRI);
         assertThat(reloaded.getDefaultTier()).isEqualTo(PlateTier.GREEN);
-        assertThat(reloaded.getBasePrice().getAmount()).isEqualTo(120);
+        assertThat(reloaded.getBasePrice().amount()).isEqualTo(120);
         assertThat(reloaded.getCreatedAt()).isNotNull();
     }
 

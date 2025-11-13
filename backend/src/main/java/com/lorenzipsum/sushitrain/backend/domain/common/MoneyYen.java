@@ -1,29 +1,15 @@
 package com.lorenzipsum.sushitrain.backend.domain.common;
 
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import lombok.Getter;
-
 import java.text.NumberFormat;
 import java.util.Locale;
 
 /**
  * Integer Yen to avoid floating point.
  */
-@Embeddable
-@Getter
-public class MoneyYen {
-    @Column(nullable = false)
-    private int amount;
+public record MoneyYen(int amount) {
 
-    @SuppressWarnings("unused")
-    protected MoneyYen() {
-    }
-
-    public MoneyYen(int amount) {
+    public MoneyYen {
         if (amount < 0) throw new IllegalArgumentException("Amount cannot be a negative value");
-        this.amount = amount;
     }
 
     public MoneyYen plus(MoneyYen other) {
@@ -33,7 +19,16 @@ public class MoneyYen {
         return new MoneyYen((int) sum);
     }
 
+    public boolean isZero() {
+        return amount == 0;
+    }
+
+    public static MoneyYen of(int amount) {
+        return new MoneyYen(amount);
+    }
+
     @Override
+    @SuppressWarnings("NullableProblems")
     public String toString() {
         return formatYen(amount);
     }
@@ -49,26 +44,5 @@ public class MoneyYen {
         var yenFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN);
         yenFormat.setMaximumFractionDigits(0); // ensure no decimals
         return yenFormat.format(amount);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MoneyYen moneyYen = (MoneyYen) o;
-        return amount == moneyYen.amount;
-    }
-
-    @Override
-    public int hashCode() {
-        return Integer.hashCode(amount);
-    }
-
-    public boolean isZero() {
-        return amount == 0;
-    }
-
-    public static MoneyYen of(int amount) {
-        return new MoneyYen(amount);
     }
 }
