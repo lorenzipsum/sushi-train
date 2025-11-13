@@ -8,7 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.UUID;
 
+import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderLineTest {
@@ -20,7 +22,7 @@ class OrderLineTest {
     @DisplayName("Order line can be created with sane defaults")
     void create_ok() {
         var before = Instant.now();
-        var orderLine = OrderLine.create(plate, order, 450);
+        var orderLine = OrderLine.create(plate, order, SALMON_NIGIRI, 450);
         var after = Instant.now();
 
         assertAll("Asserting sane defaults for order line",
@@ -39,7 +41,7 @@ class OrderLineTest {
     @Test
     @DisplayName("Zero price is allowed (comped/discounted)")
     void zero_price_allowed() {
-        var line = OrderLine.create(plate, order, 0);
+        var line = OrderLine.create(plate, order, SALMON_NIGIRI, 0);
         assertEquals(MoneyYen.of(0), line.getPriceAtPick());
     }
 
@@ -48,25 +50,25 @@ class OrderLineTest {
     void create_not_ok() {
 
         assertAll("Instantiation handles null values",
-                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(null, order, 450)),
-                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate, null, 450)),
-                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate, order, -450))
+                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(null, order, SALMON_NIGIRI, 450)),
+                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate, null, SALMON_NIGIRI, 450)),
+                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate, order, SALMON_NIGIRI, -450))
         );
     }
 
     @Test
     @DisplayName("Order line keeps snapshots ")
     void create_snapshots_ok() {
-        var specialPlate = Plate.create(TestData.menuItemSalmonNigiri(), PlateTier.RED, MoneyYen.of(250), TestData.soon());
+        var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(250), TestData.inTwoHours());
 
-        var orderLine1 = OrderLine.create(specialPlate, order, specialPlate.getPriceAtCreation().getAmount());
+        var orderLine1 = OrderLine.create(specialPlate, order, SALMON_NIGIRI, specialPlate.getPriceAtCreation().getAmount());
         assertAll("Asserting sane defaults for order line 1",
                 () -> assertEquals("Salmon Nigiri", orderLine1.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.RED, orderLine1.getTierSnapshot()),
                 () -> assertEquals(MoneyYen.of(250), orderLine1.getPriceAtPick())
         );
 
-        var orderLine2 = OrderLine.create(specialPlate, order, 550);
+        var orderLine2 = OrderLine.create(specialPlate, order, SALMON_NIGIRI, 550);
         assertEquals(MoneyYen.of(550), orderLine2.getPriceAtPick());
     }
 }

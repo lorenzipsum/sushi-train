@@ -59,12 +59,14 @@ public class Order {
         return new Order(UUID.randomUUID(), seat);
     }
 
-    public OrderLine addLineFromPlate(Plate plate, int priceAtPickInYen) {
+    public OrderLine addLineFromPlate(Plate plate, String menuItemNameSnapshot, int priceAtPickInYen) {
         if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
+        if (menuItemNameSnapshot == null || menuItemNameSnapshot.isBlank())
+            throw new IllegalArgumentException("Name must not be blank");
         if (status != OrderStatus.OPEN) throw new IllegalStateException(ERR_ORDER_NOT_OPEN);
         if (priceAtPickInYen < 0) throw new IllegalArgumentException("Price cannot be a negative value");
 
-        OrderLine orderLine = OrderLine.create(plate, this, priceAtPickInYen);
+        OrderLine orderLine = OrderLine.create(plate, this, menuItemNameSnapshot, priceAtPickInYen);
         this.lines.add(orderLine);
         return orderLine;
     }

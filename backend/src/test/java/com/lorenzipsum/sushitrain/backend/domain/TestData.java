@@ -8,8 +8,12 @@ import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public final class TestData {
+    public static final String SALMON_NIGIRI = "Salmon Nigiri";
+    public static final String CHICKEN_KARAAGE = "Chicken Karaage";
+
     private TestData() {
     }
 
@@ -21,27 +25,23 @@ public final class TestData {
         return MenuItem.create("Salmon Nigiri", PlateTier.GREEN, new MoneyYen(450));
     }
 
-    public static MenuItem menuItemChickenKaraage() {
-        return MenuItem.create("Chicken Karaage", PlateTier.GOLD, MoneyYen.of(800));
-    }
-
     public static MenuItem menuItemMaguroNigiri() {
         return MenuItem.create("Maguro Nigiri", PlateTier.GREEN, MoneyYen.of(500));
     }
 
     public static Plate plateSalmonNigiri() {
-        return Plate.create(menuItemSalmonNigiri(), soon());
+        return Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
     }
 
     public static Plate plateChickenKaraage() {
-        return Plate.create(menuItemChickenKaraage(), soon());
+        return Plate.create(UUID.randomUUID(), PlateTier.GOLD, MoneyYen.of(800), inTwoHours());
     }
 
     public static Seat defaultSeat() {
         return Seat.create("1", defaultBelt(), 5);
     }
 
-    public static Instant soon() {
+    public static Instant inTwoHours() {
         return Instant.now().plusSeconds(7200);
     }
 }

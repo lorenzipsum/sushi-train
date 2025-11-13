@@ -52,11 +52,11 @@ public class OrderLine {
         this.pickedAt = pickedAt;
     }
 
-    public static OrderLine create(Plate plate, Order order, int priceInYen) {
+    public static OrderLine create(Plate plate, Order order, String menuItemNameSnapshot, int priceInYen) {
         if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
         if (order == null) throw new IllegalArgumentException("Order cannot be null");
         if (priceInYen < 0) throw new IllegalArgumentException("Price cannot be a negative value");
-        return new OrderLine(UUID.randomUUID(), plate, order, plate.getMenuItem().getName(), plate.getTierSnapshot(), new MoneyYen(priceInYen), Instant.now());
+        return new OrderLine(UUID.randomUUID(), plate, order, menuItemNameSnapshot, plate.getTierSnapshot(), new MoneyYen(priceInYen), Instant.now());
     }
 
     @PrePersist

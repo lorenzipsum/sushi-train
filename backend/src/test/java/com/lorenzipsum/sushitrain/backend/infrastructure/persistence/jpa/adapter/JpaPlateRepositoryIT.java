@@ -1,12 +1,18 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
+import com.lorenzipsum.sushitrain.backend.domain.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
+import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
+import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.MenuItemEntity;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.MenuItemMapper;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.PlateMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +30,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackageClasses = MenuItemEntity.class)
-@EnableJpaRepositories(basePackageClasses = MenuItemJpaDao.class)
-@Import({JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
-class JpaMenuItemRepositoryIT {
+@EntityScan(basePackageClasses = {PlateEntity.class, MenuItemEntity.class})
+@EnableJpaRepositories(basePackageClasses = {PlateJpaDao.class, MenuItemJpaDao.class})
+@Import({JpaPlateRepository.class, PlateMapper.class, JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
+class JpaPlateRepositoryIT {
 
     @Container
     static final PostgreSQLContainer<?> DB = createDb();
@@ -44,27 +52,37 @@ class JpaMenuItemRepositoryIT {
 
     @Autowired
     @SuppressWarnings("unused")
-    private MenuItemRepository menuItems;
+    private PlateRepository repository;
+
+    @Autowired
+    @SuppressWarnings("unused")
+    private MenuItemRepository menuItemRepository;
 
     @Test
-    @DisplayName("persist and load a MenuItem via hex adapter")
-    void persistAndLoadMenuItem() {
+    @DisplayName("persist and load a Plate via adapter")
+    void persistAndLoadPlate() {
         // Arrange
-        MenuItem salmon = MenuItem.create("Salmon Nigiri", PlateTier.GREEN, new MoneyYen(120));
+        var menuItem = menuItemRepository.save(MenuItem.create("Salmon Nigiri", PlateTier.GREEN, new MoneyYen(120)));
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), TestData.inTwoHours());
 
         // Act
-        MenuItem saved = menuItems.save(salmon);
-        var reloadedOpt = menuItems.findById(saved.getId());
+        var saved = repository.save(plate);
+        var reloadedOpt = repository.findById(saved.getId());
 
         // Assert
         assertThat(saved.getId()).isNotNull();
         assertThat(reloadedOpt).isPresent();
 
-        MenuItem reloaded = reloadedOpt.get();
-        assertThat(reloaded.getId()).isEqualTo(saved.getId());
-        assertThat(reloaded.getName()).isEqualTo("Salmon Nigiri");
-        assertThat(reloaded.getDefaultTier()).isEqualTo(PlateTier.GREEN);
-        assertThat(reloaded.getBasePrice().getAmount()).isEqualTo(120);
-        assertThat(reloaded.getCreatedAt()).isNotNull();
+        Plate reloaded = reloadedOpt.get();
+
+        assertAll("Asserting reloaded values correct",
+                () -> assertEquals(saved.getId(), reloaded.getId()),
+                () -> assertEquals(saved.getTierSnapshot(), reloaded.getTierSnapshot()),
+                () -> assertEquals(saved.getPriceAtCreation(), reloaded.getPriceAtCreation()),
+                () -> assertEquals(saved.getExpiresAt(), reloaded.getExpiresAt()),
+                () -> assertEquals(saved.getStatus(), reloaded.getStatus()),
+                () -> assertEquals(saved.getCreatedAt(), reloaded.getCreatedAt()),
+                () -> assertEquals(saved.getMenuItemId(), reloaded.getMenuItemId())
+        );
     }
 }

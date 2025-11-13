@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
+import static com.lorenzipsum.sushitrain.backend.domain.TestData.CHICKEN_KARAAGE;
+import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderTest {
@@ -50,7 +52,7 @@ class OrderTest {
         var order = Order.open(seat);
 
         var before = Instant.now();
-        var orderLine = order.addLineFromPlate(chickenKaraagePlate, 800);
+        var orderLine = order.addLineFromPlate(chickenKaraagePlate, "Chicken Karaage", 800);
         var after = Instant.now();
 
         assertAll("Asserting sane defaults for order line",
@@ -76,8 +78,11 @@ class OrderTest {
         var order = Order.open(seat);
 
         assertAll("Asserting correct null handling",
-                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, 500)),
-                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(salmonNigiriPlate, -5))
+                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, SALMON_NIGIRI, 500)),
+                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, null, 500)),
+                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, "", 500)),
+                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, " ", 500)),
+                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(salmonNigiriPlate, "Salmon Nigiri", -5))
         );
     }
 
@@ -93,8 +98,8 @@ class OrderTest {
     void total_ok() {
         var order = Order.open(seat);
 
-        var orderLine1 = order.addLineFromPlate(chickenKaraagePlate, chickenKaraagePlate.getPriceAtCreation().getAmount());
-        var orderLine2 = order.addLineFromPlate(salmonNigiriPlate, salmonNigiriPlate.getPriceAtCreation().getAmount());
+        var orderLine1 = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().getAmount());
+        var orderLine2 = order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().getAmount());
 
         assertAll("Asserting order and lines",
                 () -> assertEquals(1250, order.total().getAmount()),
@@ -110,7 +115,7 @@ class OrderTest {
 
         var order = Order.open(seat);
 
-        order.addLineFromPlate(chickenKaraagePlate, chickenKaraagePlate.getPriceAtCreation().getAmount());
+        order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().getAmount());
 
         var before = Instant.now();
         order.checkout();
@@ -125,14 +130,14 @@ class OrderTest {
                         "closedAt should be between 'before' and 'after'"));
 
         assertThrows(IllegalStateException.class, () ->
-                order.addLineFromPlate(salmonNigiriPlate, salmonNigiriPlate.getPriceAtCreation().getAmount()));
+                order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().getAmount()));
     }
 
     @Test
     @DisplayName("Checkout is not allowed twice")
     void checkout_twice_throws() {
         var order = Order.open(seat);
-        order.addLineFromPlate(salmonNigiriPlate, 450);
+        order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, 450);
         order.checkout();
         assertThrows(IllegalStateException.class, order::checkout);
     }
@@ -141,7 +146,7 @@ class OrderTest {
     @DisplayName("Zero price is allowed")
     void zero_price_allowed() {
         Order order = Order.open(seat);
-        var line = order.addLineFromPlate(salmonNigiriPlate, 0);
+        var line = order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, 0);
         assertEquals(MoneyYen.of(0), line.getPriceAtPick());
     }
 
@@ -149,8 +154,8 @@ class OrderTest {
     void removeLine_ok() {
         Order order = Order.open(seat);
 
-        OrderLine orderLine1 = order.addLineFromPlate(chickenKaraagePlate, chickenKaraagePlate.getPriceAtCreation().getAmount());
-        OrderLine orderLine2 = order.addLineFromPlate(salmonNigiriPlate, salmonNigiriPlate.getPriceAtCreation().getAmount());
+        OrderLine orderLine1 = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, chickenKaraagePlate.getPriceAtCreation().getAmount());
+        OrderLine orderLine2 = order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, salmonNigiriPlate.getPriceAtCreation().getAmount());
 
         order.removeLine(orderLine1);
 
@@ -169,9 +174,9 @@ class OrderTest {
     @DisplayName("After removing a line while OPEN, you can add another line")
     void remove_then_add_again_ok() {
         var order = Order.open(seat);
-        var line1 = order.addLineFromPlate(chickenKaraagePlate, 800);
+        var line1 = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, 800);
         order.removeLine(line1);
-        order.addLineFromPlate(salmonNigiriPlate, 450);
+        order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, 450);
         assertEquals(1, order.getLines().size());
     }
 }

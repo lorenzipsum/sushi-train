@@ -24,7 +24,7 @@ public class Belt {
     private Belt(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick) {
         this.id = id;
         this.name = name;
-        this.slotCount = slotCount;
+        this.slotCount = Math.max(1, slotCount);
         this.rotationOffset = ((rotationOffset % slotCount) + slotCount) % slotCount; // normalize
         this.tickIntervalMs = Math.max(1, tickIntervalMs);
         this.speedSlotsPerTick = Math.max(1, speedSlotsPerTick);
@@ -39,7 +39,7 @@ public class Belt {
     }
 
     public static Belt rehydrate(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick) {
-        return new Belt(id, name, Math.max(1, slotCount), rotationOffset, tickIntervalMs, speedSlotsPerTick);
+        return new Belt(id, name, slotCount, rotationOffset, tickIntervalMs, speedSlotsPerTick);
     }
 
     // public setters containing invariants

@@ -37,7 +37,8 @@ CREATE TABLE plate (
     price_at_creation_yen   INTEGER NOT NULL CHECK (price_at_creation_yen >= 0),
     created_at              TIMESTAMPTZ NOT NULL,
     expires_at              TIMESTAMPTZ NOT NULL,
-    status                  VARCHAR(16) NOT NULL
+    status                  VARCHAR(16) NOT NULL,
+    version                 BIGINT NOT NULL DEFAULT 0
 );
 CREATE INDEX idx_plate_menu_item ON plate(menu_item_id);
 
