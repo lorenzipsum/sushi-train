@@ -21,12 +21,14 @@ public class JpaBeltRepository implements BeltRepository {
     }
 
     @Override
-    public Optional<Belt> findById(UUID uuid) {
-        return dao.findById(uuid).map(mapper::toDomain);
+    public Optional<Belt> findById(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Id cannot be null");
+        return dao.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public Belt save(Belt belt) {
+        if (belt == null) throw new IllegalArgumentException("Belt cannot be null");
         var saved = dao.save(mapper.toEntity(belt));
         return mapper.toDomain(saved);
     }

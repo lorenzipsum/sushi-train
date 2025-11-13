@@ -25,18 +25,17 @@ public class JpaBeltSlotRepository implements BeltSlotRepository {
     }
 
     @Override
-    public Optional<BeltSlot> findById(UUID uuid) {
-        return dao.findById(uuid).map(mapper::toDomain);
+    public Optional<BeltSlot> findById(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Id cannot be null");
+        return dao.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public BeltSlot save(BeltSlot beltSlot) {
-        if (beltSlot.getBeltId() == null) {
-            throw new IllegalArgumentException("BeltSlot.beltId must not be null");
-        }
+        if (beltSlot == null) throw new IllegalArgumentException("BeltSlot cannot be null");
+
         BeltEntity beltEntity = beltDao.findById(beltSlot.getBeltId()).orElseThrow(
-                () -> new IllegalStateException("Belt not found for id: " + beltSlot.getBeltId())
-        );
+                () -> new IllegalStateException("Belt not found for id: " + beltSlot.getBeltId()));
 
         var saved = dao.save(mapper.toEntity(beltSlot, beltEntity));
         return mapper.toDomain(saved);

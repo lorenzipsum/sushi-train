@@ -24,11 +24,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.UUID;
+
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @DataJpaTest
@@ -77,6 +78,16 @@ class JpaBeltSlotRepositoryIT {
                 () -> assertEquals(saved.getBeltId(), reloaded.getBeltId()),
                 () -> assertEquals(saved.getPositionIndex(), reloaded.getPositionIndex()),
                 () -> assertEquals(saved.getPlateId(), reloaded.getPlateId())
+        );
+    }
+
+    @Test
+    @DisplayName("persist checks for null values")
+    void persistAndLoadBelt_not_ok() {
+        assertAll("Asserting null handling",
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.save(null)),
+                () -> assertThrows(IllegalStateException.class, () -> repository.save(BeltSlot.createEmptyAt(UUID.randomUUID(), 1))),
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
         );
     }
 }

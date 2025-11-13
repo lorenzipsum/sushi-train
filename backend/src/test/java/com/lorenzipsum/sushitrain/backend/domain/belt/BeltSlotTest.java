@@ -5,6 +5,8 @@ import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class BeltSlotTest {
@@ -14,7 +16,7 @@ class BeltSlotTest {
 
     @Test
     @DisplayName("Belt slot can be created with sane defaults")
-    void createEmptyAt_creation_ok() {
+    void createEmptyAt_creation_via_belt_ok() {
         var belt = TestData.defaultBelt();
 
         var firstSlot = belt.getSlots().getFirst();
@@ -40,6 +42,15 @@ class BeltSlotTest {
                 () -> assertNull(lastSlot.getPlateId()));
 
         belt.getSlots().forEach(slot -> assertEquals(belt.getId(), firstSlot.getBeltId(), "each slot must reference its parent belt"));
+    }
+
+    @Test
+    @DisplayName("Belt creation checks for invalid params")
+    void createEmptyAt_not_ok() {
+        assertAll("Asserting checking of invalid params during creation of BeltSlot",
+                () -> assertThrows(IllegalArgumentException.class, () -> BeltSlot.createEmptyAt(null,0)),
+                () -> assertThrows(IllegalArgumentException.class, () -> BeltSlot.createEmptyAt(UUID.randomUUID(),-1))
+        );
     }
 
     @Test

@@ -31,8 +31,7 @@ import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @DataJpaTest
@@ -84,6 +83,15 @@ class JpaPlateRepositoryIT {
                 () -> assertEquals(saved.getStatus(), reloaded.getStatus()),
                 () -> assertEquals(saved.getCreatedAt(), reloaded.getCreatedAt()),
                 () -> assertEquals(saved.getMenuItemId(), reloaded.getMenuItemId())
+        );
+    }
+
+    @Test
+    @DisplayName("persist checks for null values")
+    void persistAndLoadPlate_not_ok() {
+        assertAll("Asserting null handling",
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.save(null)),
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
         );
     }
 }

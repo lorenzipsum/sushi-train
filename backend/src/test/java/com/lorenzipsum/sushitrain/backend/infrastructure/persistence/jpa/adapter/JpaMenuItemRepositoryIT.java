@@ -25,6 +25,8 @@ import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Testcontainers
 @DataJpaTest
@@ -45,7 +47,7 @@ class JpaMenuItemRepositoryIT {
 
     @Autowired
     @SuppressWarnings("unused")
-    private MenuItemRepository menuItems;
+    private MenuItemRepository repository;
 
     @Test
     @DisplayName("persist and load a MenuItem via hex adapter")
@@ -54,8 +56,8 @@ class JpaMenuItemRepositoryIT {
         MenuItem salmon = MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(120));
 
         // Act
-        MenuItem saved = menuItems.save(salmon);
-        var reloadedOpt = menuItems.findById(saved.getId());
+        MenuItem saved = repository.save(salmon);
+        var reloadedOpt = repository.findById(saved.getId());
 
         // Assert
         assertThat(saved.getId()).isNotNull();
@@ -67,5 +69,14 @@ class JpaMenuItemRepositoryIT {
         assertThat(reloaded.getDefaultTier()).isEqualTo(PlateTier.GREEN);
         assertThat(reloaded.getBasePrice().getAmount()).isEqualTo(120);
         assertThat(reloaded.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("persist checks for null values")
+    void persistAndLoadMenuItem_not_ok() {
+        assertAll("Asserting null handling",
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.save(null)),
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
+        );
     }
 }

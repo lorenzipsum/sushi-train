@@ -21,12 +21,14 @@ public class JpaMenuItemRepository implements MenuItemRepository {
     }
 
     @Override
-    public Optional<MenuItem> findById(UUID uuid) {
-        return dao.findById(uuid).map(mapper::toDomain);
+    public Optional<MenuItem> findById(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Id cannot be null");
+        return dao.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public MenuItem save(MenuItem menuItem) {
+        if (menuItem == null) throw new IllegalArgumentException("Menu item cannot be null");
         var saved = dao.save(mapper.toEntity(menuItem));
         return mapper.toDomain(saved);
     }

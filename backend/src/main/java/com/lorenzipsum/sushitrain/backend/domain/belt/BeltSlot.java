@@ -16,7 +16,9 @@ public class BeltSlot {
         this.plateId = plateId;
     }
 
-    static BeltSlot createEmptyAt(UUID beltId, int positionIndex) {
+    public static BeltSlot createEmptyAt(UUID beltId, int positionIndex) {
+        if (beltId == null) throw new IllegalArgumentException("Belt Id cannot be null");
+        if (positionIndex < 0) throw new IllegalArgumentException("Position index cannot be negative");
         return new BeltSlot(UUID.randomUUID(), beltId, positionIndex, null);
     }
 

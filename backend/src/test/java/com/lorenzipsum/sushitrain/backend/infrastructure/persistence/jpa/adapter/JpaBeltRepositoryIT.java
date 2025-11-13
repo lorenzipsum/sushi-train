@@ -23,8 +23,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @DataJpaTest
@@ -49,7 +48,7 @@ class JpaBeltRepositoryIT {
 
     @Test
     @DisplayName("persist and load a Belt via adapter")
-    void persistAndLoadBelt() {
+    void persistAndLoadBelt_ok() {
         // Arrange
         var belt = TestData.defaultBelt();
 
@@ -71,6 +70,15 @@ class JpaBeltRepositoryIT {
                 () -> assertEquals(1000, reloaded.getTickIntervalMs()),
                 () -> assertEquals(1, reloaded.getSpeedSlotsPerTick()),
                 () -> assertEquals(10, reloaded.getSlots().size())
+        );
+    }
+
+    @Test
+    @DisplayName("persist checks for null values")
+    void persistAndLoadBelt_not_ok() {
+        assertAll("Asserting null handling",
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.save(null)),
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
         );
     }
 }

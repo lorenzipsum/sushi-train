@@ -25,14 +25,14 @@ public class JpaPlateRepository implements PlateRepository {
     }
 
     @Override
-    public Optional<Plate> findById(UUID uuid) {
-        return dao.findById(uuid).map(mapper::toDomain);
+    public Optional<Plate> findById(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Id cannot be null");
+        return dao.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public Plate save(Plate plate) {
         if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
-        if (plate.getMenuItemId() == null) throw new IllegalArgumentException("Plate.menuItemId must not be null");
 
         MenuItemEntity menuItem = menuItemJpaDao.findById(plate.getMenuItemId()).orElseThrow(
                 () -> new IllegalStateException("MenuItem not found for id: " + plate.getMenuItemId()));
