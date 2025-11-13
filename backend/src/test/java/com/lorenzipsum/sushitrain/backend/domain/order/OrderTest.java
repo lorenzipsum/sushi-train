@@ -52,14 +52,14 @@ class OrderTest {
         var order = Order.open(seat);
 
         var before = Instant.now();
-        var orderLine = order.addLineFromPlate(chickenKaraagePlate, "Chicken Karaage", 800);
+        var orderLine = order.addLineFromPlate(chickenKaraagePlate, CHICKEN_KARAAGE, 800);
         var after = Instant.now();
 
         assertAll("Asserting sane defaults for order line",
                 () -> assertNotNull(orderLine.getId()),
                 () -> assertSame(chickenKaraagePlate, orderLine.getPlate()),
                 () -> assertSame(order, orderLine.getOrder()),
-                () -> assertEquals("Chicken Karaage", orderLine.getMenuItemNameSnapshot()),
+                () -> assertEquals(CHICKEN_KARAAGE, orderLine.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.GOLD, orderLine.getTierSnapshot()),
                 () -> assertEquals(MoneyYen.of(800), orderLine.getPriceAtPick()),
                 () -> assertTrue(!orderLine.getPickedAt().isBefore(before)
@@ -82,7 +82,7 @@ class OrderTest {
                 () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, null, 500)),
                 () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, "", 500)),
                 () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, " ", 500)),
-                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(salmonNigiriPlate, "Salmon Nigiri", -5))
+                () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(salmonNigiriPlate, SALMON_NIGIRI, -5))
         );
     }
 

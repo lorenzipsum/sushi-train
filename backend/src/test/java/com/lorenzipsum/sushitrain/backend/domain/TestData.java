@@ -13,6 +13,7 @@ import java.util.UUID;
 public final class TestData {
     public static final String SALMON_NIGIRI = "Salmon Nigiri";
     public static final String CHICKEN_KARAAGE = "Chicken Karaage";
+    public static final String MAGURO_NIGIRI = "Maguro Nigiri";
 
     private TestData() {
     }
@@ -22,11 +23,11 @@ public final class TestData {
     }
 
     public static MenuItem menuItemSalmonNigiri() {
-        return MenuItem.create("Salmon Nigiri", PlateTier.GREEN, new MoneyYen(450));
+        return MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(450));
     }
 
     public static MenuItem menuItemMaguroNigiri() {
-        return MenuItem.create("Maguro Nigiri", PlateTier.GREEN, MoneyYen.of(500));
+        return MenuItem.create(MAGURO_NIGIRI, PlateTier.GREEN, MoneyYen.of(500));
     }
 
     public static Plate plateSalmonNigiri() {

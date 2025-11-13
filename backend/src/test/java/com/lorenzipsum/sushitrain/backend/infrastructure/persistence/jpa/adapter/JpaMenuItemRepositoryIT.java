@@ -21,6 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +51,7 @@ class JpaMenuItemRepositoryIT {
     @DisplayName("persist and load a MenuItem via hex adapter")
     void persistAndLoadMenuItem() {
         // Arrange
-        MenuItem salmon = MenuItem.create("Salmon Nigiri", PlateTier.GREEN, new MoneyYen(120));
+        MenuItem salmon = MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(120));
 
         // Act
         MenuItem saved = menuItems.save(salmon);
@@ -62,7 +63,7 @@ class JpaMenuItemRepositoryIT {
 
         MenuItem reloaded = reloadedOpt.get();
         assertThat(reloaded.getId()).isEqualTo(saved.getId());
-        assertThat(reloaded.getName()).isEqualTo("Salmon Nigiri");
+        assertThat(reloaded.getName()).isEqualTo(SALMON_NIGIRI);
         assertThat(reloaded.getDefaultTier()).isEqualTo(PlateTier.GREEN);
         assertThat(reloaded.getBasePrice().getAmount()).isEqualTo(120);
         assertThat(reloaded.getCreatedAt()).isNotNull();

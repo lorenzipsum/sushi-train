@@ -27,6 +27,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,7 +63,7 @@ class JpaPlateRepositoryIT {
     @DisplayName("persist and load a Plate via adapter")
     void persistAndLoadPlate() {
         // Arrange
-        var menuItem = menuItemRepository.save(MenuItem.create("Salmon Nigiri", PlateTier.GREEN, new MoneyYen(120)));
+        var menuItem = menuItemRepository.save(MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(120)));
         var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), TestData.inTwoHours());
 
         // Act

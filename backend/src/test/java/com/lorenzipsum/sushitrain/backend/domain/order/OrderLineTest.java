@@ -29,7 +29,7 @@ class OrderLineTest {
                 () -> assertNotNull(orderLine.getId()),
                 () -> assertSame(plate, orderLine.getPlate()),
                 () -> assertSame(order, orderLine.getOrder()),
-                () -> assertEquals("Salmon Nigiri", orderLine.getMenuItemNameSnapshot()),
+                () -> assertEquals(SALMON_NIGIRI, orderLine.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.GREEN, orderLine.getTierSnapshot()),
                 () -> assertEquals(MoneyYen.of(450), orderLine.getPriceAtPick()),
                 () -> assertTrue(!orderLine.getPickedAt().isBefore(before)
@@ -63,7 +63,7 @@ class OrderLineTest {
 
         var orderLine1 = OrderLine.create(specialPlate, order, SALMON_NIGIRI, specialPlate.getPriceAtCreation().getAmount());
         assertAll("Asserting sane defaults for order line 1",
-                () -> assertEquals("Salmon Nigiri", orderLine1.getMenuItemNameSnapshot()),
+                () -> assertEquals(SALMON_NIGIRI, orderLine1.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.RED, orderLine1.getTierSnapshot()),
                 () -> assertEquals(MoneyYen.of(250), orderLine1.getPriceAtPick())
         );

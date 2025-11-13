@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
+import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MenuItemTest {
@@ -21,7 +22,7 @@ class MenuItemTest {
 
         assertAll("Asserting instantiated menu item",
                 () -> assertNotNull(salmonNigiri.getId()),
-                () -> assertEquals("Salmon Nigiri", salmonNigiri.getName()),
+                () -> assertEquals(SALMON_NIGIRI, salmonNigiri.getName()),
                 () -> assertEquals(PlateTier.GREEN, salmonNigiri.getDefaultTier()),
                 () -> assertEquals(MoneyYen.of(450), salmonNigiri.getBasePrice()),
                 () -> assertEquals(450, salmonNigiri.getBasePrice().getAmount()),
@@ -37,8 +38,8 @@ class MenuItemTest {
     void create_not_ok() {
         assertAll("Asserting correct behaviour instantiating with null values",
                 () -> assertThrows(IllegalArgumentException.class, () -> MenuItem.create(null, PlateTier.GREEN, MoneyYen.of(500))),
-                () -> assertThrows(IllegalArgumentException.class, () -> MenuItem.create("Salmon Nigiri", null, MoneyYen.of(500))),
-                () -> assertThrows(IllegalArgumentException.class, () -> MenuItem.create("Salmon Nigiri", PlateTier.GREEN, null)),
+                () -> assertThrows(IllegalArgumentException.class, () -> MenuItem.create(SALMON_NIGIRI, null, MoneyYen.of(500))),
+                () -> assertThrows(IllegalArgumentException.class, () -> MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, null)),
                 () -> assertThrows(IllegalArgumentException.class, () -> MenuItem.create("", PlateTier.GREEN, MoneyYen.of(500))),
                 () -> assertThrows(IllegalArgumentException.class, () -> MenuItem.create("   ", PlateTier.GREEN, MoneyYen.of(500)))
         );

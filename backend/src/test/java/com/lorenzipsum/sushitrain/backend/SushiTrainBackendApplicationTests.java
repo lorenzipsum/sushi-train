@@ -1,13 +1,13 @@
 package com.lorenzipsum.sushitrain.backend;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class SushiTrainBackendApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    //  currently now dev database to connect to, use infrastructure tests instead
+    //	@Test
+    void contextLoads() {
+    }
 
 }
