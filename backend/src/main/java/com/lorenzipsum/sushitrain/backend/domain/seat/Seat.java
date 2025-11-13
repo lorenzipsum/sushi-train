@@ -1,50 +1,31 @@
 package com.lorenzipsum.sushitrain.backend.domain.seat;
 
-import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
-import jakarta.persistence.*;
-import lombok.Getter;
-
 import java.util.Locale;
 import java.util.UUID;
 
-@Entity
-@Table(name = "seat", uniqueConstraints = @UniqueConstraint(name = "uk_belt_label", columnNames = {"belt_id", "label"}))
-@Getter
+@SuppressWarnings({"LombokGetterMayBeUsed", "ClassCanBeRecord"})
 public class Seat {
-    @Id
-    private UUID id;
+    private final UUID id;
+    private final String label;
+    private final UUID beltId;
+    private final int seatPositionIndex;
 
-    @Column(name = "label", nullable = false, length = 32)
-    private String label;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "belt_id", nullable = false)
-    private Belt belt;
-
-    @Column(nullable = false)
-    private int seatPositionIndex;
-
-    @SuppressWarnings("unused")
-    protected Seat() {
-    }
-
-    private Seat(UUID id, String label, Belt belt, int seatPositionIndex) {
+    private Seat(UUID id, String label, UUID beltId, int seatPositionIndex) {
         this.id = id;
         this.label = label;
-        this.belt = belt;
+        this.beltId = beltId;
         this.seatPositionIndex = seatPositionIndex;
     }
 
-    public static Seat create(String label, Belt belt, int seatPositionIndex) {
-        if (belt == null) throw new IllegalArgumentException("Belt cannot be null");
-        if (seatPositionIndex < 0 || seatPositionIndex >= belt.getSlotCount()) {
-            throw new IllegalArgumentException(
-                    "Seat position index out of range: " + seatPositionIndex +
-                            " (valid: 0.." + (belt.getSlotCount() - 1) + ")"
-            );
-        }
+    public static Seat create(String label, UUID beltId, int seatPositionIndex) {
+        if (beltId == null) throw new IllegalArgumentException("Belt cannot be null");
+        if (seatPositionIndex < 0) throw new IllegalArgumentException("Seat position cannot be negative");
         String cleanLabel = normalizeLabel(label);
-        return new Seat(UUID.randomUUID(), cleanLabel, belt, seatPositionIndex);
+        return new Seat(UUID.randomUUID(), cleanLabel, beltId, seatPositionIndex);
+    }
+
+    public static Seat rehydrate(UUID id, String label, UUID beltId, int seatPositionIndex) {
+        return new Seat(id, label, beltId, seatPositionIndex);
     }
 
     private static String normalizeLabel(String raw) {
@@ -54,5 +35,21 @@ public class Seat {
         if (!s.matches("[A-Z0-9]+"))
             throw new IllegalArgumentException("Label must be alphanumeric (A–Z, 0–9), got: '" + s + "'");
         return s;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public UUID getBeltId() {
+        return beltId;
+    }
+
+    public int getSeatPositionIndex() {
+        return seatPositionIndex;
     }
 }

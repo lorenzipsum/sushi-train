@@ -13,12 +13,12 @@ class SeatTest {
     @Test
     @DisplayName("Seat creation has sane defaults")
     void create_ok() {
-        var seat = Seat.create("1", belt, 5);
+        var seat = Seat.create("1", belt.getId(), 5);
 
         assertAll("Asserting sane defaults for Seat creation",
                 () -> assertNotNull(seat.getId()),
                 () -> assertEquals("1", seat.getLabel()),
-                () -> assertSame(belt, seat.getBelt()),
+                () -> assertEquals(belt.getId(), seat.getBeltId()),
                 () -> assertEquals(5, seat.getSeatPositionIndex())
         );
     }
@@ -27,7 +27,7 @@ class SeatTest {
     @DisplayName("Seat creation handles null")
     void create_not_ok() {
         assertAll("Asserting Seat creation handles null",
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create(null, belt, 5)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create(null, belt.getId(), 5)),
                 () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("1", null, 5))
         );
     }
@@ -36,12 +36,12 @@ class SeatTest {
     @DisplayName("Seat creation handles empty label")
     void create_label_not_ok() {
         assertAll("Asserting Seat creation empty label",
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("", belt, 5)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("  ", belt, 5)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("a a", belt, 5)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("A-1", belt, 0)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("A_1", belt, 0)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("A#", belt, 0))
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("", belt.getId(), 5)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("  ", belt.getId(), 5)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("a a", belt.getId(), 5)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("A-1", belt.getId(), 0)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("A_1", belt.getId(), 0)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("A#", belt.getId(), 0))
         );
     }
 
@@ -49,10 +49,9 @@ class SeatTest {
     @DisplayName("Seat creation handles seat position index out of range")
     void create_handles_seat_position_index() {
         assertAll("Asserting correct handling Seat position index",
-                () -> assertDoesNotThrow(() -> Seat.create("A", belt, 0)),
-                () -> assertDoesNotThrow(() -> Seat.create("B", belt, 9)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("C", belt, -1)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("D", belt, 10))
+                () -> assertDoesNotThrow(() -> Seat.create("A", belt.getId(), 0)),
+                () -> assertDoesNotThrow(() -> Seat.create("B", belt.getId(), 9)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Seat.create("C", belt.getId(), -1))
         );
     }
 
@@ -60,12 +59,12 @@ class SeatTest {
     @DisplayName("Seat label handling")
     void create_trim_ok() {
         assertAll("Asserting seat label handling",
-                () -> assertEquals("1", Seat.create(" 1 ", belt, 5).getLabel()),
-                () -> assertEquals("1A", Seat.create(" 1a ", belt, 5).getLabel()),
-                () -> assertEquals("1A", Seat.create(" 1A ", belt, 5).getLabel()),
-                () -> assertEquals("A", Seat.create("a", belt, 5).getLabel()),
-                () -> assertEquals("AA", Seat.create("aa", belt, 5).getLabel()),
-                () -> assertEquals("I", Seat.create("i", belt, 0).getLabel())
+                () -> assertEquals("1", Seat.create(" 1 ", belt.getId(), 5).getLabel()),
+                () -> assertEquals("1A", Seat.create(" 1a ", belt.getId(), 5).getLabel()),
+                () -> assertEquals("1A", Seat.create(" 1A ", belt.getId(), 5).getLabel()),
+                () -> assertEquals("A", Seat.create("a", belt.getId(), 5).getLabel()),
+                () -> assertEquals("AA", Seat.create("aa", belt.getId(), 5).getLabel()),
+                () -> assertEquals("I", Seat.create("i", belt.getId(), 0).getLabel())
         );
     }
 }

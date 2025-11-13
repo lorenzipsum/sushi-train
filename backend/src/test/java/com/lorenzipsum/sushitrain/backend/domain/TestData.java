@@ -39,7 +39,7 @@ public final class TestData {
     }
 
     public static Seat defaultSeat() {
-        return Seat.create("1", defaultBelt(), 5);
+        return Seat.create("1", defaultBelt().getId(), 5);
     }
 
     public static Instant inTwoHours() {
