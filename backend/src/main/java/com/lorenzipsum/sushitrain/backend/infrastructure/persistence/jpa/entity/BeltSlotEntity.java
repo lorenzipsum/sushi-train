@@ -25,18 +25,19 @@ public class BeltSlotEntity {
     @Column(name = "position_index", nullable = false)
     private int positionIndex;
 
-    @Column(name = "plate_id", unique = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plate_id")
     @Setter
-    private UUID plateId; // FK to plate.id, nullable, use UUID to avoid pulling Plate entity into infra now
+    private PlateEntity plate;
 
     @SuppressWarnings("unused")
     protected BeltSlotEntity() {
     }
 
-    public BeltSlotEntity(UUID id, int positionIndex, BeltEntity belt, UUID plateId) {
+    public BeltSlotEntity(UUID id, int positionIndex, BeltEntity belt, PlateEntity plate) {
         this.id = id;
         this.positionIndex = positionIndex;
-        this.plateId = plateId;
+        this.plate = plate;
         this.belt = belt;
     }
 }
