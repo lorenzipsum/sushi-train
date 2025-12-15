@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -33,6 +34,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableJpaRepositories(basePackageClasses = SeatJpaDao.class)
 @Import({JpaSeatRepository.class, SeatMapper.class, JpaBeltRepository.class, BeltMapper.class}) // <-- import adapter + mapper only
 class JpaSeatRepositoryIT {
+
+    @Autowired
+    TestEntityManager em;
 
     @Container
     static final PostgreSQLContainer DB = createDb();
@@ -60,6 +64,7 @@ class JpaSeatRepositoryIT {
 
         // Act
         var saved = repository.save(seat);
+        em.flush();
         var reloadedOpt = repository.findById(saved.getId());
 
         // Assert
@@ -69,10 +74,10 @@ class JpaSeatRepositoryIT {
         Seat reloaded = reloadedOpt.get();
 
         assertAll("Asserting reloaded values correct",
-                () -> assertEquals(saved.getId(), reloaded.getId()),
-                () -> assertEquals(saved.getLabel(), reloaded.getLabel()),
-                () -> assertEquals(saved.getSeatPositionIndex(), reloaded.getSeatPositionIndex()),
-                () -> assertEquals(saved.getBeltId(), reloaded.getBeltId())
+                () -> assertEquals(seat.getId(), reloaded.getId()),
+                () -> assertEquals(seat.getLabel(), reloaded.getLabel()),
+                () -> assertEquals(seat.getSeatPositionIndex(), reloaded.getSeatPositionIndex()),
+                () -> assertEquals(seat.getBeltId(), reloaded.getBeltId())
         );
     }
 

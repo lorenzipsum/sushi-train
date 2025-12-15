@@ -12,20 +12,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @DataJpaTest
@@ -34,6 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @EnableJpaRepositories(basePackageClasses = MenuItemJpaDao.class)
 @Import({JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
 class JpaMenuItemRepositoryIT {
+
+    @Autowired
+    TestEntityManager em;
 
     @Container
     static final PostgreSQLContainer DB = createDb();
@@ -52,22 +55,25 @@ class JpaMenuItemRepositoryIT {
     @DisplayName("persist and load a MenuItem via hex adapter")
     void persistAndLoadMenuItem() {
         // Arrange
-        MenuItem salmon = MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(120));
+        var menuItem = MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(120));
 
         // Act
-        MenuItem saved = repository.save(salmon);
-        var reloadedOpt = repository.findById(saved.getId());
+        var savedId = repository.save(menuItem).getId();
+        em.flush();
+        var reloadedOpt = repository.findById(savedId);
 
         // Assert
-        assertThat(saved.getId()).isNotNull();
         assertThat(reloadedOpt).isPresent();
-
         MenuItem reloaded = reloadedOpt.get();
-        assertThat(reloaded.getId()).isEqualTo(saved.getId());
-        assertThat(reloaded.getName()).isEqualTo(SALMON_NIGIRI);
-        assertThat(reloaded.getDefaultTier()).isEqualTo(PlateTier.GREEN);
-        assertThat(reloaded.getBasePrice().amount()).isEqualTo(120);
-        assertThat(reloaded.getCreatedAt()).isNotNull();
+
+        assertAll("Asserting that menu was saved and reloaded successfully",
+                () -> assertEquals(menuItem.getId(), reloaded.getId()),
+                () -> assertEquals(menuItem.getName(), reloaded.getName()),
+                () -> assertEquals(menuItem.getDefaultTier(), reloaded.getDefaultTier()),
+                () -> assertEquals(menuItem.getBasePrice(), reloaded.getBasePrice()),
+                () -> assertEquals(menuItem.getCreatedAt(), reloaded.getCreatedAt()),
+                () -> assertNotNull(reloaded.getCreatedAt())
+        );
     }
 
     @Test

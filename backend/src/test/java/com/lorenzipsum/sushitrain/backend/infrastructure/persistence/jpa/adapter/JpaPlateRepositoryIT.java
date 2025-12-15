@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -38,6 +39,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableJpaRepositories(basePackageClasses = {PlateJpaDao.class, MenuItemJpaDao.class})
 @Import({JpaPlateRepository.class, PlateMapper.class, JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
 class JpaPlateRepositoryIT {
+
+    @Autowired
+    TestEntityManager em;
 
     @Container
     static final PostgreSQLContainer DB = createDb();
@@ -65,6 +69,7 @@ class JpaPlateRepositoryIT {
 
         // Act
         var saved = repository.save(plate);
+        em.flush();
         var reloadedOpt = repository.findById(saved.getId());
 
         // Assert
@@ -74,13 +79,13 @@ class JpaPlateRepositoryIT {
         Plate reloaded = reloadedOpt.get();
 
         assertAll("Asserting reloaded values correct",
-                () -> assertEquals(saved.getId(), reloaded.getId()),
-                () -> assertEquals(saved.getTierSnapshot(), reloaded.getTierSnapshot()),
-                () -> assertEquals(saved.getPriceAtCreation(), reloaded.getPriceAtCreation()),
-                () -> assertEquals(saved.getExpiresAt(), reloaded.getExpiresAt()),
-                () -> assertEquals(saved.getStatus(), reloaded.getStatus()),
-                () -> assertEquals(saved.getCreatedAt(), reloaded.getCreatedAt()),
-                () -> assertEquals(saved.getMenuItemId(), reloaded.getMenuItemId())
+                () -> assertEquals(plate.getId(), reloaded.getId()),
+                () -> assertEquals(plate.getTierSnapshot(), reloaded.getTierSnapshot()),
+                () -> assertEquals(plate.getPriceAtCreation(), reloaded.getPriceAtCreation()),
+                () -> assertEquals(plate.getExpiresAt(), reloaded.getExpiresAt()),
+                () -> assertEquals(plate.getStatus(), reloaded.getStatus()),
+                () -> assertEquals(plate.getCreatedAt(), reloaded.getCreatedAt()),
+                () -> assertEquals(plate.getMenuItemId(), reloaded.getMenuItemId())
         );
     }
 
