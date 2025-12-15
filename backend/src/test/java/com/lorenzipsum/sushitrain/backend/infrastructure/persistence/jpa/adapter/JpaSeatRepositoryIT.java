@@ -59,7 +59,7 @@ class JpaSeatRepositoryIT {
     @DisplayName("persist and load a Seat via adapter")
     void persistAndLoadSeat_ok() {
         // Arrange
-        var belt = TestData.defaultBelt();
+        var belt = TestData.newBelt();
         beltRepository.save(belt);
         var seat = Seat.create("A1", belt.getId(), 5);
 

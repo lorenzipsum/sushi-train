@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderLineTest {
 
-    private final Order order = Order.open(TestData.defaultSeat().getId());
+    private final Order order = Order.open(TestData.newSeatWithNewBelt().getId());
     private final Plate plate = TestData.plateSalmonNigiri();
 
     @Test

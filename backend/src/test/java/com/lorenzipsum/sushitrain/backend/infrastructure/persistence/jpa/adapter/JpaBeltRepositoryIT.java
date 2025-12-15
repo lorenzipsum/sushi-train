@@ -68,7 +68,7 @@ class JpaBeltRepositoryIT {
     @DisplayName("persist and load a Belt via adapter")
     void persistAndLoadBelt_ok() {
         // Arrange
-        var belt = TestData.defaultBelt();
+        var belt = TestData.newBelt();
         var firstSlot = belt.getSlots().getFirst();
 
         // Act
@@ -98,7 +98,7 @@ class JpaBeltRepositoryIT {
     @DisplayName("place plate on slot")
     void persistAndLoad_place_plate_on_slot_ok() {
         // Arrange
-        var belt = TestData.defaultBelt();
+        var belt = TestData.newBelt();
         var plate = Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.GREEN, MoneyYen.of(400), TestData.inTwoHours());
         var firstSlot = belt.getSlots().getFirst();
 
@@ -125,7 +125,7 @@ class JpaBeltRepositoryIT {
     @DisplayName("pick plate on slot ")
     void persistAndLoad_pick_plate_from_slot_ok() {
         // Arrange
-        var belt = TestData.defaultBelt();
+        var belt = TestData.newBelt();
         var plate = Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.GREEN, MoneyYen.of(400), TestData.inTwoHours());
         var firstSlot = belt.getSlots().getFirst();
 

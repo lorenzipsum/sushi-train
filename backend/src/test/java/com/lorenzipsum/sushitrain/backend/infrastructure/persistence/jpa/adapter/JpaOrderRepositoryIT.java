@@ -87,7 +87,7 @@ class JpaOrderRepositoryIT {
     @DisplayName("persist and load a Order via adapter")
     void persistAndLoadOrders_ok() {
         // Arrange
-        var belt = beltRepository.save(TestData.defaultBelt());
+        var belt = beltRepository.save(TestData.newBelt());
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
 
         // Act
@@ -116,7 +116,7 @@ class JpaOrderRepositoryIT {
     @DisplayName("persist and load a Order via adapter")
     void persistAndLoadOrders_containing_line_ok() {
         // Arrange
-        var belt = beltRepository.save(TestData.defaultBelt());
+        var belt = beltRepository.save(TestData.newBelt());
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
         var plate = plateRepository.save(Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
 
@@ -158,7 +158,7 @@ class JpaOrderRepositoryIT {
     @DisplayName("persist and load a Order via adapter")
     void persistAndLoadOrders_line_manipulations_ok() {
         // Arrange
-        var belt = beltRepository.save(TestData.defaultBelt());
+        var belt = beltRepository.save(TestData.newBelt());
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
         var plate = plateRepository.save(Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
         var order = Order.open(seat.getId());
@@ -188,7 +188,7 @@ class JpaOrderRepositoryIT {
 
     @Test
     void saveFailsWhenSeatMissing() {
-        var seat = TestData.defaultSeat();
+        var seat = TestData.newSeatWithNewBelt();
         var order = Order.open(seat.getId());
 
         repository.save(order);

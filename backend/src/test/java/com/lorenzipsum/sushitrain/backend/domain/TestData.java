@@ -19,7 +19,7 @@ public final class TestData {
     private TestData() {
     }
 
-    public static Belt defaultBelt() {
+    public static Belt newBelt() {
         return Belt.create("Default", 10);
     }
 
@@ -39,8 +39,8 @@ public final class TestData {
         return Plate.create(UUID.randomUUID(), PlateTier.GOLD, MoneyYen.of(800), inTwoHours());
     }
 
-    public static Seat defaultSeat() {
-        return Seat.create("1", defaultBelt().getId(), 5);
+    public static Seat newSeatWithNewBelt() {
+        return Seat.create("1", newBelt().getId(), 5);
     }
 
     public static Instant inTwoHours() {

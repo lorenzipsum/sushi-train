@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderTest {
 
-    private final Seat seat = TestData.defaultSeat();
+    private final Seat seat = TestData.newSeatWithNewBelt();
     private final Plate chickenKaraagePlate = TestData.plateChickenKaraage();
     private final Plate salmonNigiriPlate = TestData.plateSalmonNigiri();
 

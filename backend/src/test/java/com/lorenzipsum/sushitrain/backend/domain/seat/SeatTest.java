@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SeatTest {
-    private final Belt belt = TestData.defaultBelt();
+    private final Belt belt = TestData.newBelt();
 
     @Test
     @DisplayName("Seat creation has sane defaults")
