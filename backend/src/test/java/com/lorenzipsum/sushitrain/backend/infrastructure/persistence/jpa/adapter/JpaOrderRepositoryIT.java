@@ -18,22 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static com.lorenzipsum.sushitrain.backend.domain.TestData.MENU_ITEM_DEFAULT_ID;
 import static com.lorenzipsum.sushitrain.backend.domain.TestData.inTwoHours;
-import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
-import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,34 +45,15 @@ import static org.junit.jupiter.api.Assertions.*;
         BeltSlotMapper.class,
         SeatMapper.class,
         PlateMapper.class})
-class JpaOrderRepositoryIT {
-
+class JpaOrderRepositoryIT extends JpaRepositoryBase {
+    
     @Autowired
-    TestEntityManager em;
-
-    @Container
-    static final PostgreSQLContainer DB = createDb();
-
-    @DynamicPropertySource
-    @SuppressWarnings("unused")
-    static void registerProps(DynamicPropertyRegistry r) {
-        registerDynamicProperties(r, DB);
-    }
-
-    @Autowired
-    @SuppressWarnings("unused")
     private OrderRepository repository;
-
     @Autowired
-    @SuppressWarnings("unused")
     private SeatRepository seatRepository;
-
     @Autowired
-    @SuppressWarnings("unused")
     private BeltRepository beltRepository;
-
     @Autowired
-    @SuppressWarnings("unused")
     private PlateRepository plateRepository;
 
 
