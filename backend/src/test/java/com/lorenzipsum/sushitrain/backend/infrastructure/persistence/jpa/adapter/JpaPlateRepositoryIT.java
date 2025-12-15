@@ -26,6 +26,8 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.temporal.ChronoUnit;
+
 import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
@@ -37,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
 @EnableJpaRepositories(basePackageClasses = {PlateJpaDao.class, MenuItemJpaDao.class})
-@Import({JpaPlateRepository.class, PlateMapper.class, JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
+@Import({JpaPlateRepository.class, PlateMapper.class, JpaMenuItemRepository.class, MenuItemMapper.class})
 class JpaPlateRepositoryIT {
 
     @Autowired
@@ -70,6 +72,7 @@ class JpaPlateRepositoryIT {
         // Act
         var saved = repository.save(plate);
         em.flush();
+        em.clear();
         var reloadedOpt = repository.findById(saved.getId());
 
         // Assert
@@ -82,9 +85,9 @@ class JpaPlateRepositoryIT {
                 () -> assertEquals(plate.getId(), reloaded.getId()),
                 () -> assertEquals(plate.getTierSnapshot(), reloaded.getTierSnapshot()),
                 () -> assertEquals(plate.getPriceAtCreation(), reloaded.getPriceAtCreation()),
-                () -> assertEquals(plate.getExpiresAt(), reloaded.getExpiresAt()),
+                () -> assertEquals(plate.getExpiresAt().truncatedTo(ChronoUnit.MILLIS), reloaded.getExpiresAt().truncatedTo(ChronoUnit.MILLIS)),
                 () -> assertEquals(plate.getStatus(), reloaded.getStatus()),
-                () -> assertEquals(plate.getCreatedAt(), reloaded.getCreatedAt()),
+                () -> assertEquals(plate.getCreatedAt().truncatedTo(ChronoUnit.MILLIS), reloaded.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)),
                 () -> assertEquals(plate.getMenuItemId(), reloaded.getMenuItemId())
         );
     }

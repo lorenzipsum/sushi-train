@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,8 +35,8 @@ public class BeltEntity {
     private int speedSlotsPerTick;
 
     @OneToMany(mappedBy = "belt", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @SuppressWarnings("unused")
-    private List<BeltSlotEntity> slots;
+    @OrderBy("positionIndex ASC")
+    private final List<BeltSlotEntity> slots = new ArrayList<>();
 
     @SuppressWarnings("unused")
     protected BeltEntity() {

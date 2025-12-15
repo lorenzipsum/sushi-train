@@ -21,6 +21,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import java.time.temporal.ChronoUnit;
+
 import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
@@ -32,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
 @EnableJpaRepositories(basePackageClasses = MenuItemJpaDao.class)
-@Import({JpaMenuItemRepository.class, MenuItemMapper.class}) // <-- import adapter + mapper only
+@Import({JpaMenuItemRepository.class, MenuItemMapper.class})
 class JpaMenuItemRepositoryIT {
 
     @Autowired
@@ -60,6 +62,7 @@ class JpaMenuItemRepositoryIT {
         // Act
         var savedId = repository.save(menuItem).getId();
         em.flush();
+        em.clear();
         var reloadedOpt = repository.findById(savedId);
 
         // Assert
@@ -71,7 +74,7 @@ class JpaMenuItemRepositoryIT {
                 () -> assertEquals(menuItem.getName(), reloaded.getName()),
                 () -> assertEquals(menuItem.getDefaultTier(), reloaded.getDefaultTier()),
                 () -> assertEquals(menuItem.getBasePrice(), reloaded.getBasePrice()),
-                () -> assertEquals(menuItem.getCreatedAt(), reloaded.getCreatedAt()),
+                () -> assertEquals(menuItem.getCreatedAt().truncatedTo(ChronoUnit.MILLIS), reloaded.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)),
                 () -> assertNotNull(reloaded.getCreatedAt())
         );
     }

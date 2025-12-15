@@ -14,7 +14,7 @@ public final class TestData {
     public static final String SALMON_NIGIRI = "Salmon Nigiri";
     public static final String CHICKEN_KARAAGE = "Chicken Karaage";
     public static final String MAGURO_NIGIRI = "Maguro Nigiri";
-    public static final String MENU_ITEM_DEFAULT_ID = "11111111-1111-1111-1111-111111111111";
+    public static final UUID MENU_ITEM_DEFAULT_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     private TestData() {
     }

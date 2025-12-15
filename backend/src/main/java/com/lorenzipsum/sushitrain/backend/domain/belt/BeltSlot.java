@@ -1,5 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.belt;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @SuppressWarnings("LombokGetterMayBeUsed")
@@ -19,7 +20,8 @@ public class BeltSlot {
     public static BeltSlot createEmptyAt(UUID beltId, int positionIndex) {
         if (beltId == null) throw new IllegalArgumentException("Belt Id cannot be null");
         if (positionIndex < 0) throw new IllegalArgumentException("Position index cannot be negative");
-        return new BeltSlot(UUID.randomUUID(), beltId, positionIndex, null);
+        UUID slotId = UUID.nameUUIDFromBytes((beltId + ":" + positionIndex).getBytes(StandardCharsets.UTF_8));
+        return new BeltSlot(slotId, beltId, positionIndex, null);
     }
 
     public boolean isEmpty() {

@@ -10,15 +10,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class BeltMapper {
 
+    private final BeltSlotMapper slotMapper;
+
+    public BeltMapper(BeltSlotMapper slotMapper) {
+        this.slotMapper = slotMapper;
+    }
+
     public Belt toDomain(BeltEntity e) {
         if (e == null) return null;
+
+        var slots = e.getSlots().stream()
+                .map(slotMapper::toDomain)
+                .toList();
+
         return Belt.rehydrate(
                 e.getId(),
                 e.getName(),
                 e.getSlotCount(),
                 e.getRotationOffset(),
                 e.getTickIntervalMs(),
-                e.getSpeedSlotsPerTick()
+                e.getSpeedSlotsPerTick(),
+                slots
         );
     }
 

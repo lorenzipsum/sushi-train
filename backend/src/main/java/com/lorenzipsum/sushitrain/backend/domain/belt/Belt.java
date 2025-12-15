@@ -16,30 +16,33 @@ public class Belt {
     private final UUID id;
     private final String name;
     private final int slotCount;
-    private final List<BeltSlot> slots = new ArrayList<>();
+    private final List<BeltSlot> slots;
     private int rotationOffset;
     private int tickIntervalMs;
     private int speedSlotsPerTick;
 
-    private Belt(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick) {
+    private Belt(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick, List<BeltSlot> slots) {
         this.id = id;
         this.name = name;
         this.slotCount = Math.max(1, slotCount);
-        this.rotationOffset = ((rotationOffset % slotCount) + slotCount) % slotCount; // normalize
+        this.rotationOffset = ((rotationOffset % slotCount) + slotCount) % slotCount;
         this.tickIntervalMs = Math.max(1, tickIntervalMs);
         this.speedSlotsPerTick = Math.max(1, speedSlotsPerTick);
-        IntStream.range(0, slotCount).forEach(i ->
-                this.slots.add(BeltSlot.createEmptyAt(id, i)));
+        this.slots = (slots == null) ? new ArrayList<>() : new ArrayList<>(slots);
     }
 
     public static Belt create(String name, int slotCount) {
         if (name == null || name.isBlank()) throw new IllegalArgumentException("name must not be blank");
         if (slotCount <= 0) throw new IllegalArgumentException("slotCount must be > 0");
-        return new Belt(UUID.randomUUID(), name, slotCount, 0, 1000, 1);
+        UUID id = UUID.randomUUID();
+        List<BeltSlot> slots = IntStream.range(0, slotCount)
+                .mapToObj(i -> BeltSlot.createEmptyAt(id, i))
+                .toList();
+        return new Belt(id, name, slotCount, 0, 1000, 1, slots);
     }
 
-    public static Belt rehydrate(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick) {
-        return new Belt(id, name, slotCount, rotationOffset, tickIntervalMs, speedSlotsPerTick);
+    public static Belt rehydrate(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick, List<BeltSlot> slots) {
+        return new Belt(id, name, slotCount, rotationOffset, tickIntervalMs, speedSlotsPerTick, slots);
     }
 
     // public setters containing invariants

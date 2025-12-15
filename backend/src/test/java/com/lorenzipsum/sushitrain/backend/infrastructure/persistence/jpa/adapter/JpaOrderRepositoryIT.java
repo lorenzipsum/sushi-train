@@ -23,10 +23,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static com.lorenzipsum.sushitrain.backend.domain.TestData.MENU_ITEM_DEFAULT_ID;
@@ -48,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.*;
         OrderMapper.class,
         OrderLineMapper.class,
         BeltMapper.class,
+        BeltSlotMapper.class,
         SeatMapper.class,
         PlateMapper.class})
 class JpaOrderRepositoryIT {
@@ -92,6 +94,7 @@ class JpaOrderRepositoryIT {
         var order = Order.open(seat.getId());
         var savedOrder = repository.save(order);
         em.flush();
+        em.clear();
         var reloadedOpt = repository.findById(order.getId());
 
         // Assert
@@ -105,7 +108,7 @@ class JpaOrderRepositoryIT {
                 () -> assertEquals(order.getId(), reloaded.getId()),
                 () -> assertEquals(order.getSeatId(), reloaded.getSeatId()),
                 () -> assertEquals(order.getStatus(), reloaded.getStatus()),
-                () -> assertEquals(order.getCreatedAt(), reloaded.getCreatedAt()),
+                () -> assertEquals(order.getCreatedAt().truncatedTo(ChronoUnit.MILLIS), reloaded.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)),
                 () -> assertEquals(order.getLines().size(), reloaded.getLines().size()));
     }
 
@@ -115,7 +118,7 @@ class JpaOrderRepositoryIT {
         // Arrange
         var belt = beltRepository.save(TestData.defaultBelt());
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
-        var plate = plateRepository.save(Plate.create(UUID.fromString(MENU_ITEM_DEFAULT_ID), PlateTier.RED, MoneyYen.of(400), inTwoHours()));
+        var plate = plateRepository.save(Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
 
         // Act
         var order = Order.open(seat.getId());
@@ -123,6 +126,7 @@ class JpaOrderRepositoryIT {
 
         var savedOrder = repository.save(order);
         em.flush();
+        em.clear();
         var reloadedOpt = repository.findById(savedOrder.getId());
 
         // Assert
@@ -137,7 +141,7 @@ class JpaOrderRepositoryIT {
                 () -> assertEquals(order.getId(), reloaded.getId()),
                 () -> assertEquals(order.getSeatId(), reloaded.getSeatId()),
                 () -> assertEquals(order.getStatus(), reloaded.getStatus()),
-                () -> assertEquals(order.getCreatedAt(), reloaded.getCreatedAt()),
+                () -> assertEquals(order.getCreatedAt().truncatedTo(ChronoUnit.MILLIS), reloaded.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)),
                 () -> assertEquals(order.getLines().size(), reloaded.getLines().size()),
                 () -> assertEquals(line.getId(), reloadedLine.getId()),
                 () -> assertEquals(line.getOrderId(), reloadedLine.getOrderId()),
@@ -156,13 +160,14 @@ class JpaOrderRepositoryIT {
         // Arrange
         var belt = beltRepository.save(TestData.defaultBelt());
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
-        var plate = plateRepository.save(Plate.create(UUID.fromString(MENU_ITEM_DEFAULT_ID), PlateTier.RED, MoneyYen.of(400), inTwoHours()));
+        var plate = plateRepository.save(Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
         var order = Order.open(seat.getId());
         order.addLineFromPlate(plate.getId(), "Salmon Nigiri", PlateTier.GREEN, 400);
 
         // Act
         var savedOrder = repository.save(order);
         em.flush();
+        em.clear();
         var firstReload = repository.findById(order.getId()).orElseThrow(
                 () -> new IllegalArgumentException("Order not found"));
 
@@ -172,6 +177,7 @@ class JpaOrderRepositoryIT {
         savedOrder.removeLine(savedOrder.getLines().getFirst());
         repository.save(savedOrder);
         em.flush();
+        em.clear();
 
         var secondReload = repository.findById(order.getId()).orElseThrow(
                 () -> new IllegalArgumentException("Order not found"));

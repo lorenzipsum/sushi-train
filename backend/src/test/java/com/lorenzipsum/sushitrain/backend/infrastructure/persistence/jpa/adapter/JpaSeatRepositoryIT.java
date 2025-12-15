@@ -5,6 +5,7 @@ import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import com.lorenzipsum.sushitrain.backend.domain.seat.SeatRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltMapper;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltSlotMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.SeatMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
 import org.junit.jupiter.api.DisplayName;
@@ -18,9 +19,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.createDb;
 import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter.IntegrationTestData.registerDynamicProperties;
@@ -32,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
 @EnableJpaRepositories(basePackageClasses = SeatJpaDao.class)
-@Import({JpaSeatRepository.class, SeatMapper.class, JpaBeltRepository.class, BeltMapper.class}) // <-- import adapter + mapper only
+@Import({JpaSeatRepository.class, SeatMapper.class, JpaBeltRepository.class, BeltMapper.class, BeltSlotMapper.class})
 class JpaSeatRepositoryIT {
 
     @Autowired
@@ -49,7 +50,7 @@ class JpaSeatRepositoryIT {
 
     @Autowired
     @SuppressWarnings("unused")
-    private SeatRepository repository; // the hex port implemented by JpaMenuItemRepository
+    private SeatRepository repository;
     @Autowired
     @SuppressWarnings("unused")
     private BeltRepository beltRepository;
@@ -65,6 +66,7 @@ class JpaSeatRepositoryIT {
         // Act
         var saved = repository.save(seat);
         em.flush();
+        em.clear();
         var reloadedOpt = repository.findById(saved.getId());
 
         // Assert
