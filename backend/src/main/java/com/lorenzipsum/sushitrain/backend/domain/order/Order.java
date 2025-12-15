@@ -2,10 +2,7 @@ package com.lorenzipsum.sushitrain.backend.domain.order;
 
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
-import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
-import jakarta.persistence.*;
-import lombok.Getter;
+import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -13,60 +10,42 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "orders")
-@Getter
+@SuppressWarnings("LombokGetterMayBeUsed")
 public class Order {
     private static final String ERR_ORDER_NOT_OPEN = "Order must be OPEN";
-
-    @Id
-    private UUID id;
-
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "seat_id")
-    private Seat seat;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<OrderLine> lines = new ArrayList<>();
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 16)
-    private OrderStatus status = OrderStatus.OPEN;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @Column(name = "closed_at")
+    private final UUID id;
+    private final UUID seatId;
+    private final List<OrderLine> lines;
+    private OrderStatus status;
+    private final Instant createdAt;
     private Instant closedAt;
 
-    //optimistic concurrency
-    @Version
-    @SuppressWarnings("unused")
-    private long version;
-
-    @SuppressWarnings("unused")
-    protected Order() {
-    }
-
-    private Order(UUID id, Seat seat) {
+    private Order(UUID id, UUID seatId, List<OrderLine> lines, OrderStatus status, Instant createdAt, Instant closedAt) {
         this.id = id;
-        this.seat = seat;
-        this.createdAt = Instant.now();
+        this.seatId = seatId;
+        this.lines = (lines == null) ? new ArrayList<>() : new ArrayList<>(lines);
+        this.status = status;
+        this.createdAt = createdAt;
+        this.closedAt = closedAt;
     }
 
-    public static Order open(Seat seat) {
-        if (seat == null) throw new IllegalArgumentException("Seat cannot be null");
-        return new Order(UUID.randomUUID(), seat);
+    public static Order open(UUID seatId) {
+        if (seatId == null) throw new IllegalArgumentException("Seat cannot be null");
+        return new Order(UUID.randomUUID(), seatId, new ArrayList<>(), OrderStatus.OPEN, Instant.now(), null);
     }
 
-    public OrderLine addLineFromPlate(Plate plate, String menuItemNameSnapshot, int priceAtPickInYen) {
-        if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
+    public static Order rehydrate(UUID id, UUID seatId, List<OrderLine> lines, OrderStatus status, Instant createdAt, Instant closedAt) {
+        return new Order(id, seatId, lines, status, createdAt, closedAt);
+    }
+
+    public OrderLine addLineFromPlate(UUID plateId, String menuItemNameSnapshot, PlateTier tierSnapshot, int priceAtPickInYen) {
+        if (plateId == null) throw new IllegalArgumentException("Plate cannot be null");
         if (menuItemNameSnapshot == null || menuItemNameSnapshot.isBlank())
             throw new IllegalArgumentException("Name must not be blank");
         if (status != OrderStatus.OPEN) throw new IllegalStateException(ERR_ORDER_NOT_OPEN);
         if (priceAtPickInYen < 0) throw new IllegalArgumentException("Price cannot be a negative value");
 
-        OrderLine orderLine = OrderLine.create(plate, this, menuItemNameSnapshot, priceAtPickInYen);
+        OrderLine orderLine = OrderLine.create(plateId, this.id, menuItemNameSnapshot, tierSnapshot, priceAtPickInYen);
         this.lines.add(orderLine);
         return orderLine;
     }
@@ -88,19 +67,33 @@ public class Order {
         return Collections.unmodifiableList(lines);
     }
 
-    @PrePersist
-    @SuppressWarnings("unused")
-    void prePersist() {
-        if (createdAt == null) createdAt = Instant.now();
-    }
-
     public void removeLine(OrderLine line) {
         if (status != OrderStatus.OPEN) throw new IllegalStateException(ERR_ORDER_NOT_OPEN);
         if (line == null) return;
-        if (line.getOrder() != this) {
+        if (!this.id.equals(line.getOrderId())) {
             throw new IllegalArgumentException("OrderLine does not belong to this Order");
         }
         lines.remove(line); // orphanRemoval will delete the row
         line.clearOrder(); // keep both sides consistent
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public UUID getSeatId() {
+        return seatId;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
     }
 }

@@ -1,22 +1,22 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.time.Duration;
 
 public class IntegrationTestData {
 
     @SuppressWarnings("resource")
-    public static PostgreSQLContainer<?> createDb() {
-        return new PostgreSQLContainer<>("postgres:18-alpine")
+    public static PostgreSQLContainer createDb() {
+        return new PostgreSQLContainer("postgres:18-alpine")
                 .withDatabaseName("sushitrain")
                 .withUsername("sushi")
                 .withPassword("sushi")
                 .withStartupTimeout(Duration.ofSeconds(60));
     }
 
-    public static void registerDynamicProperties(DynamicPropertyRegistry r, PostgreSQLContainer<?> DB) {
+    public static void registerDynamicProperties(DynamicPropertyRegistry r, PostgreSQLContainer DB) {
         r.add("spring.datasource.url", DB::getJdbcUrl);
         r.add("spring.datasource.username", DB::getUsername);
         r.add("spring.datasource.password", DB::getPassword);

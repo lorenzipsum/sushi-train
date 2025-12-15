@@ -33,7 +33,7 @@ FROM generate_series(1, 24) AS i;
 --    Keep this list stable; add new items via a new migration (V3, V4, …)
 INSERT INTO menu_item (id, name, default_tier, base_price_yen, created_at) VALUES
   -- Nigiri
-  (uuid_generate_v4(),'Salmon Nigiri','GREEN',450, now()),
+  ('11111111-1111-1111-1111-111111111111','Salmon Nigiri','GREEN',450, now()),
   (uuid_generate_v4(),'Tuna Nigiri','RED',550, now()),
   (uuid_generate_v4(),'Yellowtail Nigiri','RED',600, now()),
   (uuid_generate_v4(),'Ebi (Shrimp) Nigiri','GREEN',450, now()),

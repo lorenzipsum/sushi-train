@@ -15,20 +15,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderLineTest {
 
-    private final Order order = Order.open(TestData.defaultSeat());
+    private final Order order = Order.open(TestData.defaultSeat().getId());
     private final Plate plate = TestData.plateSalmonNigiri();
 
     @Test
     @DisplayName("Order line can be created with sane defaults")
     void create_ok() {
         var before = Instant.now();
-        var orderLine = OrderLine.create(plate, order, SALMON_NIGIRI, 450);
+        var orderLine = OrderLine.create(plate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.GREEN, 450);
         var after = Instant.now();
 
         assertAll("Asserting sane defaults for order line",
                 () -> assertNotNull(orderLine.getId()),
-                () -> assertSame(plate, orderLine.getPlate()),
-                () -> assertSame(order, orderLine.getOrder()),
+                () -> assertEquals(plate.getId(), orderLine.getPlateId()),
+                () -> assertEquals(order.getId(), orderLine.getOrderId()),
                 () -> assertEquals(SALMON_NIGIRI, orderLine.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.GREEN, orderLine.getTierSnapshot()),
                 () -> assertEquals(MoneyYen.of(450), orderLine.getPriceAtPick()),
@@ -41,7 +41,7 @@ class OrderLineTest {
     @Test
     @DisplayName("Zero price is allowed (comped/discounted)")
     void zero_price_allowed() {
-        var line = OrderLine.create(plate, order, SALMON_NIGIRI, 0);
+        var line = OrderLine.create(plate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.GREEN, 0);
         assertEquals(MoneyYen.of(0), line.getPriceAtPick());
     }
 
@@ -50,9 +50,9 @@ class OrderLineTest {
     void create_not_ok() {
 
         assertAll("Instantiation handles null values",
-                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(null, order, SALMON_NIGIRI, 450)),
-                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate, null, SALMON_NIGIRI, 450)),
-                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate, order, SALMON_NIGIRI, -450))
+                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(null, order.getId(), SALMON_NIGIRI, PlateTier.GREEN, 450)),
+                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate.getId(), null, SALMON_NIGIRI, PlateTier.GREEN, 450)),
+                () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.GREEN, -450))
         );
     }
 
@@ -61,14 +61,14 @@ class OrderLineTest {
     void create_snapshots_ok() {
         var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(250), TestData.inTwoHours());
 
-        var orderLine1 = OrderLine.create(specialPlate, order, SALMON_NIGIRI, specialPlate.getPriceAtCreation().amount());
+        var orderLine1 = OrderLine.create(specialPlate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.RED, specialPlate.getPriceAtCreation().amount());
         assertAll("Asserting sane defaults for order line 1",
                 () -> assertEquals(SALMON_NIGIRI, orderLine1.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.RED, orderLine1.getTierSnapshot()),
                 () -> assertEquals(MoneyYen.of(250), orderLine1.getPriceAtPick())
         );
 
-        var orderLine2 = OrderLine.create(specialPlate, order, SALMON_NIGIRI, 550);
+        var orderLine2 = OrderLine.create(specialPlate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.GREEN, 550);
         assertEquals(MoneyYen.of(550), orderLine2.getPriceAtPick());
     }
 }

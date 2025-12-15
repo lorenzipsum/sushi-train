@@ -2,70 +2,70 @@ package com.lorenzipsum.sushitrain.backend.domain.order;
 
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import jakarta.persistence.*;
-import lombok.Getter;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
-@Table(name = "order_line")
-@Getter
+@SuppressWarnings({"LombokGetterMayBeUsed"})
 public class OrderLine {
-    @Id
-    private UUID id;
+    private final UUID id;
+    private final UUID plateId;
+    private UUID orderId;
+    private final String menuItemNameSnapshot;
+    private final PlateTier tierSnapshot;
+    private final MoneyYen priceAtPick;
+    private final Instant pickedAt;
 
-    @OneToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "plate_id", nullable = false, unique = true)
-    private Plate plate;
-
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
-
-    @Column(name = "menu_item_name_snapshot", nullable = false, length = 128)
-    private String menuItemNameSnapshot;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tier_snapshot", nullable = false, length = 16)
-    private PlateTier tierSnapshot;
-
-    @Embedded
-    @AttributeOverride(name = "amount", column = @Column(name = "price_at_pick_yen", nullable = false))
-    private MoneyYen priceAtPick;
-
-    @Column(name = "picked_at", nullable = false, updatable = false)
-    private Instant pickedAt;
-
-    @SuppressWarnings("unused")
-    protected OrderLine() {
-    }
-
-    private OrderLine(UUID id, Plate plate, Order order, String menuItemNameSnapshot, PlateTier tierSnapshot, MoneyYen priceAtPick, Instant pickedAt) {
+    private OrderLine(UUID id, UUID plateId, UUID orderId, String menuItemNameSnapshot, PlateTier tierSnapshot, MoneyYen priceAtPick, Instant pickedAt) {
         this.id = id;
-        this.plate = plate;
-        this.order = order;
+        this.plateId = plateId;
+        this.orderId = orderId;
         this.menuItemNameSnapshot = menuItemNameSnapshot;
         this.tierSnapshot = tierSnapshot;
         this.priceAtPick = priceAtPick;
         this.pickedAt = pickedAt;
     }
 
-    public static OrderLine create(Plate plate, Order order, String menuItemNameSnapshot, int priceInYen) {
-        if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
-        if (order == null) throw new IllegalArgumentException("Order cannot be null");
+    public static OrderLine create(UUID plateId, UUID orderId, String menuItemNameSnapshot, PlateTier tierSnapshot, int priceInYen) {
+        if (plateId == null) throw new IllegalArgumentException("Plate cannot be null");
+        if (orderId == null) throw new IllegalArgumentException("Order cannot be null");
         if (priceInYen < 0) throw new IllegalArgumentException("Price cannot be a negative value");
-        return new OrderLine(UUID.randomUUID(), plate, order, menuItemNameSnapshot, plate.getTierSnapshot(), new MoneyYen(priceInYen), Instant.now());
+        return new OrderLine(UUID.randomUUID(), plateId, orderId, menuItemNameSnapshot, tierSnapshot, new MoneyYen(priceInYen), Instant.now());
     }
 
-    @PrePersist
-    @SuppressWarnings("unused")
-    void prePersist() {
-        if (pickedAt == null) pickedAt = Instant.now();
+    public static OrderLine rehydrate(UUID id, UUID plateId, UUID orderId, String menuItemNameSnapshot, PlateTier tierSnapshot, MoneyYen priceAtPick, Instant pickedAt) {
+        return new OrderLine(id, plateId, orderId, menuItemNameSnapshot, tierSnapshot, priceAtPick, pickedAt);
     }
 
     void clearOrder() {
-        this.order = null;
+        this.orderId = null;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public UUID getPlateId() {
+        return plateId;
+    }
+
+    public UUID getOrderId() {
+        return orderId;
+    }
+
+    public String getMenuItemNameSnapshot() {
+        return menuItemNameSnapshot;
+    }
+
+    public PlateTier getTierSnapshot() {
+        return tierSnapshot;
+    }
+
+    public MoneyYen getPriceAtPick() {
+        return priceAtPick;
+    }
+
+    public Instant getPickedAt() {
+        return pickedAt;
     }
 }

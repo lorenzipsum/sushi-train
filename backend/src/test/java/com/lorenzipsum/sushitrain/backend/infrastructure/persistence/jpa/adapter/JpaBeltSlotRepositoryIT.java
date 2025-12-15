@@ -18,9 +18,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.util.UUID;
 
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class JpaBeltSlotRepositoryIT {
 
     @Container
-    static final PostgreSQLContainer<?> DB = createDb();
+    static final PostgreSQLContainer DB = createDb();
 
     @DynamicPropertySource
     @SuppressWarnings("unused")
@@ -68,7 +68,6 @@ class JpaBeltSlotRepositoryIT {
         // Assert
         assertThat(saved.getId()).isNotNull();
         assertThat(reloadedOpt).isPresent();
-
         BeltSlot reloaded = reloadedOpt.get();
 
         assertAll("Asserting reloaded values correct",
