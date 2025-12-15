@@ -3,6 +3,7 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapte
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltSlotEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltSlotMapper;
@@ -52,14 +53,34 @@ public class JpaBeltRepository implements BeltRepository {
         entity.setTickIntervalMs(belt.getTickIntervalMs());
         entity.setSpeedSlotsPerTick(belt.getSpeedSlotsPerTick());
 
-        var newSlots = belt.getSlots().stream()
-                .map(s -> {
-                    PlateEntity plateRef = (s.getPlateId() == null) ? null : em.getReference(PlateEntity.class, s.getPlateId());
-                    return slotMapper.toEntity(s, entity, plateRef);
-                })
-                .toList();
+        if (entity.getSlots() == null || entity.getSlots().isEmpty()) {
+            var newSlots = belt.getSlots().stream()
+                    .map(s -> {
+                        PlateEntity plateRef = (s.getPlateId() == null) ? null : em.getReference(PlateEntity.class, s.getPlateId());
+                        return slotMapper.toEntity(s, entity, plateRef);
+                    })
+                    .toList();
 
-        entity.replaceSlots(newSlots);
+            entity.replaceSlots(newSlots);
+        } else {
+            // Update existing slots in place by positionIndex
+            var byPos = entity.getSlots().stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                            BeltSlotEntity::getPositionIndex,
+                            s -> s
+                    ));
+
+            for (var domainSlot : belt.getSlots()) {
+                var slotEntity = byPos.get(domainSlot.getPositionIndex());
+                if (slotEntity == null) {
+                    throw new IllegalStateException("Missing slot entity for position " + domainSlot.getPositionIndex());
+                }
+                PlateEntity plateRef = (domainSlot.getPlateId() == null)
+                        ? null
+                        : em.getReference(PlateEntity.class, domainSlot.getPlateId());
+                slotEntity.setPlate(plateRef);
+            }
+        }
 
         var saved = dao.save(entity);
         return mapper.toDomain(saved);
