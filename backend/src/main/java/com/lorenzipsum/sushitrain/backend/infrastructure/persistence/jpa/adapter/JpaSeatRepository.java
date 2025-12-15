@@ -33,7 +33,7 @@ public class JpaSeatRepository implements SeatRepository {
     @Override
     public Seat save(Seat seat) {
         if (seat == null) throw new IllegalArgumentException("Seat cannot be null");
-        BeltEntity beltEntity = beltDao.findById(seat.getBeltId()).orElseThrow(() -> new IllegalStateException("Belt not found for id: " + seat.getBeltId()));
+        BeltEntity beltEntity = beltDao.getReferenceById(seat.getBeltId());
         var saved = dao.save(mapper.toEntity(seat, beltEntity));
         return mapper.toDomain(saved);
     }

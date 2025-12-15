@@ -34,8 +34,7 @@ public class JpaPlateRepository implements PlateRepository {
     public Plate save(Plate plate) {
         if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
 
-        MenuItemEntity menuItem = menuItemJpaDao.findById(plate.getMenuItemId()).orElseThrow(
-                () -> new IllegalStateException("MenuItem not found for id: " + plate.getMenuItemId()));
+        MenuItemEntity menuItem = menuItemJpaDao.getReferenceById(plate.getMenuItemId());
 
         var saved = dao.save(mapper.toEntity(plate, menuItem));
         return mapper.toDomain(saved);
