@@ -15,6 +15,7 @@ CREATE TABLE seat (
     belt_id              UUID NOT NULL REFERENCES belt(id) ON DELETE RESTRICT,
     seat_position_index  INTEGER NOT NULL,
     CONSTRAINT uk_belt_label UNIQUE (belt_id, label),
+    CONSTRAINT uk_seat_position UNIQUE (belt_id, seat_position_index),
     CONSTRAINT ck_seat_index_nonneg CHECK (seat_position_index >= 0)
 );
 CREATE INDEX idx_seat_belt ON seat(belt_id);
@@ -38,9 +39,12 @@ CREATE TABLE plate (
     created_at              TIMESTAMPTZ NOT NULL,
     expires_at              TIMESTAMPTZ NOT NULL,
     status                  VARCHAR(16) NOT NULL,
-    version                 BIGINT NOT NULL DEFAULT 0
+    version                 BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT ck_plate_expires_after_created CHECK (expires_at > created_at)
 );
 CREATE INDEX idx_plate_menu_item ON plate(menu_item_id);
+CREATE INDEX idx_plate_status ON plate(status);
+CREATE INDEX idx_plate_expires_at ON plate(expires_at);
 
 -- ORDERS
 CREATE TABLE orders (
@@ -49,9 +53,12 @@ CREATE TABLE orders (
     status      VARCHAR(16) NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL,
     closed_at   TIMESTAMPTZ,
-    version     BIGINT NOT NULL DEFAULT 0
+    version     BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT ck_orders_closed_after_created CHECK (closed_at IS NULL OR closed_at >= created_at)
 );
 CREATE INDEX idx_orders_seat ON orders(seat_id);
+CREATE INDEX idx_orders_status_created ON orders(status, created_at);
+CREATE INDEX idx_orders_status ON orders(status);
 
 -- ORDER LINE
 CREATE TABLE order_line (
@@ -74,3 +81,4 @@ CREATE TABLE belt_slot (
     CONSTRAINT uk_belt_position UNIQUE (belt_id, position_index)
 );
 CREATE INDEX idx_belt_slot_belt ON belt_slot(belt_id);
+CREATE INDEX idx_belt_slot_belt_position  ON belt_slot(belt_id, position_index);

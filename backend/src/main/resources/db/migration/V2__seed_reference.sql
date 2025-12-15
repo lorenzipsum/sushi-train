@@ -73,9 +73,3 @@ INSERT INTO menu_item (id, name, default_tier, base_price_yen, created_at) VALUE
   (uuid_generate_v4(),'Matcha Latte','RED',450, now()),
   (uuid_generate_v4(),'Cola','GREEN',200, now()),
   (uuid_generate_v4(),'Mineral Water','GREEN',150, now());
-
--- 5) Helpful query indexes (not created in V1)
-CREATE INDEX idx_orders_status            ON orders(status);
-CREATE INDEX idx_plate_status             ON plate(status);
-CREATE INDEX idx_plate_expires_at         ON plate(expires_at);
-CREATE INDEX idx_belt_slot_belt_position  ON belt_slot(belt_id, position_index);
