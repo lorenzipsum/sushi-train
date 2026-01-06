@@ -44,12 +44,13 @@ public class JpaBeltRepository implements BeltRepository {
                         belt.getId(),
                         belt.getName(),
                         belt.getSlotCount(),
-                        belt.getRotationOffset(),
+                        belt.getBaseRotationOffset(),
+                        belt.getOffsetStartedAt(),
                         belt.getTickIntervalMs(),
                         belt.getSpeedSlotsPerTick()
                 ));
 
-        entity.setRotationOffset(belt.getRotationOffset());
+        entity.setBaseRotationOffset(belt.getBaseRotationOffset());
         entity.setTickIntervalMs(belt.getTickIntervalMs());
         entity.setSpeedSlotsPerTick(belt.getSpeedSlotsPerTick());
 

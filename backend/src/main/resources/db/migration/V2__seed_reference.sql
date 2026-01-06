@@ -1,29 +1,30 @@
 -- Enable UUID helpers (safe if already enabled in the database image used for fresh envs)
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+create EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1) Create one belt with a 48s lap (192 slots × 250ms per tick)
-INSERT INTO belt (id, name, slot_count, rotation_offset, tick_interval_ms, speed_slots_per_tick)
-VALUES (
+insert into belt (id, name, slot_count, base_rotation_offset, offset_started_at, tick_interval_ms, speed_slots_per_tick)
+values (
   '11111111-1111-1111-1111-111111111111',
   'Main Belt',
   192,
   0,
+  now(),
   250,
   1
 );
 
 -- 2) Create 192 belt slots [0..191]
-INSERT INTO belt_slot (id, belt_id, position_index, plate_id)
-SELECT uuid_generate_v4(),
+insert into belt_slot (id, belt_id, position_index, plate_id)
+select uuid_generate_v4(),
        '11111111-1111-1111-1111-111111111111',
        gs.pos,
-       NULL
-FROM generate_series(0, 191) AS gs(pos);
+       null
+from generate_series(0, 191) AS gs(pos);
 
 -- 3) Create 24 seats (labels '1'..'24'), evenly spaced around the belt
 -- position index = floor((label-1) * 192 / 24) = (label-1) * 8
-INSERT INTO seat (id, label, belt_id, seat_position_index)
-SELECT uuid_generate_v4(),
+insert into seat (id, label, belt_id, seat_position_index)
+select uuid_generate_v4(),
        (i)::text,
        '11111111-1111-1111-1111-111111111111',
        (i - 1) * 8
@@ -31,7 +32,7 @@ FROM generate_series(1, 24) AS i;
 
 -- 4) Canonical menu items (tiers & base prices); created_at is deterministic “now()”
 --    Keep this list stable; add new items via a new migration (V3, V4, …)
-INSERT INTO menu_item (id, name, default_tier, base_price_yen, created_at) VALUES
+insert into menu_item (id, name, default_tier, base_price_yen, created_at) values
   -- Nigiri
   ('11111111-1111-1111-1111-111111111111','Salmon Nigiri','GREEN',450, now()),
   (uuid_generate_v4(),'Tuna Nigiri','RED',550, now()),

@@ -3,7 +3,8 @@ CREATE TABLE belt (
     id                   UUID PRIMARY KEY,
     name                 TEXT NOT NULL,
     slot_count           INTEGER NOT NULL,
-    rotation_offset      INTEGER NOT NULL DEFAULT 0,
+    base_rotation_offset INTEGER NOT NULL DEFAULT 0,
+    offset_started_at    TIMESTAMPTZ NOT NULL,
     tick_interval_ms     INTEGER NOT NULL DEFAULT 1000,
     speed_slots_per_tick INTEGER NOT NULL DEFAULT 1
 );

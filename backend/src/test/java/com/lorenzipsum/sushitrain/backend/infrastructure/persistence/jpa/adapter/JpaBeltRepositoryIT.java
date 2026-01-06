@@ -61,7 +61,7 @@ class JpaBeltRepositoryIT extends JpaRepositoryBase {
                 () -> assertEquals(belt.getId(), loaded.getId()),
                 () -> assertEquals(belt.getName(), loaded.getName()),
                 () -> assertEquals(belt.getSlotCount(), loaded.getSlotCount()),
-                () -> assertEquals(belt.getRotationOffset(), loaded.getRotationOffset()),
+                () -> assertEquals(belt.getBaseRotationOffset(), loaded.getBaseRotationOffset()),
                 () -> assertEquals(belt.getTickIntervalMs(), loaded.getTickIntervalMs()),
                 () -> assertEquals(belt.getSpeedSlotsPerTick(), loaded.getSpeedSlotsPerTick()),
                 () -> assertEquals(belt.getSlots().size(), loaded.getSlots().size()),

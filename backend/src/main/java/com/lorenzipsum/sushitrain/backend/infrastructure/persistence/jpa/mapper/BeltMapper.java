@@ -27,10 +27,11 @@ public class BeltMapper {
                 e.getId(),
                 e.getName(),
                 e.getSlotCount(),
-                e.getRotationOffset(),
+                e.getBaseRotationOffset(),
                 e.getTickIntervalMs(),
                 e.getSpeedSlotsPerTick(),
-                slots
+                slots,
+                e.getOffsetStartedAt()
         );
     }
 
@@ -40,7 +41,8 @@ public class BeltMapper {
                 d.getId(),
                 d.getName(),
                 d.getSlotCount(),
-                d.getRotationOffset(),
+                d.getBaseRotationOffset(),
+                d.getOffsetStartedAt(),
                 d.getTickIntervalMs(),
                 d.getSpeedSlotsPerTick()
         );

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -22,9 +23,12 @@ public class BeltEntity {
     @Column(name = "slot_count", nullable = false)
     private int slotCount;
 
-    @Column(name = "rotation_offset", nullable = false)
+    @Column(name = "base_rotation_offset", nullable = false)
     @Setter
-    private int rotationOffset;
+    private int baseRotationOffset;
+
+    @Column(name = "offset_started_at", nullable = false)
+    private Instant offsetStartedAt;
 
     @Column(name = "tick_interval_ms", nullable = false)
     @Setter
@@ -42,11 +46,12 @@ public class BeltEntity {
     protected BeltEntity() {
     }
 
-    public BeltEntity(UUID id, String name, int slotCount, int rotationOffset, int tickIntervalMs, int speedSlotsPerTick) {
+    public BeltEntity(UUID id, String name, int slotCount, int baseRotationOffset, Instant offsetStartedAt, int tickIntervalMs, int speedSlotsPerTick) {
         this.id = id;
         this.name = name;
         this.slotCount = slotCount;
-        this.rotationOffset = rotationOffset;
+        this.baseRotationOffset = baseRotationOffset;
+        this.offsetStartedAt = offsetStartedAt;
         this.tickIntervalMs = tickIntervalMs;
         this.speedSlotsPerTick = speedSlotsPerTick;
     }

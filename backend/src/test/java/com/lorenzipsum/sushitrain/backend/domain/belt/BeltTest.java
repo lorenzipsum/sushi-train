@@ -3,6 +3,7 @@ package com.lorenzipsum.sushitrain.backend.domain.belt;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +19,7 @@ class BeltTest {
                 () -> assertNotNull(belt.getId(), "ID should be generated"),
                 () -> assertEquals("Main", belt.getName(), "Belt name should be assigned correctly"),
                 () -> assertEquals(8, belt.getSlotCount(), "Slot count should be assigend correctly"),
-                () -> assertEquals(0, belt.getRotationOffset(), "Rotation offset should start with 0"),
+                () -> assertEquals(0, belt.getBaseRotationOffset(), "Rotation offset should start with 0"),
                 () -> assertEquals(1000, belt.getTickIntervalMs(), "Default tick should be 1000ms"),
                 () -> assertEquals(1, belt.getSpeedSlotsPerTick(), "Default speed should be 1 slot per tick"),
                 () -> assertNotNull(belt.getSlots(), "Slots should be initialized"),
@@ -34,7 +35,7 @@ class BeltTest {
     }
 
     @Test
-    @DisplayName("slotCount is clamped to at least 1")
+    @DisplayName("check illegal values for belt creation")
     void create_not_ok() {
         assertAll("Asserting handling of unsuccessful creation",
                 () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("Default", 0)),
@@ -46,113 +47,119 @@ class BeltTest {
     }
 
     @Test
-    @DisplayName("advanceOffset increases offset and wraps around modulo slotCount")
-    void advanceOffset_wraps() {
+    @DisplayName("offset wraps correctly with default settings")
+    void offset_with_defaults_wraps() {
+        // Arrange
         var belt = Belt.create("Wrap", 4);
-        assertEquals(0, belt.getRotationOffset());
+        var offset = belt.getOffsetStartedAt();
 
-        belt.advanceOffset();
-        assertEquals(1, belt.getRotationOffset());
-        belt.advanceOffset();
-        assertEquals(2, belt.getRotationOffset());
-        belt.advanceOffset();
-        assertEquals(3, belt.getRotationOffset());
-
-        belt.advanceOffset();
-        assertEquals(0, belt.getRotationOffset());
-        belt.advanceOffset();
-        assertEquals(1, belt.getRotationOffset());
-    }
-
-    @Test
-    @DisplayName("advanceOffset respects speedSlotsPerTick")
-    void advanceOffset_customSpeedWraps() {
-        // given
-        var belt = Belt.create("Speedy", 10);
-
-        // when
-        belt.setSpeedSlotsPerTick(3);
-
-        // then
-        belt.advanceOffset();
-        assertEquals(3, belt.getRotationOffset());
-        belt.advanceOffset();
-        assertEquals(6, belt.getRotationOffset());
-        belt.advanceOffset();
-        assertEquals(9, belt.getRotationOffset());
-
-        belt.advanceOffset();
-        assertEquals(2, belt.getRotationOffset());
-        belt.advanceOffset();
-        assertEquals(5, belt.getRotationOffset());
-    }
-
-    @Test
-    @DisplayName("setSpeedSlotsPerTick enforces minimum of 1")
-    void setSpeed_minimumOne() {
-        var belt = Belt.create("Speedy", 10);
-
-        belt.setSpeedSlotsPerTick(0);
-        assertEquals(1, belt.getSpeedSlotsPerTick());
-
-        belt.setSpeedSlotsPerTick(-5);
-        assertEquals(1, belt.getSpeedSlotsPerTick());
-
-        belt.setSpeedSlotsPerTick(2);
-        assertEquals(2, belt.getSpeedSlotsPerTick());
+        // Act & Assert
+        assertEquals(0, belt.currentOffsetAt(offset.plusMillis(999L)));
+        assertEquals(1, belt.currentOffsetAt(offset.plusMillis(1000L)));
+        assertEquals(2, belt.currentOffsetAt(offset.plusMillis(2000L)));
+        assertEquals(3, belt.currentOffsetAt(offset.plusMillis(3000L)));
+        assertEquals(3, belt.currentOffsetAt(offset.plusMillis(3999L)));
+        assertEquals(0, belt.currentOffsetAt(offset.plusMillis(4000L)));
+        assertEquals(0, belt.currentOffsetAt(offset.plusMillis(4999L)));
+        assertEquals(1, belt.currentOffsetAt(offset.plusMillis(5000L)));
+        assertEquals(2, belt.currentOffsetAt(offset.plusMillis(6000L)));
+        assertEquals(3, belt.currentOffsetAt(offset.plusMillis(7000L)));
+        assertEquals(0, belt.currentOffsetAt(offset.plusMillis(8000L)));
     }
 
     @Test
     @DisplayName("speedSlotsPerTick can be updated")
     void setSpeedSlotsPerTick_updates() {
         var belt = Belt.create("Default", 10);
+        var now = Instant.now();
 
         assertEquals(1, belt.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(5);
+        belt.setSpeedSlotsPerTick(5, now);
         assertEquals(5, belt.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(2);
+        belt.setSpeedSlotsPerTick(2, now);
         assertEquals(2, belt.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(1);
+        belt.setSpeedSlotsPerTick(1, now);
         assertEquals(1, belt.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(0);
+        belt.setSpeedSlotsPerTick(0, now);
         assertEquals(1, belt.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(-1);
+        belt.setSpeedSlotsPerTick(-1, now);
         assertEquals(1, belt.getSpeedSlotsPerTick());
 
-        assertThrows(IllegalArgumentException.class, () -> belt.setSpeedSlotsPerTick(10));
+        assertThrows(IllegalArgumentException.class, () -> belt.setSpeedSlotsPerTick(10, now));
+    }
+
+    @Test
+    @DisplayName("offset wraps correctly with higher number of slots per tick")
+    void offset_with_custom_speed_wraps() {
+        // Arrange
+        var belt = Belt.create("Speedy", 10);
+        var now = Instant.now();
+
+        // Act
+        belt.setSpeedSlotsPerTick(3, now);
+
+        // Act & Assert
+        assertEquals(0, belt.currentOffsetAt(now.plusMillis(999L)));
+        assertEquals(3, belt.currentOffsetAt(now.plusMillis(1000L)));
+        assertEquals(6, belt.currentOffsetAt(now.plusMillis(2000L)));
+        assertEquals(9, belt.currentOffsetAt(now.plusMillis(3000L)));
+        assertEquals(2, belt.currentOffsetAt(now.plusMillis(4000L)));
+        assertEquals(5, belt.currentOffsetAt(now.plusMillis(5000L)));
     }
 
     @Test
     @DisplayName("tickIntervalMs can be updated")
     void setTickInterval_updates() {
         var belt = Belt.create("Slowy", 10);
+        var now = Instant.now();
 
         assertEquals(1000, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(2000);
+        belt.setTickIntervalMs(2000, now);
         assertEquals(2000, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(2);
+        belt.setTickIntervalMs(2, now);
         assertEquals(2, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(1);
+        belt.setTickIntervalMs(1, now);
         assertEquals(1, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(0);
+        belt.setTickIntervalMs(0, now);
         assertEquals(1, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(-1);
+        belt.setTickIntervalMs(-1, now);
         assertEquals(1, belt.getTickIntervalMs());
     }
 
     @Test
+    @DisplayName("offset wraps correctly with higher tick rate")
+    void offset_with_custom_tick_interval_wraps() {
+        // Arrange
+        var belt = Belt.create("Speedy", 4);
+        var now = Instant.now();
+
+        // Act
+        belt.setTickIntervalMs(250, now);
+
+        // Act & Assert
+        assertEquals(0, belt.currentOffsetAt(now.plusMillis(249)));
+        assertEquals(1, belt.currentOffsetAt(now.plusMillis(250L)));
+        assertEquals(2, belt.currentOffsetAt(now.plusMillis(500L)));
+        assertEquals(3, belt.currentOffsetAt(now.plusMillis(750L)));
+        assertEquals(3, belt.currentOffsetAt(now.plusMillis(999L)));
+        assertEquals(0, belt.currentOffsetAt(now.plusMillis(1000L)));
+        assertEquals(1, belt.currentOffsetAt(now.plusMillis(1250L)));
+        assertEquals(2, belt.currentOffsetAt(now.plusMillis(1500L)));
+    }
+
+    @Test
     @DisplayName("getSlots returns an unmodifiable view")
-    void slots_areUnmodifiable() {
+    void slots_are_immutable() {
         var belt = Belt.create("Immutable", 10);
 
         var slots = belt.getSlots();
