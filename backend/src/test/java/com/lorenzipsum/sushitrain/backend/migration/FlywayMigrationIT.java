@@ -5,39 +5,35 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 
+import static com.lorenzipsum.sushitrain.backend.IntegrationTestDatabase.create;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 class FlywayMigrationIT {
-    @SuppressWarnings("resource")
-    static PostgreSQLContainer<?> POSTGRES =
-            new PostgreSQLContainer<>("postgres:18-alpine")
-                    .withDatabaseName("sushitrain")
-                    .withUsername("test")
-                    .withPassword("test");
+    static PostgreSQLContainer db = create();
 
     @BeforeAll
     static void start() {
-        POSTGRES.start();
+        db.start();
     }
 
     @AfterAll
     static void stop() {
-        POSTGRES.stop();
+        db.stop();
     }
 
     @Test
     @DisplayName("Baseline migrations apply cleanly and schema exists")
     void migrations_apply_cleanly_and_schema_exists() throws Exception {
         Flyway flyway = Flyway.configure()
-                .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+                .dataSource(db.getJdbcUrl(), db.getUsername(), db.getPassword())
                 .locations("classpath:db/migration")
                 .load();
 
@@ -47,7 +43,7 @@ class FlywayMigrationIT {
 
         // simple smoke check: a few tables exist
         try (Connection c = DriverManager.getConnection(
-                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
+                db.getJdbcUrl(), db.getUsername(), db.getPassword())) {
             assertTrue(tableExists(c, "belt"));
             assertTrue(tableExists(c, "seat"));
             assertTrue(tableExists(c, "menu_item"));
@@ -63,19 +59,19 @@ class FlywayMigrationIT {
     void demo_stock_populates_belt_with_target_occupancy() throws Exception {
         // Clean & re-migrate so the repeatable script runs on a fresh schema
         Flyway flyway = Flyway.configure()
-                .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+                .dataSource(db.getJdbcUrl(), db.getUsername(), db.getPassword())
                 .locations(
-                        "classpath:db/migration",          // V1__init.sql, V2__seed_reference.sql, etc.
-                        "classpath:db/migration/dev"       // R__demo_stock.sql (repeatable)
+                        "classpath:db/migration",
+                        "classpath:db/migration/dev"
                 )
                 .cleanDisabled(false)
                 .load();
 
-        flyway.clean();   // test-only reset
-        flyway.migrate(); // applies V1/V2 and then R__demo_stock
+        flyway.clean();
+        flyway.migrate();
 
         try (Connection c = DriverManager.getConnection(
-                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
+                db.getJdbcUrl(), db.getUsername(), db.getPassword())) {
 
             int totalSlots = singleInt(c,
                     "SELECT COUNT(*) FROM belt_slot");
