@@ -154,6 +154,7 @@
                 <version>3.5.4</version>
                 <configuration>
                     <argLine>
+                        <!-- https://stackoverflow.com/questions/79278490/mockito-is-currently-self-attaching-to-enable-the-inline-mock-maker-this-will-n-->
                         -Xshare:off
                         -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
                     </argLine>
