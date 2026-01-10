@@ -146,11 +146,18 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-            <!-- run integration tests with lifecycle 'verify'-->
+
+            <!-- Integration tests with lifecycle 'verify' -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.5.4</version>
+                <configuration>
+                    <argLine>
+                        -Xshare:off
+                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                    </argLine>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

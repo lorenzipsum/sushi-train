@@ -86,3 +86,15 @@ src/main/resources/
 ## 📜 License
 
 MIT — feel free to use and adapt for learning or demos.
+
+## Known Warnings
+
+https://github.com/projectlombok/lombok/issues/3852#issuecomment-3009156228
+--> warning can be ignored
+
+```bash
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by lombok.permit.Permit
+WARNING: Please consider reporting this to the maintainers of class lombok.permit.Permit
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+```
