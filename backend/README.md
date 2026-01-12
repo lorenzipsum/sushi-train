@@ -90,7 +90,7 @@ MIT — feel free to use and adapt for learning or demos.
 ## Known Warnings
 
 https://github.com/projectlombok/lombok/issues/3852#issuecomment-3009156228
---> warning can be ignored
+--> warning can be ignored until lombok fixes it
 
 ```bash
 WARNING: A terminally deprecated method in sun.misc.Unsafe has been called

@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.lorenzipsum.sushitrain</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>sushi-train-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Sushi Train Backend</name>
     <description>A kawaii, event-driven sushi conveyor-belt simulator built with Spring Boot, PostgreSQL, and
@@ -151,7 +151,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.5.4</version>
                 <configuration>
                     <argLine>
                         <!-- https://stackoverflow.com/questions/79278490/mockito-is-currently-self-attaching-to-enable-the-inline-mock-maker-this-will-n-->
