@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.plate;
 
-import com.lorenzipsum.sushitrain.backend.domain.TestData;
+import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;

@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.belt;
 
-import com.lorenzipsum.sushitrain.backend.domain.TestData;
+import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,15 +41,15 @@ class BeltSlotTest {
                 () -> assertEquals(belt.getId(), firstSlot.getBeltId()),
                 () -> assertNull(lastSlot.getPlateId()));
 
-        belt.getSlots().forEach(slot -> assertEquals(belt.getId(), firstSlot.getBeltId(), "each slot must reference its parent belt"));
+        belt.getSlots().forEach(_ -> assertEquals(belt.getId(), firstSlot.getBeltId(), "each slot must reference its parent belt"));
     }
 
     @Test
     @DisplayName("Belt creation checks for invalid params")
     void createEmptyAt_not_ok() {
         assertAll("Asserting checking of invalid params during creation of BeltSlot",
-                () -> assertThrows(IllegalArgumentException.class, () -> BeltSlot.createEmptyAt(null,0)),
-                () -> assertThrows(IllegalArgumentException.class, () -> BeltSlot.createEmptyAt(UUID.randomUUID(),-1))
+                () -> assertThrows(IllegalArgumentException.class, () -> BeltSlot.createEmptyAt(null, 0)),
+                () -> assertThrows(IllegalArgumentException.class, () -> BeltSlot.createEmptyAt(UUID.randomUUID(), -1))
         );
     }
 

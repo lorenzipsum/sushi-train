@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend.domain;
+package com.lorenzipsum.sushitrain.backend;
 
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;

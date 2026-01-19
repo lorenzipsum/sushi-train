@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.menu;
 
-import com.lorenzipsum.sushitrain.backend.domain.TestData;
+import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import org.junit.jupiter.api.DisplayName;
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.TestData.SALMON_NIGIRI;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MenuItemTest {

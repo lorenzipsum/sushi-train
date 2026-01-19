@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.seat;
 
-import com.lorenzipsum.sushitrain.backend.domain.TestData;
+import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

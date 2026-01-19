@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.TestData;
+import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.UUID;
 
-import static com.lorenzipsum.sushitrain.backend.domain.TestData.SALMON_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.TestData.SALMON_NIGIRI;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderLineTest {
