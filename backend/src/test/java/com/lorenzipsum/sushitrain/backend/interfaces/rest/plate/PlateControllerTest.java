@@ -1,5 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 
+import com.lorenzipsum.sushitrain.backend.application.plate.PlateNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
@@ -29,7 +30,7 @@ class PlateControllerTest {
     private PlateDtoMapper mapper;
 
     @Test
-    void getPlate() throws Exception {
+    void getPlate_ok() throws Exception {
         // arrange
         UUID menuItemId = UUID.randomUUID();
         PlateTier tier = PlateTier.GREEN;
@@ -61,5 +62,16 @@ class PlateControllerTest {
                 .andExpect(jsonPath("$.createdAt").value(plate.getCreatedAt().toString()))
                 .andExpect(jsonPath("$.expiresAt").value(expiresAt.toString()))
                 .andExpect(jsonPath("$.status").value(PlateStatus.ON_BELT.toString()));
+    }
+
+    @Test
+    void getPlate_notFound() throws Exception {
+        // arrange
+        UUID plateId = UUID.randomUUID();
+        given(service.getPlate(plateId)).willThrow(new PlateNotFoundException(plateId));
+
+        // act & assert
+        mockMvc.perform(get("/api/v1/plates/" + plateId))
+                .andExpect(status().isNotFound());
     }
 }
