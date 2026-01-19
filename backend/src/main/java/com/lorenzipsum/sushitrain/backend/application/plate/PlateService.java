@@ -1,5 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.application.plate;
 
+import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class PlateService {
 
     public Plate getPlate(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new PlateNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException(Plate.class.getName(), id));
     }
 
 }

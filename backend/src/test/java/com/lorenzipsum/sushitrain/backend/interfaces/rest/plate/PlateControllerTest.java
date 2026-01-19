@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 
-import com.lorenzipsum.sushitrain.backend.application.plate.PlateNotFoundException;
+import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
@@ -68,7 +68,7 @@ class PlateControllerTest {
     void getPlate_notFound() throws Exception {
         // arrange
         UUID plateId = UUID.randomUUID();
-        given(service.getPlate(plateId)).willThrow(new PlateNotFoundException(plateId));
+        given(service.getPlate(plateId)).willThrow(new ResourceNotFoundException(Plate.class.getName(), plateId));
 
         // act & assert
         mockMvc.perform(get("/api/v1/plates/" + plateId))
