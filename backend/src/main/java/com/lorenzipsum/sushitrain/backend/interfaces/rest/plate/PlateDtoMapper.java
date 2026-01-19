@@ -1,0 +1,34 @@
+package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
+
+import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
+import org.mapstruct.Mapper;
+import org.mapstruct.ObjectFactory;
+
+@Mapper(componentModel = "spring")
+public interface PlateDtoMapper {
+    PlateDto toDto(Plate plate);
+
+    Plate toDomain(PlateDto plateDto);
+
+    default Integer map(MoneyYen value) {
+        return value == null ? null : value.amount();
+    }
+
+    default MoneyYen map(Integer value) {
+        return value == null ? null : MoneyYen.of(value);
+    }
+
+    @ObjectFactory
+    default Plate createPlate(PlateDto plateDto) {
+        return Plate.rehydrate(
+                plateDto.id(),
+                plateDto.menuItemId(),
+                plateDto.tierSnapshot(),
+                MoneyYen.of(plateDto.priceAtCreation()),
+                plateDto.createdAt(),
+                plateDto.expiresAt(),
+                plateDto.status()
+        );
+    }
+}
