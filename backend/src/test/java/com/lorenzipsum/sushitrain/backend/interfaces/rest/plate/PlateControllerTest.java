@@ -17,8 +17,7 @@ import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PlateController.class)
 class PlateControllerTest {
@@ -30,7 +29,7 @@ class PlateControllerTest {
     private PlateDtoMapper mapper;
 
     @Test
-    void getPlate_ok() throws Exception {
+    void getPlate_returns200() throws Exception {
         // arrange
         UUID menuItemId = UUID.randomUUID();
         PlateTier tier = PlateTier.GREEN;
@@ -39,7 +38,6 @@ class PlateControllerTest {
 
         Plate plate = Plate.create(menuItemId, tier, price, expiresAt);
         UUID plateId = plate.getId();
-        given(service.getPlate(plateId)).willReturn(plate);
 
         PlateDto plateDto = new PlateDto(
                 plate.getId(),
@@ -50,11 +48,14 @@ class PlateControllerTest {
                 plate.getExpiresAt(),
                 plate.getStatus()
         );
+
+        given(service.getPlate(plateId)).willReturn(plate);
         given(mapper.toDto(plate)).willReturn(plateDto);
 
         // act & assert
-        mockMvc.perform(get("/api/v1/plates/" + plate.getId()))
+        mockMvc.perform(get("/api/v1/plates/" + plateId))
                 .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.id").value(plateId.toString()))
                 .andExpect(jsonPath("$.menuItemId").value(menuItemId.toString()))
                 .andExpect(jsonPath("$.tierSnapshot").value(tier.toString()))
@@ -65,13 +66,29 @@ class PlateControllerTest {
     }
 
     @Test
-    void getPlate_notFound() throws Exception {
-        // arrange
-        UUID plateId = UUID.randomUUID();
-        given(service.getPlate(plateId)).willThrow(new ResourceNotFoundException(Plate.class.getName(), plateId));
+    void getPlate_returns404_problemDetail() throws Exception {
+        UUID id = UUID.randomUUID();
+        given(service.getPlate(id)).willThrow(new ResourceNotFoundException("Plate", id));
 
-        // act & assert
-        mockMvc.perform(get("/api/v1/plates/" + plateId))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/plates/{id}", id))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.title").value("Resource not found"))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("Plate not found: " + id))
+                .andExpect(jsonPath("$.instance").value("/api/v1/plates/" + id))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/not-found"));
+    }
+
+    @Test
+    void getPlate_returns400_problemDetail_onInvalidUuid() throws Exception {
+        mockMvc.perform(get("/api/v1/plates/{id}", "not-a-uuid"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.title").value("Invalid parameter"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").exists())
+                .andExpect(jsonPath("$.instance").value("/api/v1/plates/not-a-uuid"))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/invalid-parameter"));
     }
 }
