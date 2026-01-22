@@ -110,7 +110,7 @@ class PlateControllerTest {
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.menuItemId").value(requestDto.menuItemId().toString()))
                 .andExpect(jsonPath("$.tierSnapshot").value(requestDto.tierSnapshot().toString()))
-                .andExpect(jsonPath("$.priceAtCreation").value(requestDto.priceAtCreation().toString()))
+                .andExpect(jsonPath("$.priceAtCreation").value(requestDto.priceAtCreation()))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
                 .andExpect(jsonPath("$.expiresAt").value(requestDto.expiresAt().toString()))
                 .andExpect(jsonPath("$.status").value(PlateStatus.ON_BELT.toString()));
