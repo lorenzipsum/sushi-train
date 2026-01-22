@@ -7,11 +7,11 @@ import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDto;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapper;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapperImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Import(PlateDtoMapperImpl.class)
 @WebMvcTest(PlateController.class)
 class PlateControllerTest {
     public static final String BASE_URI = "/api/v1/plates";
@@ -32,8 +33,6 @@ class PlateControllerTest {
     private MockMvc mockMvc;
     @MockitoBean
     private PlateService service;
-    @MockitoBean
-    private PlateDtoMapper mapper;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -48,18 +47,7 @@ class PlateControllerTest {
         Plate plate = Plate.create(menuItemId, tier, price, expiresAt);
         UUID plateId = plate.getId();
 
-        PlateDto plateDto = new PlateDto(
-                plate.getId(),
-                plate.getMenuItemId(),
-                plate.getTierSnapshot(),
-                plate.getPriceAtCreation().amount(),
-                plate.getCreatedAt(),
-                plate.getExpiresAt(),
-                plate.getStatus()
-        );
-
         given(service.getPlate(plateId)).willReturn(plate);
-        given(mapper.toDto(plate)).willReturn(plateDto);
 
         // act & assert
         mockMvc.perform(get(BASE_URI + "/" + plateId))
@@ -106,22 +94,12 @@ class PlateControllerTest {
         // arrange
         var requestDto = new CreatePlateRequest(UUID.randomUUID(), PlateTier.RED, 500, Instant.now().plusSeconds(3600));
         var plate = Plate.create(requestDto.menuItemId(), requestDto.tierSnapshot(), MoneyYen.of(requestDto.priceAtCreation()), requestDto.expiresAt());
-        var responseDto = new PlateDto(
-                plate.getId(),
-                plate.getMenuItemId(),
-                plate.getTierSnapshot(),
-                plate.getPriceAtCreation().amount(),
-                plate.getCreatedAt(),
-                plate.getExpiresAt(),
-                plate.getStatus()
-        );
 
         given(service.createPlate(
                 requestDto.menuItemId(),
                 requestDto.tierSnapshot(),
                 MoneyYen.of(requestDto.priceAtCreation()),
                 requestDto.expiresAt())).willReturn(plate);
-        given(mapper.toDto(plate)).willReturn(responseDto);
 
         // act & assert
         mockMvc.perform(post(BASE_URI)
