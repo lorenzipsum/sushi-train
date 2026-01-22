@@ -1,6 +1,5 @@
 spring:
   application:
     name: Sushi Train Backend
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
+  profiles:
+    active: local

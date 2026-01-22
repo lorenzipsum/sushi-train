@@ -12,8 +12,8 @@ public class IntegrationTestDatabase {
     public static PostgreSQLContainer create() {
         return new PostgreSQLContainer(POSTGRES_18_ALPINE)
                 .withDatabaseName("sushitrain")
-                .withUsername("sushi")
-                .withPassword("sushi")
+                .withUsername("sushitrain")
+                .withPassword("sushitrain")
                 .withStartupTimeout(Duration.ofSeconds(60));
     }
 }
