@@ -1,6 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
+import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapper;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +33,7 @@ public class PlateController {
         this.mapper = mapper;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get a plate by id", description = "Returns a single plate. If the id does not exist, returns a ProblemDetail (404).")
     @ApiResponses({
             @ApiResponse(
@@ -59,7 +61,7 @@ public class PlateController {
         return mapper.toDto(service.getPlate(id));
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Create a new plate",
@@ -96,7 +98,14 @@ public class PlateController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CreatePlateRequest.class)))
             @Valid @RequestBody CreatePlateRequest request) {
-        var plate = service.createPlate(mapper.toDomain(request));
+        MoneyYen optionalPrice = request.priceAtCreation() != null ? MoneyYen.of(request.priceAtCreation()) : null;
+
+        var plate = service.createPlate(
+                request.menuItemId(),
+                request.tierSnapshot(),
+                optionalPrice,
+                request.expiresAt());
+
         return mapper.toDto(plate);
     }
 }

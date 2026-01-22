@@ -1,6 +1,8 @@
 package com.lorenzipsum.sushitrain.backend.application.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
+import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
@@ -20,37 +22,24 @@ public class PlateService {
         this.menuItemRepository = menuItemRepository;
     }
 
-    public static Instant inTwoHours() {
+    private static Instant inTwoHours() {
         return Instant.now().plusSeconds(7200);
     }
 
     public Plate getPlate(UUID id) {
         return repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException(Plate.class.getName(), id));
+                () -> new ResourceNotFoundException("Plate", id));
     }
 
-    public Plate createPlate(Plate plate) {
-        var menuItemId = plate.getMenuItemId();
-        var menuItem = menuItemRepository.findById(plate.getMenuItemId()).orElseThrow(
+    public Plate createPlate(UUID menuItemId, PlateTier tierSnapshot, MoneyYen priceAtCreation, Instant expiresAt) {
+        var menuItem = menuItemRepository.findById(menuItemId).orElseThrow(
                 () -> new ResourceNotFoundException("MenuItem", menuItemId));
 
-        if (plate.getTierSnapshot() == null || plate.getPriceAtCreation() == null) {
-            plate = Plate.create(
-                    plate.getMenuItemId(),
-                    menuItem.getDefaultTier(),
-                    menuItem.getBasePrice(),
-                    plate.getExpiresAt()
-            );
-        }
+        var tier = (tierSnapshot != null) ? tierSnapshot : menuItem.getDefaultTier();
+        var price = (priceAtCreation != null) ? priceAtCreation : menuItem.getBasePrice();
+        var expires = (expiresAt != null) ? expiresAt : inTwoHours();
 
-        if (plate.getExpiresAt() == null) {
-            plate = Plate.create(
-                    plate.getMenuItemId(),
-                    plate.getTierSnapshot(),
-                    plate.getPriceAtCreation(),
-                    inTwoHours()
-            );
-        }
+        var plate = Plate.create(menuItemId, tier, price, expires);
 
         return repository.save(plate);
     }

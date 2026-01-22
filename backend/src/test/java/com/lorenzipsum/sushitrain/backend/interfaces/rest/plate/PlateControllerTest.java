@@ -115,8 +115,12 @@ class PlateControllerTest {
                 plate.getExpiresAt(),
                 plate.getStatus()
         );
-        given(mapper.toDomain(requestDto)).willReturn(plate);
-        given(service.createPlate(plate)).willReturn(plate);
+
+        given(service.createPlate(
+                requestDto.menuItemId(),
+                requestDto.tierSnapshot(),
+                MoneyYen.of(requestDto.priceAtCreation()),
+                requestDto.expiresAt())).willReturn(plate);
         given(mapper.toDto(plate)).willReturn(responseDto);
 
         // act & assert
@@ -161,7 +165,11 @@ class PlateControllerTest {
                 Instant.now().plusSeconds(3600)
         );
 
-        given(mapper.toDomain(request)).willThrow(new RuntimeException("boom"));
+        given(service.createPlate(
+                request.menuItemId(),
+                request.tierSnapshot(),
+                MoneyYen.of(request.priceAtCreation()),
+                request.expiresAt())).willThrow(new RuntimeException("boom"));
 
         mockMvc.perform(post(BASE_URI)
                         .contentType(MediaType.APPLICATION_JSON)
