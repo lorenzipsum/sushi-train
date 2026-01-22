@@ -43,4 +43,10 @@ public class PlateService {
 
         return repository.save(plate);
     }
+
+    public Plate expirePlate(UUID id) {
+        var plate = getPlate(id);
+        plate.expire();
+        return repository.save(plate);
+    }
 }
