@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
+package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto;
 
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
