@@ -9,7 +9,7 @@ import org.mapstruct.ObjectFactory;
 public interface PlateDtoMapper {
     PlateDto toDto(Plate plate);
 
-    Plate toDomain(PlateDto plateDto);
+    Plate toDomain(CreatePlateRequest createPlateRequest);
 
     default Integer map(MoneyYen value) {
         return value == null ? null : value.amount();
@@ -20,15 +20,12 @@ public interface PlateDtoMapper {
     }
 
     @ObjectFactory
-    default Plate createPlate(PlateDto plateDto) {
-        return Plate.rehydrate(
-                plateDto.id(),
-                plateDto.menuItemId(),
-                plateDto.tierSnapshot(),
-                MoneyYen.of(plateDto.priceAtCreation()),
-                plateDto.createdAt(),
-                plateDto.expiresAt(),
-                plateDto.status()
+    default Plate createPlate(CreatePlateRequest request) {
+        return Plate.create(
+                request.menuItemId(),
+                request.tierSnapshot(),
+                MoneyYen.of(request.priceAtCreation()),
+                request.expiresAt()
         );
     }
 }

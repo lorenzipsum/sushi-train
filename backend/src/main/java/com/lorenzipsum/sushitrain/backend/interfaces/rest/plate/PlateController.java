@@ -2,22 +2,22 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/plates")
-@Tag(name = "Plate Controller")
+@Tag(name = "Plates", description = "Operations for managing plates on the sushi belt")
 public class PlateController {
 
     private final PlateService service;
@@ -29,17 +29,20 @@ public class PlateController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get a plate by id", description = "Returns a single plate or 404 if non existing.")
+    @Operation(summary = "Get a plate by id", description = "Returns a single plate. If the id does not exist, returns a ProblemDetail (404).")
     @ApiResponses({
-            @ApiResponse(responseCode = "200",
+            @ApiResponse(
+                    responseCode = "200",
                     description = "Plate found",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = PlateDto.class))),
-            @ApiResponse(responseCode = "400",
+            @ApiResponse(
+                    responseCode = "400",
                     description = "Invalid UUID format",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class))),
-            @ApiResponse(responseCode = "404",
+            @ApiResponse(
+                    responseCode = "404",
                     description = "Plate not found",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class))),
@@ -47,7 +50,50 @@ public class PlateController {
                     description = "Unexpected error",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))})
-    public PlateDto getPlate(@PathVariable UUID id) {
+    public PlateDto getPlate(
+            @Parameter(description = "Plate id", required = true, example = "a22b5bd2-285f-42eb-889a-8d2dd1f2d6c7")
+            @PathVariable UUID id) {
         return mapper.toDto(service.getPlate(id));
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Create a new plate",
+            description = "Creates a plate and returns the created resource. Validation errors return ProblemDetail (400)."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Plate created",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PlateDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = """
+                            Bad request:
+                            - malformed JSON
+                            - bean validation failed
+                            """,
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public PlateDto createPlate(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "Plate creation request",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CreatePlateRequest.class)))
+            @Valid @RequestBody CreatePlateRequest request) {
+        var plate = service.createPlate(mapper.toDomain(request));
+        return mapper.toDto(plate);
     }
 }

@@ -9,24 +9,30 @@ import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PlateController.class)
 class PlateControllerTest {
+    public static final String BASE_URI = "/api/v1/plates";
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
     private PlateService service;
     @MockitoBean
     private PlateDtoMapper mapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void getPlate_returns200() throws Exception {
@@ -53,7 +59,7 @@ class PlateControllerTest {
         given(mapper.toDto(plate)).willReturn(plateDto);
 
         // act & assert
-        mockMvc.perform(get("/api/v1/plates/" + plateId))
+        mockMvc.perform(get(BASE_URI + "/" + plateId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.id").value(plateId.toString()))
@@ -70,7 +76,7 @@ class PlateControllerTest {
         UUID id = UUID.randomUUID();
         given(service.getPlate(id)).willThrow(new ResourceNotFoundException("Plate", id));
 
-        mockMvc.perform(get("/api/v1/plates/{id}", id))
+        mockMvc.perform(get(BASE_URI + "/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/problem+json"))
                 .andExpect(jsonPath("$.title").value("Resource not found"))
@@ -82,7 +88,7 @@ class PlateControllerTest {
 
     @Test
     void getPlate_returns400_problemDetail_onInvalidUuid() throws Exception {
-        mockMvc.perform(get("/api/v1/plates/{id}", "not-a-uuid"))
+        mockMvc.perform(get(BASE_URI + "/{id}", "not-a-uuid"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/problem+json"))
                 .andExpect(jsonPath("$.title").value("Invalid parameter"))
@@ -90,5 +96,77 @@ class PlateControllerTest {
                 .andExpect(jsonPath("$.detail").exists())
                 .andExpect(jsonPath("$.instance").value("/api/v1/plates/not-a-uuid"))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/invalid-parameter"));
+    }
+
+    @Test
+    void createPlate_returns201() throws Exception {
+        // arrange
+        var requestDto = new CreatePlateRequest(UUID.randomUUID(), PlateTier.RED, 500, Instant.now().plusSeconds(3600));
+        var plate = Plate.create(requestDto.menuItemId(), requestDto.tierSnapshot(), MoneyYen.of(requestDto.priceAtCreation()), requestDto.expiresAt());
+        var responseDto = new PlateDto(
+                plate.getId(),
+                plate.getMenuItemId(),
+                plate.getTierSnapshot(),
+                plate.getPriceAtCreation().amount(),
+                plate.getCreatedAt(),
+                plate.getExpiresAt(),
+                plate.getStatus()
+        );
+        given(mapper.toDomain(requestDto)).willReturn(plate);
+        given(service.createPlate(plate)).willReturn(plate);
+        given(mapper.toDto(plate)).willReturn(responseDto);
+
+        // act & assert
+        mockMvc.perform(post(BASE_URI)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.id").isNotEmpty())
+                .andExpect(jsonPath("$.menuItemId").value(requestDto.menuItemId().toString()))
+                .andExpect(jsonPath("$.tierSnapshot").value(requestDto.tierSnapshot().toString()))
+                .andExpect(jsonPath("$.priceAtCreation").value(requestDto.priceAtCreation().toString()))
+                .andExpect(jsonPath("$.createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.expiresAt").value(requestDto.expiresAt().toString()))
+                .andExpect(jsonPath("$.status").value(PlateStatus.ON_BELT.toString()));
+    }
+
+
+    @Test
+    void createPlate_returns400_problemDetail_onValidationError() throws Exception {
+        // invalid: missing menuItemId, expiresAt
+        var invalidJson = """
+                {"tierSnapshot":"RED","priceAtCreation":500}
+                """;
+
+        mockMvc.perform(post(BASE_URI)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.title").value("Validation failed"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/validation-failed"));
+    }
+
+    @Test
+    void createPlate_returns500_problemDetail_onUnexpected() throws Exception {
+        var request = new CreatePlateRequest(
+                UUID.randomUUID(),
+                PlateTier.RED,
+                500,
+                Instant.now().plusSeconds(3600)
+        );
+
+        given(mapper.toDomain(request)).willThrow(new RuntimeException("boom"));
+
+        mockMvc.perform(post(BASE_URI)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.title").value("Internal server error"))
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
     }
 }
