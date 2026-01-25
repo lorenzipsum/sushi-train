@@ -18,6 +18,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
@@ -35,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
         BeltMapper.class,
         BeltSlotMapper.class,
         PlateMapper.class})
+@ActiveProfiles("test")
 class JpaBeltRepositoryIT extends JpaRepositoryBase {
 
     @Autowired

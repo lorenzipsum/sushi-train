@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend.migration;
+package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.migration;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
@@ -12,7 +12,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 
-import static com.lorenzipsum.sushitrain.backend.IntegrationTestDatabase.create;
+import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.IntegrationTestDatabase.create;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers

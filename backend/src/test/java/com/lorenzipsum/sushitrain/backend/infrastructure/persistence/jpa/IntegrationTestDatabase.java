@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend;
+package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa;
 
 import org.testcontainers.postgresql.PostgreSQLContainer;
 

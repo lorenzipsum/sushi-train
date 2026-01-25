@@ -6,7 +6,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import static com.lorenzipsum.sushitrain.backend.IntegrationTestDatabase.create;
+import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.IntegrationTestDatabase.create;
 
 public class JpaRepositoryBase {
     @Container
