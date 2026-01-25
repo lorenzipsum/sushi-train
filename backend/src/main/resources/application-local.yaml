@@ -6,6 +6,18 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/sushitrain}
     username: ${DB_USER:sushitrain}
     password: ${DB_PASSWORD:sushitrain}
+    hikari:
+      pool-name: SushiTrainHikari
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          fetch_size: 50
