@@ -11,16 +11,10 @@ import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import com.lorenzipsum.sushitrain.backend.domain.seat.SeatRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.*;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.OrderJpaDao;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -30,13 +24,8 @@ import static com.lorenzipsum.sushitrain.backend.TestData.inTwoHours;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Testcontainers
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
-@EnableJpaRepositories(basePackageClasses = {OrderJpaDao.class})
 @Import({JpaOrderRepository.class,
-        JpaBeltRepository.class,
+        JpaBeltITRepositoryIT.class,
         JpaSeatRepository.class,
         JpaPlateRepository.class,
         OrderMapper.class,
@@ -45,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
         BeltSlotMapper.class,
         SeatMapper.class,
         PlateMapper.class})
-class JpaOrderRepositoryIT extends JpaRepositoryBase {
+class JpaOrderITRepositoryIT extends JpaBaseRepositoryIT {
 
     @Autowired
     private OrderRepository repository;

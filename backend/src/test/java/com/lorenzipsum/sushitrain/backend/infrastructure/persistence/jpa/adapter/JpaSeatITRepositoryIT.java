@@ -7,27 +7,16 @@ import com.lorenzipsum.sushitrain.backend.domain.seat.SeatRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltSlotMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.SeatMapper;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Testcontainers
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@EntityScan(basePackages = "com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa")
-@EnableJpaRepositories(basePackageClasses = SeatJpaDao.class)
-@Import({JpaSeatRepository.class, SeatMapper.class, JpaBeltRepository.class, BeltMapper.class, BeltSlotMapper.class})
-class JpaSeatRepositoryIT extends JpaRepositoryBase {
+@Import({JpaSeatRepository.class, SeatMapper.class, JpaBeltITRepositoryIT.class, BeltMapper.class, BeltSlotMapper.class})
+class JpaSeatITRepositoryIT extends JpaBaseRepositoryIT {
 
     @Autowired
     private SeatRepository repository;

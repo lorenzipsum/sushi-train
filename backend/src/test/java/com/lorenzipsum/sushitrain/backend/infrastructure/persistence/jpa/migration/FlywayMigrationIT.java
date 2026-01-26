@@ -5,6 +5,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -12,12 +15,15 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 
-import static com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.IntegrationTestDatabase.create;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
+@ActiveProfiles("test")
 class FlywayMigrationIT {
-    static PostgreSQLContainer db = create();
+
+    @Container
+    @ServiceConnection
+    protected static PostgreSQLContainer db = new PostgreSQLContainer("postgres:18-alpine");
 
     @BeforeAll
     static void start() {
@@ -62,7 +68,7 @@ class FlywayMigrationIT {
                 .dataSource(db.getJdbcUrl(), db.getUsername(), db.getPassword())
                 .locations(
                         "classpath:db/migration",
-                        "classpath:db/migration/dev"
+                        "classpath:db/demo"
                 )
                 .cleanDisabled(false)
                 .load();
