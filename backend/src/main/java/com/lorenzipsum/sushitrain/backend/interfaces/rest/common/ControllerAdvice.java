@@ -2,13 +2,16 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.common;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.net.URI;
@@ -40,6 +43,37 @@ public class ControllerAdvice {
         return pd;
     }
 
+    // 400: missing required query params (?page=...&size=...)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingRequestParam(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Missing required parameter");
+        pd.setDetail("Missing required query parameter '" + ex.getParameterName() + "'");
+        pd.setType(URI.create("https://api.sushitrain/errors/missing-parameter"));
+        pd.setInstance(URI.create(request.getRequestURI()));
+        pd.setProperty("parameter", ex.getParameterName());
+        return pd;
+    }
+
+    // 400: method parameter validation (e.g. @Min/@Max on @RequestParam)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Validation failed");
+        pd.setDetail("One or more parameters are invalid");
+        pd.setType(URI.create("https://api.sushitrain/errors/validation-failed"));
+        pd.setInstance(URI.create(request.getRequestURI()));
+
+        var errors = ex.getConstraintViolations().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        v -> v.getPropertyPath().toString(),
+                        v -> v.getMessage() != null ? v.getMessage() : "invalid",
+                        (a, b) -> a
+                ));
+        pd.setProperty("errors", errors);
+        return pd;
+    }
+
     // 400: invalid JSON
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
@@ -65,6 +99,23 @@ public class ControllerAdvice {
                         fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "invalid",
                         (a, b) -> a
                 ));
+        pd.setProperty("errors", errors);
+        return pd;
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ProblemDetail handleHandlerMethodValidation(HandlerMethodValidationException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Validation failed");
+        pd.setDetail("One or more parameters are invalid");
+        pd.setType(URI.create("https://api.sushitrain/errors/validation-failed"));
+        pd.setInstance(URI.create(request.getRequestURI()));
+
+        var errors = ex.getAllErrors().stream()
+                .map(e -> e.getDefaultMessage() != null ? e.getDefaultMessage() : "invalid")
+                .distinct()
+                .toList();
+
         pd.setProperty("errors", errors);
         return pd;
     }

@@ -6,10 +6,11 @@ import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -51,7 +52,7 @@ public class PlateService {
         return repository.save(plate);
     }
 
-    public List<Plate> getAllPlates() {
-        return repository.findAll();
+    public Page<Plate> getAllPlates(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 }

@@ -12,12 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
@@ -229,26 +233,50 @@ class PlateControllerTest {
     @Test
     void getAllPlates_returns200() throws Exception {
         // arrange
-        UUID menuItemId1 = UUID.randomUUID();
-        Plate plate1 = Plate.create(menuItemId1, PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
+        Plate plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
+        Plate plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
+        PageRequest pageRequest = PageRequest.of(0, 2);
+        Page<Plate> page = new PageImpl<>(List.of(plate1, plate2), pageRequest, 2);
 
-        UUID menuItemId2 = UUID.randomUUID();
-        Plate plate2 = Plate.create(menuItemId2, PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
-
-        given(service.getAllPlates()).willReturn(java.util.List.of(plate1, plate2));
+        given(service.getAllPlates(pageRequest)).willReturn(page);
 
         // act & assert
-        mockMvc.perform(get(BASE_URI))
+        mockMvc.perform(get(BASE_URI).param("page", "0").param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(plate1.getId().toString()))
-                .andExpect(jsonPath("$[1].id").value(plate2.getId().toString()));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.content[0].id").value(plate1.getId().toString()))
+                .andExpect(jsonPath("$.content[1].id").value(plate2.getId().toString()));
+    }
+
+    @Test
+    void getAllPlates_returns200_withDefaultParamsWhenMissing() throws Exception {
+        // arrange
+        Plate plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
+        Plate plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
+
+        PageRequest defaultPageRequest = PageRequest.of(0, 10);
+        Page<Plate> page = new PageImpl<>(List.of(plate1, plate2), defaultPageRequest, 2);
+
+        given(service.getAllPlates(defaultPageRequest)).willReturn(page);
+
+        // act & assert
+        mockMvc.perform(get(BASE_URI)) // no params
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.size").value(10));
     }
 
     @Test
     void getAllPlates_returns500_problemDetail_onUnexpected() throws Exception {
-        given(service.getAllPlates()).willThrow(new RuntimeException("boom"));
+        PageRequest defaultPageRequest = PageRequest.of(0, 10);
+        given(service.getAllPlates(defaultPageRequest)).willThrow(new RuntimeException("boom"));
 
         mockMvc.perform(get(BASE_URI))
                 .andExpect(status().isInternalServerError())
@@ -256,5 +284,26 @@ class PlateControllerTest {
                 .andExpect(jsonPath("$.title").value("Internal server error"))
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
+    }
+
+    @Test
+    void getAllPlates_returns400_problemDetail_onWrongType() throws Exception {
+        mockMvc.perform(get(BASE_URI).param("page", "abc").param("size", "10"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.title").value("Invalid parameter"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/invalid-parameter"));
+    }
+
+    @Test
+    void getAllPlates_returns400_problemDetail_onValidationError() throws Exception {
+        mockMvc.perform(get(BASE_URI).param("page", "-1").param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.title").value("Validation failed"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/validation-failed"))
+                .andExpect(jsonPath("$.errors").exists());
     }
 }

@@ -6,9 +6,10 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.PlateMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,8 +43,8 @@ public class JpaPlateRepository implements PlateRepository {
     }
 
     @Override
-    public List<Plate> findAll() {
-        return dao.findAll().stream().map(mapper::toDomain).toList();
+    public Page<Plate> findAll(Pageable pageable) {
+        return dao.findAll(pageable).map(mapper::toDomain);
     }
 
 }
