@@ -9,6 +9,7 @@ import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -48,5 +49,9 @@ public class PlateService {
         var plate = getPlate(id);
         plate.expire();
         return repository.save(plate);
+    }
+
+    public List<Plate> getAllPlates() {
+        return repository.findAll();
     }
 }

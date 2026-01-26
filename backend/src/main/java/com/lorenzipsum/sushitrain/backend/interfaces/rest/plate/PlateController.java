@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -114,5 +115,20 @@ public class PlateController {
             @Parameter(description = "Plate id", required = true, example = "a22b5bd2-285f-42eb-889a-8d2dd1f2d6c7")
             @PathVariable UUID id) {
         return mapper.toDto(service.expirePlate(id));
+    }
+
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Get all plates", description = "Returns a list of all plates.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of plates",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PlateDto.class))),
+            @ApiResponse(responseCode = "500", description = "Unexpected error",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)))})
+    public List<PlateDto> getAllPlates() {
+        return service.getAllPlates().stream()
+                .map(mapper::toDto)
+                .toList();
     }
 }

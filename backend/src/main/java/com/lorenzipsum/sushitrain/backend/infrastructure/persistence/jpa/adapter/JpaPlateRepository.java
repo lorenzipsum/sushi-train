@@ -8,6 +8,7 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.Me
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,4 +40,10 @@ public class JpaPlateRepository implements PlateRepository {
         var saved = dao.save(mapper.toEntity(plate, menuItem));
         return mapper.toDomain(saved);
     }
+
+    @Override
+    public List<Plate> findAll() {
+        return dao.findAll().stream().map(mapper::toDomain).toList();
+    }
+
 }

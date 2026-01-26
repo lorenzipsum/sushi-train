@@ -225,4 +225,36 @@ class PlateControllerTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
     }
+
+    @Test
+    void getAllPlates_returns200() throws Exception {
+        // arrange
+        UUID menuItemId1 = UUID.randomUUID();
+        Plate plate1 = Plate.create(menuItemId1, PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
+
+        UUID menuItemId2 = UUID.randomUUID();
+        Plate plate2 = Plate.create(menuItemId2, PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
+
+        given(service.getAllPlates()).willReturn(java.util.List.of(plate1, plate2));
+
+        // act & assert
+        mockMvc.perform(get(BASE_URI))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(plate1.getId().toString()))
+                .andExpect(jsonPath("$[1].id").value(plate2.getId().toString()));
+    }
+
+    @Test
+    void getAllPlates_returns500_problemDetail_onUnexpected() throws Exception {
+        given(service.getAllPlates()).willThrow(new RuntimeException("boom"));
+
+        mockMvc.perform(get(BASE_URI))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.title").value("Internal server error"))
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
+    }
 }

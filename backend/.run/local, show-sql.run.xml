@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="local, show-sql" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="local, show-sql" />
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+    <module name="sushi-train-backend" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.lorenzipsum.sushitrain.backend.SushiTrainBackendApplication" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.lorenzipsum.sushitrain.backend.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
