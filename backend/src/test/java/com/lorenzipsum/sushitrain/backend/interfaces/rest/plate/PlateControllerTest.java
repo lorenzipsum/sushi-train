@@ -6,6 +6,7 @@ import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.MoneyYenMapperImpl;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapperImpl;
 import org.junit.jupiter.api.Test;
@@ -25,12 +26,14 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(PlateDtoMapperImpl.class)
-@WebMvcTest(PlateController.class)
+@WebMvcTest({PlateController.class, MoneyYenMapperImpl.class})
 class PlateControllerTest {
     public static final String BASE_URI = "/api/v1/plates";
     @Autowired
@@ -56,7 +59,7 @@ class PlateControllerTest {
         // act & assert
         mockMvc.perform(get(BASE_URI + "/" + plateId))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"))
+                .andExpect(content().contentType(APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").value(plateId.toString()))
                 .andExpect(jsonPath("$.menuItemId").value(menuItemId.toString()))
                 .andExpect(jsonPath("$.tierSnapshot").value(tier.toString()))
@@ -73,7 +76,7 @@ class PlateControllerTest {
 
         mockMvc.perform(get(BASE_URI + "/{id}", id))
                 .andExpect(status().isNotFound())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Resource not found"))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.detail").value("Plate not found: " + id))
@@ -85,7 +88,7 @@ class PlateControllerTest {
     void getPlate_returns400_problemDetail_onInvalidUuid() throws Exception {
         mockMvc.perform(get(BASE_URI + "/{id}", "not-a-uuid"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Invalid parameter"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.detail").exists())
@@ -110,7 +113,7 @@ class PlateControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType("application/json"))
+                .andExpect(content().contentType(APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.menuItemId").value(requestDto.menuItemId().toString()))
                 .andExpect(jsonPath("$.tierSnapshot").value(requestDto.tierSnapshot().toString()))
@@ -132,7 +135,7 @@ class PlateControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Validation failed"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/validation-failed"));
@@ -157,7 +160,7 @@ class PlateControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Internal server error"))
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
@@ -180,7 +183,7 @@ class PlateControllerTest {
         // act & assert
         mockMvc.perform(post(BASE_URI + "/" + plateId + "/expire"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"))
+                .andExpect(content().contentType(APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").value(plateId.toString()))
                 .andExpect(jsonPath("$.menuItemId").value(menuItemId.toString()))
                 .andExpect(jsonPath("$.tierSnapshot").value(tier.toString()))
@@ -197,7 +200,7 @@ class PlateControllerTest {
 
         mockMvc.perform(post(BASE_URI + "/{id}/expire", id))
                 .andExpect(status().isNotFound())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Resource not found"))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.detail").value("Plate not found: " + id))
@@ -209,7 +212,7 @@ class PlateControllerTest {
     void expirePlate_returns400_problemDetail_onInvalidUuid() throws Exception {
         mockMvc.perform(post(BASE_URI + "/{id}/expire", "not-a-uuid"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Invalid parameter"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.detail").exists())
@@ -224,7 +227,7 @@ class PlateControllerTest {
 
         mockMvc.perform(post(BASE_URI + "/{id}/expire", id))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Internal server error"))
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
@@ -243,7 +246,7 @@ class PlateControllerTest {
         // act & assert
         mockMvc.perform(get(BASE_URI).param("page", "0").param("size", "2"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"))
+                .andExpect(content().contentType(APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.page.totalElements").value(2))
                 .andExpect(jsonPath("$.page.number").value(0))
@@ -266,7 +269,7 @@ class PlateControllerTest {
         // act & assert
         mockMvc.perform(get(BASE_URI)) // no params
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"))
+                .andExpect(content().contentType(APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.page.totalElements").value(2))
                 .andExpect(jsonPath("$.page.number").value(0))
@@ -280,7 +283,7 @@ class PlateControllerTest {
 
         mockMvc.perform(get(BASE_URI))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Internal server error"))
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
@@ -290,7 +293,7 @@ class PlateControllerTest {
     void getAllPlates_returns400_problemDetail_onWrongType() throws Exception {
         mockMvc.perform(get(BASE_URI).param("page", "abc").param("size", "10"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Invalid parameter"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/invalid-parameter"));
@@ -300,7 +303,7 @@ class PlateControllerTest {
     void getAllPlates_returns400_problemDetail_onValidationError() throws Exception {
         mockMvc.perform(get(BASE_URI).param("page", "-1").param("size", "0"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Validation failed"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/validation-failed"))
