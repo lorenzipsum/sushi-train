@@ -39,7 +39,7 @@ BEGIN
   LIMIT 1;
 
   IF v_belt IS NULL THEN
-    RAISE NOTICE 'Main Belt not found; run V2__seed_reference.sql first.';
+    RAISE NOTICE 'Main Belt not found; run V2__seed_core_data.sql first.';
     RETURN;
   END IF;
 
@@ -101,7 +101,7 @@ BEGIN
 
   SELECT COALESCE(SUM(weight),0) INTO v_total_weight FROM tmp_weighted_items;
   IF v_total_weight = 0 THEN
-    RAISE NOTICE 'No menu items found; run V2__seed_reference.sql first.';
+    RAISE NOTICE 'No menu items found; run V2__seed_core_data.sql first.';
     RETURN;
   END IF;
 

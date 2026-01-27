@@ -3,4 +3,4 @@ spring:
     enabled: true
     locations: classpath:db/migration, classpath:db/demo
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/sushitrain-with-data}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sushitrain-demo-data}
