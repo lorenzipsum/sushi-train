@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.domain.menu;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import org.junit.jupiter.api.DisplayName;
@@ -8,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static com.lorenzipsum.sushitrain.backend.TestData.SALMON_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MenuItemTest {
@@ -17,7 +16,7 @@ class MenuItemTest {
     @DisplayName("Menu item can be created with sane defaults")
     void create_ok() {
         var before = Instant.now();
-        var salmonNigiri = TestData.menuItemSalmonNigiri();
+        var salmonNigiri = MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(450));
         var after = Instant.now();
 
         assertAll("Asserting instantiated menu item",

@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.domain.plate;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
@@ -10,18 +9,19 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.MAGURO_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.inTwoHours;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PlateTest {
-    private final Instant inTwoHours = TestData.inTwoHours();
-    private final MenuItem menuItem = TestData.menuItemMaguroNigiri();
+    private final MenuItem menuItem = MenuItem.create(MAGURO_NIGIRI, PlateTier.GREEN, MoneyYen.of(500));
 
     @Test
     @DisplayName("Plate can be created with sane defaults")
     void create_simple_ok() {
-        var menuItem = TestData.menuItemMaguroNigiri();
         Instant before = Instant.now();
-        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours);
+        Instant expirationDate = inTwoHours();
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), expirationDate);
         Instant after = Instant.now();
 
         assertAll("Asserting sane defaults for Plate",
@@ -32,7 +32,7 @@ class PlateTest {
                 () -> assertTrue(!plate.getCreatedAt().isBefore(before)
                                 && !plate.getCreatedAt().isAfter(after),
                         "createdAt is between 'before' and 'after'"),
-                () -> assertEquals(inTwoHours, plate.getExpiresAt()),
+                () -> assertEquals(expirationDate, plate.getExpiresAt()),
                 () -> assertEquals(PlateStatus.ON_BELT, plate.getStatus())
         );
     }
@@ -40,7 +40,7 @@ class PlateTest {
     @Test
     @DisplayName("Plate can be created with overwritten defaults")
     void create_overwrite_defaults_ok() {
-        var plate = Plate.create(menuItem.getId(), PlateTier.RED, MoneyYen.of(666), inTwoHours);
+        var plate = Plate.create(menuItem.getId(), PlateTier.RED, MoneyYen.of(666), inTwoHours());
 
         assertAll("Asserting defaults can be overwritten",
                 () -> assertEquals(PlateTier.RED, plate.getTierSnapshot()),
@@ -52,9 +52,9 @@ class PlateTest {
     @DisplayName("Plate creation handles null values correctly")
     void create_not_ok() {
         assertAll("Asserting Plate handles null values",
-                () -> assertThrows(IllegalArgumentException.class, () -> Plate.create(null, PlateTier.RED, MoneyYen.of(500), inTwoHours)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Plate.create(menuItem.getId(), null, MoneyYen.of(500), inTwoHours)),
-                () -> assertThrows(IllegalArgumentException.class, () -> Plate.create(menuItem.getId(), PlateTier.RED, null, inTwoHours)),
+                () -> assertThrows(IllegalArgumentException.class, () -> Plate.create(null, PlateTier.RED, MoneyYen.of(500), inTwoHours())),
+                () -> assertThrows(IllegalArgumentException.class, () -> Plate.create(menuItem.getId(), null, MoneyYen.of(500), inTwoHours())),
+                () -> assertThrows(IllegalArgumentException.class, () -> Plate.create(menuItem.getId(), PlateTier.RED, null, inTwoHours())),
                 () -> assertThrows(IllegalArgumentException.class, () -> Plate.create(menuItem.getId(), PlateTier.RED, MoneyYen.of(500), null))
         );
     }
@@ -71,7 +71,7 @@ class PlateTest {
     @DisplayName("Plate expires correctly")
     void expire_ok() {
         // given
-        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours);
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
 
         // when
         plate.expire();
@@ -83,7 +83,7 @@ class PlateTest {
     @Test
     @DisplayName("expire() is idempotent")
     void expire_idempotent() {
-        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours);
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
         plate.expire();
         plate.expire();
         assertEquals(PlateStatus.EXPIRED, plate.getStatus());

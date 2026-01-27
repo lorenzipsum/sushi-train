@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.domain.seat;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SeatTest {
-    private final Belt belt = TestData.newBelt();
+    private final Belt belt = Belt.create("Default", 10);
 
     @Test
     @DisplayName("Seat creation has sane defaults")

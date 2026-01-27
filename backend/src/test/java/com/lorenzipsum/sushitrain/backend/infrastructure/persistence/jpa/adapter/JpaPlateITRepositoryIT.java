@@ -1,9 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
-import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
@@ -16,7 +12,8 @@ import org.springframework.context.annotation.Import;
 
 import java.time.temporal.ChronoUnit;
 
-import static com.lorenzipsum.sushitrain.backend.TestData.SALMON_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI_ID;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.inTwoHours;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,8 +29,8 @@ class JpaPlateITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load a Plate via adapter")
     void persistAndLoadPlate() {
         // Arrange
-        var menuItem = menuItemRepository.save(MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(120)));
-        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), TestData.inTwoHours());
+        var menuItem = menuItemRepository.findById(SALMON_NIGIRI_ID).orElseThrow();
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
 
         // Act
         var saved = repository.save(plate);

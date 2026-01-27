@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Import;
 
 import java.time.temporal.ChronoUnit;
 
-import static com.lorenzipsum.sushitrain.backend.TestData.SALMON_NIGIRI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +25,7 @@ class JpaMenuItemITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load a MenuItem via hex adapter")
     void persistAndLoadMenuItem() {
         // Arrange
-        var menuItem = MenuItem.create(SALMON_NIGIRI, PlateTier.GREEN, new MoneyYen(120));
+        var menuItem = MenuItem.create("New Menu Item", PlateTier.GREEN, new MoneyYen(120));
 
         // Act
         var savedId = repository.save(menuItem).getId();

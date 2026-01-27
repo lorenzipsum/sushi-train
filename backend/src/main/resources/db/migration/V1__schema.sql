@@ -6,7 +6,8 @@ CREATE TABLE belt (
     base_rotation_offset INTEGER NOT NULL DEFAULT 0,
     offset_started_at    TIMESTAMPTZ NOT NULL,
     tick_interval_ms     INTEGER NOT NULL DEFAULT 1000,
-    speed_slots_per_tick INTEGER NOT NULL DEFAULT 1
+    speed_slots_per_tick INTEGER NOT NULL DEFAULT 1,
+    CONSTRAINT uk_belt_name UNIQUE (name)
 );
 
 -- SEAT
@@ -27,7 +28,8 @@ CREATE TABLE menu_item (
     name             TEXT NOT NULL,
     default_tier     VARCHAR(16) NOT NULL,
     base_price_yen   INTEGER NOT NULL CHECK (base_price_yen >= 0),
-    created_at       TIMESTAMPTZ NOT NULL
+    created_at       TIMESTAMPTZ NOT NULL,
+    CONSTRAINT uk_menu_item_name UNIQUE (name)
 );
 CREATE INDEX idx_menu_item_name ON menu_item(name);
 

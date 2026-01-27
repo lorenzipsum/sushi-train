@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
+import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import com.lorenzipsum.sushitrain.backend.domain.seat.SeatRepository;
@@ -27,7 +27,7 @@ class JpaSeatITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load a Seat via adapter")
     void persistAndLoadSeat_ok() {
         // Arrange
-        var belt = TestData.newBelt();
+        var belt = Belt.create("Default", 10);
         beltRepository.save(belt);
         var seat = Seat.create("A1", belt.getId(), 5);
 

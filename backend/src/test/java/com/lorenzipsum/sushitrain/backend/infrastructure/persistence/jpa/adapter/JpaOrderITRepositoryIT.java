@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
+import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
@@ -19,8 +19,8 @@ import org.springframework.context.annotation.Import;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-import static com.lorenzipsum.sushitrain.backend.TestData.MENU_ITEM_DEFAULT_ID;
-import static com.lorenzipsum.sushitrain.backend.TestData.inTwoHours;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI_ID;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.inTwoHours;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -50,7 +50,7 @@ class JpaOrderITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load a Order via adapter")
     void persistAndLoadOrders_ok() {
         // Arrange
-        var belt = beltRepository.save(TestData.newBelt());
+        var belt = beltRepository.save(Belt.create("Default", 10));
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
 
         // Act
@@ -79,9 +79,9 @@ class JpaOrderITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load a Order via adapter")
     void persistAndLoadOrders_containing_line_ok() {
         // Arrange
-        var belt = beltRepository.save(TestData.newBelt());
+        var belt = beltRepository.save(Belt.create("Default", 10));
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
-        var plate = plateRepository.save(Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
+        var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
 
         // Act
         var order = Order.open(seat.getId());
@@ -121,9 +121,9 @@ class JpaOrderITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load a Order via adapter")
     void persistAndLoadOrders_line_manipulations_ok() {
         // Arrange
-        var belt = beltRepository.save(TestData.newBelt());
+        var belt = beltRepository.save(Belt.create("Default", 10));
         var seat = seatRepository.save(Seat.create("A1", belt.getId(), 1));
-        var plate = plateRepository.save(Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
+        var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
         var order = Order.open(seat.getId());
         order.addLineFromPlate(plate.getId(), "Salmon Nigiri", PlateTier.GREEN, 400);
 
@@ -151,7 +151,8 @@ class JpaOrderITRepositoryIT extends JpaBaseRepositoryIT {
 
     @Test
     void saveFailsWhenSeatMissing() {
-        var seat = TestData.newSeatWithNewBelt();
+        var belt = Belt.create("Default", 10);
+        var seat = Seat.create("1", belt.getId(), 5);
         var order = Order.open(seat.getId());
 
         repository.save(order);

@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
+import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
@@ -10,16 +10,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.UUID;
 
-import static com.lorenzipsum.sushitrain.backend.TestData.CHICKEN_KARAAGE;
-import static com.lorenzipsum.sushitrain.backend.TestData.SALMON_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderTest {
 
-    private final Seat seat = TestData.newSeatWithNewBelt();
-    private final Plate chickenKaraagePlate = TestData.plateChickenKaraage();
-    private final Plate salmonNigiriPlate = TestData.plateSalmonNigiri();
+    private final Belt belt = Belt.create("Default", 10);
+    private final Seat seat = Seat.create("1", belt.getId(), 5);
+    private final Plate chickenKaraagePlate = Plate.create(UUID.randomUUID(), PlateTier.GOLD, MoneyYen.of(800), inTwoHours());
+    private final Plate salmonNigiriPlate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
 
     @Test
     @DisplayName("Order is opened with sane defaults")

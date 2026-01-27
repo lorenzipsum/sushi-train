@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
@@ -44,10 +45,8 @@ class FlywayMigrationIT {
                 .load();
 
         var result = flyway.migrate();
-        // sanity: at least V1 and V2 should have run
         assertTrue(result.migrationsExecuted >= 2, "Expected at least 2 migrations to run");
 
-        // simple smoke check: a few tables exist
         try (Connection c = DriverManager.getConnection(
                 db.getJdbcUrl(), db.getUsername(), db.getPassword())) {
             assertTrue(tableExists(c, "belt"));
@@ -61,15 +60,11 @@ class FlywayMigrationIT {
     }
 
     @Test
-    @DisplayName("R__demo_stock fills belt to ~15–25% occupancy (dev repeatable script)")
-    void demo_stock_populates_belt_with_target_occupancy() throws Exception {
-        // Clean & re-migrate so the repeatable script runs on a fresh schema
+    @DisplayName("Demo seed places up to 24 plates on Main Belt (only empty target slots)")
+    void demo_seed_places_24_plates_on_main_belt() throws Exception {
         Flyway flyway = Flyway.configure()
                 .dataSource(db.getJdbcUrl(), db.getUsername(), db.getPassword())
-                .locations(
-                        "classpath:db/migration",
-                        "classpath:db/demo"
-                )
+                .locations("classpath:db/migration", "classpath:db/demo")
                 .cleanDisabled(false)
                 .load();
 
@@ -79,19 +74,37 @@ class FlywayMigrationIT {
         try (Connection c = DriverManager.getConnection(
                 db.getJdbcUrl(), db.getUsername(), db.getPassword())) {
 
-            int totalSlots = singleInt(c,
-                    "SELECT COUNT(*) FROM belt_slot");
-            int occupied = singleInt(c,
-                    "SELECT COUNT(*) FROM belt_slot WHERE plate_id IS NOT NULL");
+            int totalSlotsMainBelt = singleInt(c, """
+                    SELECT COUNT(*)
+                    FROM belt_slot bs
+                    JOIN belt b ON b.id = bs.belt_id
+                    WHERE b.name = 'Main Belt'
+                    """);
 
-            // Avoid div-by-zero in case seed changed
-            assertTrue(totalSlots > 0, "Expected belt_slot to have rows");
+            int occupiedTargets = singleInt(c, """
+                    SELECT COUNT(*)
+                    FROM belt_slot bs
+                    JOIN belt b ON b.id = bs.belt_id
+                    WHERE b.name = 'Main Belt'
+                      AND bs.plate_id IS NOT NULL
+                      AND (bs.position_index % 8) = 0
+                    """);
 
-            double occ = (double) occupied / (double) totalSlots;
+            int occupiedAllMainBelt = singleInt(c, """
+                    SELECT COUNT(*)
+                    FROM belt_slot bs
+                    JOIN belt b ON b.id = bs.belt_id
+                    WHERE b.name = 'Main Belt'
+                      AND bs.plate_id IS NOT NULL
+                    """);
 
-            // Because of randomness, allow a slightly wider band to avoid flakiness
-            assertTrue(occ >= 0.10 && occ <= 0.30,
-                    "Expected belt occupancy in ~10–30% range, was " + String.format("%.2f%%", occ * 100));
+            assertTrue(totalSlotsMainBelt > 0, "Expected Main Belt to have belt slots");
+            // On a fresh DB, your script should fill exactly 24 target slots (0,8,...,184)
+            assertEquals(24, occupiedTargets, "Expected exactly 24 occupied target slots on Main Belt");
+
+            // Safety: script should not fill any non-target slots
+            assertEquals(occupiedTargets, occupiedAllMainBelt,
+                    "Expected only target slots to be occupied by the demo seed");
         }
     }
 

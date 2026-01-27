@@ -1,22 +1,27 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
+import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
+import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.UUID;
 
-import static com.lorenzipsum.sushitrain.backend.TestData.SALMON_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.inTwoHours;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OrderLineTest {
 
-    private final Order order = Order.open(TestData.newSeatWithNewBelt().getId());
-    private final Plate plate = TestData.plateSalmonNigiri();
+    private final Belt belt = Belt.create("Default", 10);
+
+    private final Seat seat = Seat.create("1", belt.getId(), 5);
+    private final Order order = Order.open(seat.getId());
+    private final Plate plate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
 
     @Test
     @DisplayName("Order line can be created with sane defaults")
@@ -59,7 +64,7 @@ class OrderLineTest {
     @Test
     @DisplayName("Order line keeps snapshots ")
     void create_snapshots_ok() {
-        var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(250), TestData.inTwoHours());
+        var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(250), inTwoHours());
 
         var orderLine1 = OrderLine.create(specialPlate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.RED, specialPlate.getPriceAtCreation().amount());
         assertAll("Asserting sane defaults for order line 1",

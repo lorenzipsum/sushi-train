@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
-import com.lorenzipsum.sushitrain.backend.TestData;
+import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
@@ -16,7 +16,8 @@ import org.springframework.context.annotation.Import;
 
 import java.util.UUID;
 
-import static com.lorenzipsum.sushitrain.backend.TestData.MENU_ITEM_DEFAULT_ID;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI_ID;
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.inTwoHours;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Import({JpaBeltRepository.class,
@@ -35,7 +36,7 @@ class JpaBeltITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load a Belt via adapter")
     void persistAndLoadBelt_ok() {
         // Arrange
-        var belt = TestData.newBelt();
+        var belt = Belt.create("Default", 10);
         var firstSlot = belt.getSlots().getFirst();
 
         // Act
@@ -65,8 +66,8 @@ class JpaBeltITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("place plate on slot")
     void persistAndLoad_place_plate_on_slot_ok() {
         // Arrange
-        var belt = TestData.newBelt();
-        var plate = Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.GREEN, MoneyYen.of(400), TestData.inTwoHours());
+        var belt = Belt.create("Default", 10);
+        var plate = Plate.create(SALMON_NIGIRI_ID, PlateTier.GREEN, MoneyYen.of(400), inTwoHours());
         var firstSlot = belt.getSlots().getFirst();
 
         // Act
@@ -92,8 +93,8 @@ class JpaBeltITRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("pick plate on slot ")
     void persistAndLoad_pick_plate_from_slot_ok() {
         // Arrange
-        var belt = TestData.newBelt();
-        var plate = Plate.create(MENU_ITEM_DEFAULT_ID, PlateTier.GREEN, MoneyYen.of(400), TestData.inTwoHours());
+        var belt = Belt.create("Default", 10);
+        var plate = Plate.create(SALMON_NIGIRI_ID, PlateTier.GREEN, MoneyYen.of(400), inTwoHours());
         var firstSlot = belt.getSlots().getFirst();
 
         firstSlot.place(plate.getId());
