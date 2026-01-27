@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
         BeltMapper.class,
         BeltSlotMapper.class,
         PlateMapper.class})
-class JpaBeltITRepositoryIT extends JpaBaseRepositoryIT {
+class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
 
     @Autowired
     private BeltRepository repository;

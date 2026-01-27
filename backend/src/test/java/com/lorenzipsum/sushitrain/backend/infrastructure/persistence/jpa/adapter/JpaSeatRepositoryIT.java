@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Import;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Import({JpaSeatRepository.class, SeatMapper.class, JpaBeltITRepositoryIT.class, BeltMapper.class, BeltSlotMapper.class})
-class JpaSeatITRepositoryIT extends JpaBaseRepositoryIT {
+@Import({JpaSeatRepository.class, SeatMapper.class, JpaBeltRepositoryIT.class, BeltMapper.class, BeltSlotMapper.class})
+class JpaSeatRepositoryIT extends JpaBaseRepositoryIT {
 
     @Autowired
     private SeatRepository repository;

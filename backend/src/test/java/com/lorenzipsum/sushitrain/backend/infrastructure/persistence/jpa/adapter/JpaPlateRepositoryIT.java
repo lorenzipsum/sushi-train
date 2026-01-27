@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Import({JpaPlateRepository.class, PlateMapper.class, JpaMenuItemRepository.class, MenuItemMapper.class})
-class JpaPlateITRepositoryIT extends JpaBaseRepositoryIT {
+class JpaPlateRepositoryIT extends JpaBaseRepositoryIT {
 
     @Autowired
     private PlateRepository repository;

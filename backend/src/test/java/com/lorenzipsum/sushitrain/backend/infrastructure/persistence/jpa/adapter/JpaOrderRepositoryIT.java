@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Import({JpaOrderRepository.class,
-        JpaBeltITRepositoryIT.class,
+        JpaBeltRepositoryIT.class,
         JpaSeatRepository.class,
         JpaPlateRepository.class,
         OrderMapper.class,
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
         BeltSlotMapper.class,
         SeatMapper.class,
         PlateMapper.class})
-class JpaOrderITRepositoryIT extends JpaBaseRepositoryIT {
+class JpaOrderRepositoryIT extends JpaBaseRepositoryIT {
 
     @Autowired
     private OrderRepository repository;
