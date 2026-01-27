@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -129,7 +130,7 @@ public class PlateController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))})
     public Page<PlateDto> getAllPlates(@RequestParam(defaultValue = "0") @Min(0) int page,
-                                       @RequestParam(defaultValue = "10") @Min(1) int size) {
+                                       @RequestParam(defaultValue = "10") @Min(1) @Max(200) int size) {
         return service.getAllPlates(PageRequest.of(page, size)).map(mapper::toDto);
     }
 }
