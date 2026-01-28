@@ -71,29 +71,46 @@ class PlateControllerTest {
 
     @Test
     void getPlate_returns404_problemDetail() throws Exception {
-        UUID id = UUID.randomUUID();
-        given(service.getPlate(id)).willThrow(new ResourceNotFoundException("Plate", id));
+        UUID nonExistentId = UUID.randomUUID();
+        given(service.getPlate(nonExistentId)).willThrow(new ResourceNotFoundException("Plate", nonExistentId));
 
-        mockMvc.perform(get(BASE_URI + "/{id}", id))
+        mockMvc.perform(get(BASE_URI + "/{id}", nonExistentId))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Resource not found"))
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.detail").value("Plate not found: " + id))
-                .andExpect(jsonPath("$.instance").value("/api/v1/plates/" + id))
+                .andExpect(jsonPath("$.detail").value("Plate not found: " + nonExistentId))
+                .andExpect(jsonPath("$.instance").value("/api/v1/plates/" + nonExistentId))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/not-found"));
     }
 
     @Test
     void getPlate_returns400_problemDetail_onInvalidUuid() throws Exception {
-        mockMvc.perform(get(BASE_URI + "/{id}", "not-a-uuid"))
+        // arrange
+        var invalidId = "invalid-uuid";
+
+        // act & assert
+        mockMvc.perform(get(BASE_URI + "/{id}", invalidId))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Invalid parameter"))
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").exists())
-                .andExpect(jsonPath("$.instance").value("/api/v1/plates/not-a-uuid"))
+                .andExpect(jsonPath("$.detail").value("Parameter 'id' must be a UUID"))
+                .andExpect(jsonPath("$.instance").value("/api/v1/plates/" + invalidId))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/invalid-parameter"));
+    }
+
+    @Test
+    void getPlate_returns500_problemDetail_onUnexpected() throws Exception {
+        UUID id = UUID.randomUUID();
+        given(service.getPlate(id)).willThrow(new RuntimeException("boom"));
+
+        mockMvc.perform(get(BASE_URI + "/{id}", id))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.title").value("Internal server error"))
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
     }
 
     @Test
@@ -236,10 +253,10 @@ class PlateControllerTest {
     @Test
     void getAllPlates_returns200() throws Exception {
         // arrange
-        Plate plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
-        Plate plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
-        PageRequest pageRequest = PageRequest.of(0, 2);
-        Page<Plate> page = new PageImpl<>(List.of(plate1, plate2), pageRequest, 2);
+        var plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
+        var plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
+        var pageRequest = PageRequest.of(0, 2);
+        var page = new PageImpl<>(List.of(plate1, plate2), pageRequest, 2);
 
         given(service.getAllPlates(pageRequest)).willReturn(page);
 
@@ -306,6 +323,7 @@ class PlateControllerTest {
                 .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.title").value("Validation failed"))
                 .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").value("One or more parameters are invalid"))
                 .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/validation-failed"))
                 .andExpect(jsonPath("$.errors").exists());
     }

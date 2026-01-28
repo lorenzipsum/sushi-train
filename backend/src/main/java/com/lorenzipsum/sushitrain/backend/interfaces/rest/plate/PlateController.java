@@ -128,11 +128,16 @@ public class PlateController {
             @ApiResponse(responseCode = "200", description = "List of plates",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = PagedModel.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "500", description = "Unexpected error",
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class)))})
-    public PagedModel<PlateDto> getAllPlates(@RequestParam(defaultValue = "0") @Min(0) int page,
-                                             @RequestParam(defaultValue = "10") @Min(1) @Max(200) int size) {
+    public PagedModel<PlateDto> getAllPlates(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(200) int size) {
+
         return new PagedModel<>(service.getAllPlates(PageRequest.of(page, size)).map(mapper::toDto));
     }
 }

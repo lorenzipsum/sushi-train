@@ -8,11 +8,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ProblemDetail;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -21,6 +23,7 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
 @RestController
 @RequestMapping("/api/v1/menu-items")
+@Tag(name = "Menu Items", description = "Operations for managing menu items")
 public class MenuItemController {
 
     private final MenuItemService service;
@@ -49,5 +52,26 @@ public class MenuItemController {
     })
     public MenuItemDto getMenuItem(@PathVariable UUID id) {
         return mapper.toDto(service.getMenuItem(id));
+    }
+
+
+    @GetMapping(produces = APPLICATION_JSON_VALUE)
+    @Operation(summary = "Get all menu items", description = "Returns a paginated list of all menu items.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of menu items",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = MenuItemDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Unexpected error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public PagedModel<MenuItemDto> getAllMenuItems(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(200) int size) {
+
+        return new PagedModel<>(service.getAllMenuItems(PageRequest.of(page, size)).map(mapper::toDto));
     }
 }

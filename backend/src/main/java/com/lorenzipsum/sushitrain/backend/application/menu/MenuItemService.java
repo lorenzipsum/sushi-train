@@ -3,6 +3,8 @@ package com.lorenzipsum.sushitrain.backend.application.menu;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -18,5 +20,9 @@ public class MenuItemService {
     public MenuItem getMenuItem(UUID id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MenuItem", id));
+    }
+
+    public Page<MenuItem> getAllMenuItems(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 }

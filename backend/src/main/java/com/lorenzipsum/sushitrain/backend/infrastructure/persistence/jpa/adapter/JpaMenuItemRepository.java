@@ -4,6 +4,8 @@ import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.MenuItemMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -31,5 +33,10 @@ public class JpaMenuItemRepository implements MenuItemRepository {
         if (menuItem == null) throw new IllegalArgumentException("Menu item cannot be null");
         var saved = dao.save(mapper.toEntity(menuItem));
         return mapper.toDomain(saved);
+    }
+
+    @Override
+    public Page<MenuItem> findAll(Pageable pageable) {
+        return dao.findAll(pageable).map(mapper::toDomain);
     }
 }
