@@ -1,6 +1,3 @@
--- V3__seed_belt.sql (example name)
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 DO $$
 DECLARE
   ns UUID := 'b39e5310-6f6d-5608-83eb-d714e752abbd';

@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- BELT
 CREATE TABLE belt (
     id                   UUID PRIMARY KEY,

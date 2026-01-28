@@ -1,14 +1,12 @@
-create EXTENSION IF NOT EXISTS "uuid-ossp";
-
 DO $$
-declare
+DECLARE
   -- Namespace UUID for deterministic UUIDv5 generation.
   ns UUID := 'b39e5310-6f6d-5608-83eb-d714e752abbd';
   ts TIMESTAMPTZ := '2026-01-27 00:00:00+00';
-begin
+BEGIN
 
-  insert into menu_item (id, name, default_tier, base_price_yen, created_at)
-  values
+  INSERT INTO menu_item (id, name, default_tier, base_price_yen, created_at)
+  VALUES
     -- Nigiri
     (uuid_generate_v5(ns, 'menu_item:Salmon Nigiri'), 'Salmon Nigiri','GREEN',450, ts),
     (uuid_generate_v5(ns, 'menu_item:Tuna Nigiri'), 'Tuna Nigiri','RED',550, ts),
@@ -56,9 +54,9 @@ begin
     (uuid_generate_v5(ns, 'menu_item:Mineral Water'), 'Mineral Water','GREEN',150, ts),
     (uuid_generate_v5(ns, 'menu_item:Asahi Super Dry Beer'), 'Asahi Super Dry Beer','GOLD',500, ts)
 
-  ON CONFLICT (name) DO update
-    set default_tier   = EXCLUDED.default_tier,
+  ON CONFLICT (name) DO UPDATE
+    SET default_tier   = EXCLUDED.default_tier,
         base_price_yen = EXCLUDED.base_price_yen
         , created_at     = EXCLUDED.created_at;
 
-end $$;
+END $$;

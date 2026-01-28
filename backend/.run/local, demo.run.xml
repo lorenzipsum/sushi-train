@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="local, data-seed" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <option name="ACTIVE_PROFILES" value="local, data-seed" />
+  <configuration default="false" name="local, demo" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="local, demo" />
     <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
     <module name="sushi-train-backend" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.lorenzipsum.sushitrain.backend.SushiTrainBackendApplication" />
