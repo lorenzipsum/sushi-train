@@ -50,6 +50,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mapstruct.version>1.6.3</mapstruct.version>
         <springdoc-openapi.version>3.0.1</springdoc-openapi.version>
+
+        <test.jvm.args>-Xshare:off
+            -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+            <!-- Mockito inline mock-maker workaround: run Mockito as javaagent -->
+            <!-- https://stackoverflow.com/questions/79278490/mockito-is-currently-self-attaching-to-enable-the-inline-mock-maker-this-will-n-->
+        </test.jvm.args>
+        <argLine/>
     </properties>
 
     <dependencies>
@@ -198,11 +205,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>
-                        <!-- https://stackoverflow.com/questions/79278490/mockito-is-currently-self-attaching-to-enable-the-inline-mock-maker-this-will-n-->
-                        -Xshare:off
-                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
-                    </argLine>
+                    <argLine>@{argLine} ${test.jvm.args}</argLine>
                 </configuration>
                 <executions>
                     <execution>

@@ -13,11 +13,15 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-  jpa:
-    open-in-view: false
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         jdbc:
           fetch_size: 50
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

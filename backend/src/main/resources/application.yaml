@@ -1,3 +1,14 @@
 spring:
   application:
     name: Sushi Train Backend
+  jpa:
+    # Here explicitly disabling of "Open EntityManager in View" (aka Open Session in View): if enabled, keeps the JPA EntityManager open for the whole web request,
+    # which can hide N+1 issues and cause lazy-loading during JSON serialization. Prefer explicit transactional boundaries in service layer.
+    # - Spring Boot property reference: https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.open-in-view
+    open-in-view: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
