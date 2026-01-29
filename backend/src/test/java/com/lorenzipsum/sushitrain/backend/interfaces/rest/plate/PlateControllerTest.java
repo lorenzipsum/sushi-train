@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import static com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.CREATED;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -66,7 +67,7 @@ class PlateControllerTest {
                 .andExpect(jsonPath("$.priceAtCreation").value(price.amount()))
                 .andExpect(jsonPath("$.createdAt").value(plate.getCreatedAt().toString()))
                 .andExpect(jsonPath("$.expiresAt").value(expiresAt.toString()))
-                .andExpect(jsonPath("$.status").value(PlateStatus.ON_BELT.toString()));
+                .andExpect(jsonPath("$.status").value(CREATED.toString()));
     }
 
     @Test
@@ -137,7 +138,7 @@ class PlateControllerTest {
                 .andExpect(jsonPath("$.priceAtCreation").value(requestDto.priceAtCreation()))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
                 .andExpect(jsonPath("$.expiresAt").value(requestDto.expiresAt().toString()))
-                .andExpect(jsonPath("$.status").value(PlateStatus.ON_BELT.toString()));
+                .andExpect(jsonPath("$.status").value(CREATED.toString()));
     }
 
 

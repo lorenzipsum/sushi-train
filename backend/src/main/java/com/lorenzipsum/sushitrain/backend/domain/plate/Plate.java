@@ -3,9 +3,14 @@ package com.lorenzipsum.sushitrain.backend.domain.plate;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
+import com.lorenzipsum.sushitrain.backend.domain.exception.IllegalPlateStateException;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
+
+import static com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.EXPIRED;
+import static com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.PICKED;
 
 @SuppressWarnings("LombokGetterMayBeUsed")
 public class Plate {
@@ -33,7 +38,7 @@ public class Plate {
         if (price == null) throw new IllegalArgumentException("Price cannot be null");
         if (expiresAt == null) throw new IllegalArgumentException("Expiration cannot be null");
         if (expiresAt.isBefore(Instant.now())) throw new IllegalArgumentException("Expiration must be in the future");
-        return new Plate(UUID.randomUUID(), menuItemId, effectiveTier, price, Instant.now(), expiresAt, PlateStatus.ON_BELT);
+        return new Plate(UUID.randomUUID(), menuItemId, effectiveTier, price, Instant.now(), expiresAt, PlateStatus.CREATED);
     }
 
     public static Plate rehydrate(UUID id, UUID menuItemId, PlateTier tierSnapshot, MoneyYen priceAtCreation, Instant createdAt, Instant expiresAt, PlateStatus status) {
@@ -41,7 +46,25 @@ public class Plate {
     }
 
     public void expire() {
-        if (status != PlateStatus.EXPIRED) this.status = PlateStatus.EXPIRED;
+        if (Objects.requireNonNull(status) == PICKED) {
+            throw new IllegalPlateStateException("Cannot expire an already picked plate", id);
+        }
+        this.status = EXPIRED;
+    }
+
+    public void pick() {
+        if (Objects.requireNonNull(status) == EXPIRED) {
+            throw new IllegalPlateStateException("Cannot pick an expired plate", id);
+        }
+        this.status = PICKED;
+    }
+
+    public void place() {
+        switch (status) {
+            case EXPIRED -> throw new IllegalPlateStateException("Cannot place an expired plate on the belt", id);
+            case PICKED -> throw new IllegalPlateStateException("Cannot place a picked plate on the belt", id);
+        }
+        this.status = PlateStatus.ON_BELT;
     }
 
     public UUID getId() {

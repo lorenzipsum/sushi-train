@@ -3,6 +3,7 @@ package com.lorenzipsum.sushitrain.backend.domain.plate;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
+import com.lorenzipsum.sushitrain.backend.domain.exception.IllegalPlateStateException;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ class PlateTest {
                                 && !plate.getCreatedAt().isAfter(after),
                         "createdAt is between 'before' and 'after'"),
                 () -> assertEquals(expirationDate, plate.getExpiresAt()),
-                () -> assertEquals(PlateStatus.ON_BELT, plate.getStatus())
+                () -> assertEquals(PlateStatus.CREATED, plate.getStatus())
         );
     }
 
@@ -87,5 +88,65 @@ class PlateTest {
         plate.expire();
         plate.expire();
         assertEquals(PlateStatus.EXPIRED, plate.getStatus());
+    }
+
+    @Test
+    @DisplayName("Cannot expire a picked plate")
+    void expire_picked_not_ok() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.pick();
+        assertThrows(IllegalPlateStateException.class, plate::expire);
+    }
+
+    @Test
+    void pick_ok() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.pick();
+        assertEquals(PlateStatus.PICKED, plate.getStatus());
+    }
+
+    @Test
+    void pick_idempotent() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.pick();
+        plate.pick();
+        assertEquals(PlateStatus.PICKED, plate.getStatus());
+    }
+
+    @Test
+    void pick_expired_not_ok() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.expire();
+        assertThrows(IllegalPlateStateException.class, plate::pick);
+    }
+
+    @Test
+    void place_ok() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.place();
+        assertEquals(PlateStatus.ON_BELT, plate.getStatus());
+    }
+
+    @Test
+    void place_idempotent() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.place();
+        plate.place();
+        assertEquals(PlateStatus.ON_BELT, plate.getStatus());
+    }
+
+    @Test
+    void place_expired_not_ok() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.expire();
+        assertThrows(IllegalPlateStateException.class, plate::place);
+    }
+
+
+    @Test
+    void place_picked_not_ok() {
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        plate.pick();
+        assertThrows(IllegalPlateStateException.class, plate::place);
     }
 }
