@@ -8,13 +8,13 @@ public class Seat {
     private final UUID id;
     private final String label;
     private final UUID beltId;
-    private final int seatPositionIndex;
+    private final int positionIndex;
 
-    private Seat(UUID id, String label, UUID beltId, int seatPositionIndex) {
+    private Seat(UUID id, String label, UUID beltId, int positionIndex) {
         this.id = id;
         this.label = label;
         this.beltId = beltId;
-        this.seatPositionIndex = seatPositionIndex;
+        this.positionIndex = positionIndex;
     }
 
     public static Seat create(String label, UUID beltId, int seatPositionIndex) {
@@ -49,7 +49,7 @@ public class Seat {
         return beltId;
     }
 
-    public int getSeatPositionIndex() {
-        return seatPositionIndex;
+    public int getPositionIndex() {
+        return positionIndex;
     }
 }

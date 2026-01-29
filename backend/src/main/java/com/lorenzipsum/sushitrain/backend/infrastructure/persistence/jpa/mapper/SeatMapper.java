@@ -17,7 +17,7 @@ public class SeatMapper {
                 e.getId(),
                 e.getLabel(),
                 e.getBelt().getId(),
-                e.getSeatPositionIndex()
+                e.getPositionIndex()
         );
     }
 
@@ -27,7 +27,7 @@ public class SeatMapper {
                 d.getId(),
                 d.getLabel(),
                 beltEntity,
-                d.getSeatPositionIndex()
+                d.getPositionIndex()
         );
     }
 }

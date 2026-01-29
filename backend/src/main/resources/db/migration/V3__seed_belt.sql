@@ -37,7 +37,7 @@ BEGIN
   ON CONFLICT (belt_id, position_index) DO NOTHING;
 
   -- 3) Seats (labels '1'..'24'), evenly spaced: (label-1)*8 (idempotent)
-  INSERT INTO seat (id, label, belt_id, seat_position_index)
+  INSERT INTO seat (id, label, belt_id, position_index)
   SELECT
       uuid_generate_v5(ns, 'seat:' || belt_name || ':label:' || i::text),
       i::text,

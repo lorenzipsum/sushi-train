@@ -18,7 +18,7 @@ class SeatTest {
                 () -> assertNotNull(seat.getId()),
                 () -> assertEquals("1", seat.getLabel()),
                 () -> assertEquals(belt.getId(), seat.getBeltId()),
-                () -> assertEquals(5, seat.getSeatPositionIndex())
+                () -> assertEquals(5, seat.getPositionIndex())
         );
     }
 

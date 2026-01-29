@@ -46,7 +46,7 @@ class JpaSeatRepositoryIT extends JpaBaseRepositoryIT {
         assertAll("Asserting reloaded values correct",
                 () -> assertEquals(seat.getId(), reloaded.getId()),
                 () -> assertEquals(seat.getLabel(), reloaded.getLabel()),
-                () -> assertEquals(seat.getSeatPositionIndex(), reloaded.getSeatPositionIndex()),
+                () -> assertEquals(seat.getPositionIndex(), reloaded.getPositionIndex()),
                 () -> assertEquals(seat.getBeltId(), reloaded.getBeltId())
         );
     }

@@ -20,16 +20,16 @@ public class SeatEntity {
     private BeltEntity belt;
 
     @Column(nullable = false)
-    private int seatPositionIndex;
+    private int positionIndex;
 
     @SuppressWarnings("unused")
     protected SeatEntity() {
     }
 
-    public SeatEntity(UUID id, String label, BeltEntity belt, int seatPositionIndex) {
+    public SeatEntity(UUID id, String label, BeltEntity belt, int positionIndex) {
         this.id = id;
         this.label = label;
         this.belt = belt;
-        this.seatPositionIndex = seatPositionIndex;
+        this.positionIndex = positionIndex;
     }
 }

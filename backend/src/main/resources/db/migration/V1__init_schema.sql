@@ -20,10 +20,10 @@ BEGIN
         id                   UUID PRIMARY KEY,
         label                TEXT NOT NULL,
         belt_id              UUID NOT NULL REFERENCES belt(id) ON DELETE RESTRICT,
-        seat_position_index  INTEGER NOT NULL,
+        position_index  INTEGER NOT NULL,
         CONSTRAINT uk_belt_label UNIQUE (belt_id, label),
-        CONSTRAINT uk_seat_position UNIQUE (belt_id, seat_position_index),
-        CONSTRAINT ck_seat_index_nonneg CHECK (seat_position_index >= 0)
+        CONSTRAINT uk_seat_position UNIQUE (belt_id, position_index),
+        CONSTRAINT ck_seat_index_nonneg CHECK (position_index >= 0)
     );
     CREATE INDEX idx_seat_belt ON seat(belt_id);
 
