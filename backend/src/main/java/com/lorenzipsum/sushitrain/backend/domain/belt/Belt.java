@@ -10,9 +10,9 @@ import java.util.stream.IntStream;
 
 @SuppressWarnings("LombokGetterMayBeUsed")
 public class Belt {
-    public static final int DEFAULT_TICK_INTERVAL_MS = 1000;
-    public static final int DEFAULT_BASE_ROTATION_OFFSET = 0;
-    public static final int DEFAULT_SPEED_SLOTS_PER_TICK = 1;
+    private static final int DEFAULT_TICK_INTERVAL_MS = 1000;
+    private static final int DEFAULT_BASE_ROTATION_OFFSET = 0;
+    private static final int DEFAULT_SPEED_SLOTS_PER_TICK = 1;
     private final UUID id;
     private final String name;
     private final int slotCount;
