@@ -1,10 +1,8 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,10 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderLineTest {
 
-    private final Belt belt = Belt.create("Default", 10);
-
-    private final Seat seat = Seat.create("1", belt.getId(), 5);
-    private final Order order = Order.open(seat.getId());
+    private final UUID seatId = UUID.randomUUID();
+    private final Order order = Order.open(seatId);
     private final Plate plate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
 
     @Test
@@ -53,7 +49,6 @@ class OrderLineTest {
     @Test
     @DisplayName("Order line handles null for instantiation")
     void create_not_ok() {
-
         assertAll("Instantiation handles null values",
                 () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(null, order.getId(), SALMON_NIGIRI, PlateTier.GREEN, 450)),
                 () -> assertThrows(IllegalArgumentException.class, () -> OrderLine.create(plate.getId(), null, SALMON_NIGIRI, PlateTier.GREEN, 450)),
@@ -62,7 +57,7 @@ class OrderLineTest {
     }
 
     @Test
-    @DisplayName("Order line keeps snapshots ")
+    @DisplayName("Order line keeps snapshots")
     void create_snapshots_ok() {
         var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(250), inTwoHours());
 
