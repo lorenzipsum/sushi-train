@@ -17,11 +17,11 @@ public class Seat {
         this.positionIndex = positionIndex;
     }
 
-    public static Seat create(String label, UUID beltId, int seatPositionIndex) {
+    public static Seat create(String label, UUID beltId, int positionIndex) {
         if (beltId == null) throw new IllegalArgumentException("Belt cannot be null");
-        if (seatPositionIndex < 0) throw new IllegalArgumentException("Seat position cannot be negative");
+        if (positionIndex < 0) throw new IllegalArgumentException("Seat position cannot be negative");
         String cleanLabel = normalizeLabel(label);
-        return new Seat(UUID.randomUUID(), cleanLabel, beltId, seatPositionIndex);
+        return new Seat(UUID.randomUUID(), cleanLabel, beltId, positionIndex);
     }
 
     public static Seat rehydrate(UUID id, String label, UUID beltId, int seatPositionIndex) {
