@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper;
 
-import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
+import com.lorenzipsum.sushitrain.backend.domain.belt.Seat;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.SeatEntity;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,6 @@ public class SeatMapper {
         return Seat.rehydrate(
                 e.getId(),
                 e.getLabel(),
-                e.getBelt().getId(),
                 e.getPositionIndex()
         );
     }

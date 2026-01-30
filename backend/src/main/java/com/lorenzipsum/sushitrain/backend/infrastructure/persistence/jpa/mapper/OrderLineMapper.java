@@ -6,18 +6,20 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 /**
  * Maps between domain OrderLine and JPA OrderLineEntity.
  */
 @Component
 public class OrderLineMapper {
 
-    public OrderLine toDomain(OrderLineEntity e) {
+    public OrderLine toDomain(OrderLineEntity e, UUID orderId) {
         if (e == null) return null;
         return OrderLine.rehydrate(
                 e.getId(),
                 e.getPlate().getId(),
-                e.getOrder().getId(),
+                orderId,
                 e.getMenuItemNameSnapshot(),
                 e.getTierSnapshot(),
                 e.getPriceAtPick(),

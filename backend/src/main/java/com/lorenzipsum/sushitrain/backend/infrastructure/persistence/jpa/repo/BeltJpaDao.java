@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BeltJpaDao extends JpaRepository<BeltEntity, UUID> {
-    @EntityGraph(attributePaths = {"slots", "slots.plate"})
-    Optional<BeltEntity> findWithSlotsById(UUID id);
+    @EntityGraph(attributePaths = {"slots", "slots.plate", "seats"})
+    Optional<BeltEntity> findWithSlotsAndSeatsById(UUID id);
 }

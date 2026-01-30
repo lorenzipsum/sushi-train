@@ -28,6 +28,7 @@ public class BeltEntity {
     private int baseRotationOffset;
 
     @Column(name = "offset_started_at", nullable = false)
+    @Setter
     private Instant offsetStartedAt;
 
     @Column(name = "tick_interval_ms", nullable = false)
@@ -41,6 +42,10 @@ public class BeltEntity {
     @OneToMany(mappedBy = "belt", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("positionIndex ASC")
     private final List<BeltSlotEntity> slots = new ArrayList<>();
+
+    @OneToMany(mappedBy = "belt", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("positionIndex ASC")
+    private final List<SeatEntity> seats = new ArrayList<>();
 
     @SuppressWarnings("unused")
     protected BeltEntity() {
@@ -56,12 +61,18 @@ public class BeltEntity {
         this.speedSlotsPerTick = speedSlotsPerTick;
     }
 
-    @SuppressWarnings("unused")
     public void replaceSlots(List<BeltSlotEntity> newSlots) {
         this.slots.clear();
         this.slots.addAll(newSlots);
-        // set back-reference
         for (BeltSlotEntity s : this.slots) {
+            s.setBelt(this);
+        }
+    }
+
+    public void replaceSeats(List<SeatEntity> newSeats) {
+        this.seats.clear();
+        this.seats.addAll(newSeats);
+        for (SeatEntity s : this.seats) {
             s.setBelt(this);
         }
     }

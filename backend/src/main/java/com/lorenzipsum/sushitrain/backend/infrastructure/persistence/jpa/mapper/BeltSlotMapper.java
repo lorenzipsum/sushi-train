@@ -6,9 +6,6 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
 import org.springframework.stereotype.Component;
 
-/**
- * Maps between domain BeltSlot and JPA BeltSlotEntity.
- */
 @Component
 public class BeltSlotMapper {
 
@@ -16,7 +13,6 @@ public class BeltSlotMapper {
         if (e == null) return null;
         return new BeltSlot(
                 e.getId(),
-                e.getBelt().getId(),
                 e.getPositionIndex(),
                 e.getPlate() == null ? null : e.getPlate().getId()
         );
@@ -32,3 +28,4 @@ public class BeltSlotMapper {
         );
     }
 }
+
