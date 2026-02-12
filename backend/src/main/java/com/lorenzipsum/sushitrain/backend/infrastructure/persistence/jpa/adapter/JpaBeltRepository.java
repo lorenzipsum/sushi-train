@@ -45,24 +45,24 @@ public class JpaBeltRepository implements BeltRepository {
 
         if (belt == null) throw new IllegalArgumentException("Belt cannot be null");
 
-        BeltEntity managed = em.find(BeltEntity.class, belt.getId());
+        BeltEntity existingBelt = em.find(BeltEntity.class, belt.getId());
 
-        if (managed != null) {
-            managed.setSpeedSlotsPerTick(belt.getSpeedSlotsPerTick());
-            managed.setTickIntervalMs(belt.getTickIntervalMs());
-            managed.setBaseRotationOffset(belt.getBaseRotationOffset());
-            managed.setOffsetStartedAt(belt.getOffsetStartedAt());
-            return mapper.toDomain(managed);
+        if (existingBelt != null) {
+            existingBelt.setSpeedSlotsPerTick(belt.getSpeedSlotsPerTick());
+            existingBelt.setTickIntervalMs(belt.getTickIntervalMs());
+            existingBelt.setBaseRotationOffset(belt.getBaseRotationOffset());
+            existingBelt.setOffsetStartedAt(belt.getOffsetStartedAt());
+            return mapper.toDomain(existingBelt);
 
-        } else {
-            BeltEntity created = mapper.toEntity(belt);
-            // new belt is created without assigned plates
-            List<BeltSlotEntity> beltSlots = belt.getSlots().stream().map(slot -> slotMapper.toEntity(slot, created, null)).toList();
-            created.replaceSlots(beltSlots);
-            List<SeatEntity> seats = belt.getSeats().stream().map(seat -> seatMapper.toEntity(seat, created)).toList();
-            created.replaceSeats(seats);
-            em.persist(created);
-            return mapper.toDomain(created);
         }
+
+        BeltEntity newBelt = mapper.toEntity(belt);
+        // new belt is created without assigned plates
+        List<BeltSlotEntity> beltSlots = belt.getSlots().stream().map(slot -> slotMapper.toEntity(slot, newBelt, null)).toList();
+        newBelt.replaceSlots(beltSlots);
+        List<SeatEntity> seats = belt.getSeats().stream().map(seat -> seatMapper.toEntity(seat, newBelt)).toList();
+        newBelt.replaceSeats(seats);
+        em.persist(newBelt);
+        return mapper.toDomain(newBelt);
     }
 }

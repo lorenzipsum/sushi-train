@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Import;
 
 import java.time.temporal.ChronoUnit;
 
+import static com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.EXPIRED;
 import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI_ID;
 import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.inTwoHours;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,5 +63,29 @@ class JpaPlateRepositoryIT extends JpaBaseRepositoryIT {
                 () -> assertThrows(IllegalArgumentException.class, () -> repository.save(null)),
                 () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
         );
+    }
+
+    @Test
+    @DisplayName("expire a plate and verify status change")
+    void expirePlate_changesStatus() {
+        // Arrange
+        var menuItem = menuItemRepository.findById(SALMON_NIGIRI_ID).orElseThrow();
+        var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
+        var saved = repository.save(plate);
+        em.flush();
+        em.clear();
+        var toExpire = repository.findById(saved.getId()).orElseThrow();
+
+        // Act
+        toExpire.expire();
+        var expired = repository.save(toExpire);
+        em.flush();
+        em.clear();
+        var reloadedOpt = repository.findById(expired.getId());
+
+        // Assert
+        assertThat(reloadedOpt).isPresent();
+        Plate reloaded = reloadedOpt.get();
+        assertEquals(EXPIRED, reloaded.getStatus());
     }
 }

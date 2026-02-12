@@ -3,9 +3,11 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapte
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.MenuItemEntity;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.PlateMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
+import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -17,11 +19,13 @@ import java.util.UUID;
 public class JpaPlateRepository implements PlateRepository {
 
     private final PlateJpaDao dao;
+    private final EntityManager em;
     private final PlateMapper mapper;
     private final MenuItemJpaDao menuItemJpaDao;
 
-    public JpaPlateRepository(PlateJpaDao dao, PlateMapper mapper, MenuItemJpaDao menuItemJpaDao) {
+    public JpaPlateRepository(PlateJpaDao dao, EntityManager em, PlateMapper mapper, MenuItemJpaDao menuItemJpaDao) {
         this.dao = dao;
+        this.em = em;
         this.mapper = mapper;
         this.menuItemJpaDao = menuItemJpaDao;
     }
@@ -36,10 +40,18 @@ public class JpaPlateRepository implements PlateRepository {
     public Plate save(Plate plate) {
         if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
 
-        MenuItemEntity menuItem = menuItemJpaDao.getReferenceById(plate.getMenuItemId());
+        PlateEntity existingPlate = em.find(PlateEntity.class, plate.getId());
 
-        var saved = dao.save(mapper.toEntity(plate, menuItem));
-        return mapper.toDomain(saved);
+        if (existingPlate != null) {
+            existingPlate.setStatus(plate.getStatus());
+            return mapper.toDomain(existingPlate);
+        }
+
+        MenuItemEntity menuItem = menuItemJpaDao.getReferenceById(plate.getMenuItemId());
+        PlateEntity newPlate = mapper.toEntity(plate, menuItem);
+        em.persist(newPlate);
+
+        return mapper.toDomain(newPlate);
     }
 
     @Override
