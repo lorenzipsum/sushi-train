@@ -39,16 +39,16 @@ public class BeltMapper {
         );
     }
 
-    public BeltEntity toEntity(Belt d) {
-        if (d == null) return null;
+    public BeltEntity toEntity(Belt belt) {
+        if (belt == null) return null;
         return new BeltEntity(
-                d.getId(),
-                d.getName(),
-                d.getSlotCount(),
-                d.getBaseRotationOffset(),
-                d.getOffsetStartedAt(),
-                d.getTickIntervalMs(),
-                d.getSpeedSlotsPerTick()
+                belt.getId(),
+                belt.getName(),
+                belt.getSlotCount(),
+                belt.getBaseRotationOffset(),
+                belt.getOffsetStartedAt(),
+                belt.getTickIntervalMs(),
+                belt.getSpeedSlotsPerTick()
         );
     }
 }
