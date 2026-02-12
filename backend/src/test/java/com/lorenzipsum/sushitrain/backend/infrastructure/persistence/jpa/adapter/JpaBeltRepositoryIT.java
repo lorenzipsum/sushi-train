@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import java.time.Instant;
 import java.util.List;
 
+import static com.lorenzipsum.sushitrain.backend.domain.belt.Belt.DEFAULT_TICK_INTERVAL_MS;
 import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.MAIN_BELT_ID;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,7 +40,7 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
 
         assertAll("Check default belt data",
                 () -> assertEquals("Main Belt", belt.getName()),
-                () -> assertEquals(250, belt.getTickIntervalMs()),
+                () -> assertEquals(DEFAULT_TICK_INTERVAL_MS, belt.getTickIntervalMs()),
                 () -> assertEquals(1, belt.getSpeedSlotsPerTick()),
                 () -> assertEquals(192, belt.getSlotCount()),
                 () -> assertEquals(192, belt.getSlots().size()),
