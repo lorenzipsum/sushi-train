@@ -8,6 +8,7 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.MenuItemJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -37,6 +38,7 @@ public class JpaPlateRepository implements PlateRepository {
     }
 
     @Override
+    @Transactional
     public Plate save(Plate plate) {
         if (plate == null) throw new IllegalArgumentException("Plate cannot be null");
 

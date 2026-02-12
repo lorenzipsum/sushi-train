@@ -10,6 +10,7 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.SeatMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltJpaDao;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,6 +41,7 @@ public class JpaBeltRepository implements BeltRepository {
     }
 
     @Override
+    @Transactional
     public Belt save(Belt belt) {
         // only belt params can be updated, not seats or slots (plate to slot assignment is not handled here)
 
