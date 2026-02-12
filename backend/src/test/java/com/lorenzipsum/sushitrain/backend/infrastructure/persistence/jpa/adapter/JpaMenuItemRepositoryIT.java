@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Import;
 
 import java.time.temporal.ChronoUnit;
 
+import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,8 +23,22 @@ class JpaMenuItemRepositoryIT extends JpaBaseRepositoryIT {
     private MenuItemRepository repository;
 
     @Test
-    @DisplayName("persist and load a MenuItem via hex adapter")
-    void persistAndLoadMenuItem() {
+    @DisplayName("load existing menu item fetches all data")
+    void loadExistingMenuItem_ok() {
+        // important: make sure to adapt this test in case you change data in script 'V4_seed_menu_item.sql'
+        MenuItem menuItem = repository.findById(SALMON_NIGIRI_ID).orElseThrow();
+
+        assertAll("Check default belt data",
+                () -> assertEquals("Salmon Nigiri", menuItem.getName()),
+                () -> assertEquals(PlateTier.GREEN, menuItem.getDefaultTier()),
+                () -> assertEquals(new MoneyYen(450), menuItem.getBasePrice()),
+                () -> assertNotNull(menuItem.getCreatedAt())
+        );
+    }
+
+    @Test
+    @DisplayName("persist and load a new MenuItem")
+    void persistAndLoadNewMenuItem_ok() {
         // Arrange
         var menuItem = MenuItem.create("New Menu Item", PlateTier.GREEN, new MoneyYen(120));
 
