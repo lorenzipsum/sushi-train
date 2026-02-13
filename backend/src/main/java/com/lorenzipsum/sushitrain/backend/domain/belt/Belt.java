@@ -7,9 +7,13 @@ import java.util.stream.IntStream;
 
 @SuppressWarnings("LombokGetterMayBeUsed")
 public class Belt {
-    public static final int DEFAULT_TICK_INTERVAL_MS = 500;
-    private static final int DEFAULT_BASE_ROTATION_OFFSET = 0;
-    private static final int DEFAULT_SPEED_SLOTS_PER_TICK = 1;
+    public static final int TICK_INTERVAL_MS_MIN_VALUE = 100;
+    public static final int TICK_INTERVAL_MS_DEFAULT_VALUE = 500;
+    public static final int TICK_INTERVAL_MS_MAX_VALUE = 5000;
+    public static final int SPEED_SLOTS_PER_TICK_MIN_VALUE = 0;
+    public static final int SPEED_SLOTS_PER_TICK_DEFAULT_VALUE = 1;
+    public static final int SPEED_SLOTS_PER_TICK_MAX_VALUE = 5;
+    private static final int BASE_ROTATION_OFFSET_DEFAULT_VALUE = 0;
 
     private final UUID id;
     private final String name;
@@ -39,8 +43,9 @@ public class Belt {
 
         this.offsetStartedAt = offsetStartedAt == null ? Instant.EPOCH : offsetStartedAt;
         this.baseRotationOffset = normalizeOffset(baseRotationOffset, this.slotCount);
-        this.tickIntervalMs = Math.max(1, tickIntervalMs);
-        this.speedSlotsPerTick = Math.max(1, speedSlotsPerTick);
+
+        setTickIntervalMs(tickIntervalMs);
+        setSpeedSlotsPerTick(speedSlotsPerTick);
 
         this.slots = (slots == null) ? new ArrayList<>() : new ArrayList<>(slots);
         this.seats = (seats == null) ? new ArrayList<>() : new ArrayList<>(seats);
@@ -62,9 +67,9 @@ public class Belt {
                 id,
                 name.trim(),
                 slotCount,
-                DEFAULT_BASE_ROTATION_OFFSET,
-                DEFAULT_TICK_INTERVAL_MS,
-                DEFAULT_SPEED_SLOTS_PER_TICK,
+                BASE_ROTATION_OFFSET_DEFAULT_VALUE,
+                TICK_INTERVAL_MS_DEFAULT_VALUE,
+                SPEED_SLOTS_PER_TICK_DEFAULT_VALUE,
                 slots,
                 seats,
                 Instant.now()
@@ -134,19 +139,33 @@ public class Belt {
     }
 
     public void setSpeedSlotsPerTick(int speedSlotsPerTick, Instant now) {
-        if (speedSlotsPerTick >= slotCount)
-            throw new IllegalArgumentException("Speed slots per tick has to be smaller than amount of slots");
         if (now == null) throw new IllegalArgumentException("Timestamp 'now' cannot be null");
-
+        setSpeedSlotsPerTick(speedSlotsPerTick);
         rebaseOffsetAt(now);
-        this.speedSlotsPerTick = Math.max(1, speedSlotsPerTick);
     }
 
     public void setTickIntervalMs(int tickIntervalMs, Instant now) {
         if (now == null) throw new IllegalArgumentException("Timestamp 'now' cannot be null");
-
+        setTickIntervalMs(tickIntervalMs);
         rebaseOffsetAt(now);
-        this.tickIntervalMs = Math.max(1, tickIntervalMs);
+    }
+
+    private void setSpeedSlotsPerTick(int speedSlotsPerTick) {
+        if (speedSlotsPerTick < SPEED_SLOTS_PER_TICK_MIN_VALUE)
+            speedSlotsPerTick = SPEED_SLOTS_PER_TICK_MIN_VALUE;
+        else if (speedSlotsPerTick > SPEED_SLOTS_PER_TICK_MAX_VALUE)
+            speedSlotsPerTick = SPEED_SLOTS_PER_TICK_MAX_VALUE;
+        else if (speedSlotsPerTick >= slotCount)
+            speedSlotsPerTick = slotCount - 1;
+        this.speedSlotsPerTick = speedSlotsPerTick;
+    }
+
+    private void setTickIntervalMs(int tickIntervalMs) {
+        if (tickIntervalMs < TICK_INTERVAL_MS_MIN_VALUE)
+            tickIntervalMs = TICK_INTERVAL_MS_MIN_VALUE;
+        else if (tickIntervalMs > TICK_INTERVAL_MS_MAX_VALUE)
+            tickIntervalMs = TICK_INTERVAL_MS_MAX_VALUE;
+        this.tickIntervalMs = tickIntervalMs;
     }
 
     @SuppressWarnings("unused")

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Import;
 import java.time.Instant;
 import java.util.List;
 
-import static com.lorenzipsum.sushitrain.backend.domain.belt.Belt.DEFAULT_TICK_INTERVAL_MS;
+import static com.lorenzipsum.sushitrain.backend.domain.belt.Belt.TICK_INTERVAL_MS_DEFAULT_VALUE;
 import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.MAIN_BELT_ID;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,7 +40,7 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
 
         assertAll("Check default belt data",
                 () -> assertEquals("Main Belt", belt.getName()),
-                () -> assertEquals(DEFAULT_TICK_INTERVAL_MS, belt.getTickIntervalMs()),
+                () -> assertEquals(TICK_INTERVAL_MS_DEFAULT_VALUE, belt.getTickIntervalMs()),
                 () -> assertEquals(1, belt.getSpeedSlotsPerTick()),
                 () -> assertEquals(192, belt.getSlotCount()),
                 () -> assertEquals(192, belt.getSlots().size()),
@@ -120,14 +120,14 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
         int snapshotSlotCount = defaultBelt.getSlotCount();
 
         // act
-        defaultBelt.setTickIntervalMs(10, Instant.now());
+        defaultBelt.setTickIntervalMs(150, Instant.now());
         repository.save(defaultBelt);
         em.flush();
         Belt updatedBelt = repository.findById(MAIN_BELT_ID).orElseThrow();
 
         // assert
         assertAll("Check if setting tick interval updated the right fields",
-                () -> assertEquals(10, updatedBelt.getTickIntervalMs()),
+                () -> assertEquals(150, updatedBelt.getTickIntervalMs()),
                 () -> assertEquals(snapshotSlotCount, updatedBelt.getSlots().size()),
                 () -> assertEquals(snapshotSpeedSlotsPerTick, updatedBelt.getSpeedSlotsPerTick()),
                 () -> assertNotEquals(snapshotBaseRotationOffset, updatedBelt.getBaseRotationOffset()),

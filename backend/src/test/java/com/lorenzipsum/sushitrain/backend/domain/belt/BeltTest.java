@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.lorenzipsum.sushitrain.backend.domain.belt.Belt.DEFAULT_TICK_INTERVAL_MS;
+import static com.lorenzipsum.sushitrain.backend.domain.belt.Belt.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BeltTest {
@@ -22,7 +22,7 @@ class BeltTest {
                 () -> assertEquals("Main", belt.getName(), "Belt name should be assigned correctly"),
                 () -> assertEquals(8, belt.getSlotCount(), "Slot count should be assigned correctly"),
                 () -> assertEquals(0, belt.getBaseRotationOffset(), "Rotation offset should start with 0"),
-                () -> assertEquals(DEFAULT_TICK_INTERVAL_MS, belt.getTickIntervalMs(), "Default tick should be 1000ms"),
+                () -> assertEquals(TICK_INTERVAL_MS_DEFAULT_VALUE, belt.getTickIntervalMs(), "Default tick should be 1000ms"),
                 () -> assertEquals(1, belt.getSpeedSlotsPerTick(), "Default speed should be 1 slot per tick"),
                 () -> assertNotNull(belt.getSlots(), "Slots should be initialized"),
                 () -> assertEquals(8, belt.getSlots().size(), "One slot per index 0, 1, ... 7"),
@@ -42,8 +42,8 @@ class BeltTest {
     @DisplayName("create checks illegal values for belt creation")
     void create_not_ok() {
         assertAll("Asserting handling of unsuccessful creation",
-                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("Default", 0, List.of())),
-                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("Default", -1, List.of())),
+                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("Test Belt", 0, List.of())),
+                () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("Test Belt", -1, List.of())),
                 () -> assertThrows(IllegalArgumentException.class, () -> Belt.create(null, 1, List.of())),
                 () -> assertThrows(IllegalArgumentException.class, () -> Belt.create("", 1, List.of())),
                 () -> assertThrows(IllegalArgumentException.class, () -> Belt.create(" ", 1, List.of()))
@@ -72,28 +72,42 @@ class BeltTest {
 
     @Test
     @DisplayName("speedSlotsPerTick can be updated")
-    void setSpeedSlotsPerTick_updates() {
-        var belt = Belt.create("Default", 10, List.of());
+    void setSpeedSlotsPerTick_limits_ok() {
+        var beltA = Belt.create("Test Belt", 10, List.of());
         var now = Instant.now();
 
-        assertEquals(1, belt.getSpeedSlotsPerTick());
+        assertEquals(SPEED_SLOTS_PER_TICK_DEFAULT_VALUE, beltA.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(5, now);
-        assertEquals(5, belt.getSpeedSlotsPerTick());
+        beltA.setSpeedSlotsPerTick(2, now);
+        assertEquals(2, beltA.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(2, now);
-        assertEquals(2, belt.getSpeedSlotsPerTick());
+        beltA.setSpeedSlotsPerTick(SPEED_SLOTS_PER_TICK_MAX_VALUE, now);
+        assertEquals(SPEED_SLOTS_PER_TICK_MAX_VALUE, beltA.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(1, now);
-        assertEquals(1, belt.getSpeedSlotsPerTick());
+        beltA.setSpeedSlotsPerTick(SPEED_SLOTS_PER_TICK_MAX_VALUE + 1, now);
+        assertEquals(SPEED_SLOTS_PER_TICK_MAX_VALUE, beltA.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(0, now);
-        assertEquals(1, belt.getSpeedSlotsPerTick());
+        beltA.setSpeedSlotsPerTick(SPEED_SLOTS_PER_TICK_MIN_VALUE, now);
+        assertEquals(SPEED_SLOTS_PER_TICK_MIN_VALUE, beltA.getSpeedSlotsPerTick());
 
-        belt.setSpeedSlotsPerTick(-1, now);
-        assertEquals(1, belt.getSpeedSlotsPerTick());
+        beltA.setSpeedSlotsPerTick(SPEED_SLOTS_PER_TICK_MIN_VALUE - 1, now);
+        assertEquals(SPEED_SLOTS_PER_TICK_MIN_VALUE, beltA.getSpeedSlotsPerTick());
+    }
 
-        assertThrows(IllegalArgumentException.class, () -> belt.setSpeedSlotsPerTick(10, now));
+    @Test
+    @DisplayName("setSpeedSlotsPerTick with speed higher than slot count is capped")
+    void setSpeedSlotsPerTick_with_speed_higher_than_slot_count_is_capped() {
+        int slotCount = 4;
+        var belt = Belt.create("Test Belt", slotCount, List.of());
+        belt.setSpeedSlotsPerTick(slotCount, Instant.now());
+        assertEquals(slotCount - 1, belt.getSpeedSlotsPerTick(), "Speed should be capped to slotCount - 1");
+    }
+
+    @Test
+    @DisplayName("setSpeedSlotsPerTick with null timestamp throws")
+    void setSpeedSlotsPerTick_with_null_timestamp_throws() {
+        var belt = Belt.create("Test Belt", 10, List.of());
+        assertThrows(IllegalArgumentException.class, () -> belt.setSpeedSlotsPerTick(2, null));
     }
 
     @Test
@@ -114,27 +128,23 @@ class BeltTest {
 
     @Test
     @DisplayName("tickIntervalMs can be updated")
-    void setTickInterval_updates() {
+    void setTickInterval_limits_ok() {
         var belt = Belt.create("Slowy", 10, List.of());
         var now = Instant.now();
-        belt.setTickIntervalMs(1000, now);
 
-        assertEquals(1000, belt.getTickIntervalMs());
+        assertEquals(TICK_INTERVAL_MS_DEFAULT_VALUE, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(2000, now);
-        assertEquals(2000, belt.getTickIntervalMs());
+        belt.setTickIntervalMs(TICK_INTERVAL_MS_MIN_VALUE, now);
+        assertEquals(TICK_INTERVAL_MS_MIN_VALUE, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(2, now);
-        assertEquals(2, belt.getTickIntervalMs());
+        belt.setTickIntervalMs(TICK_INTERVAL_MS_MIN_VALUE - 1, now);
+        assertEquals(TICK_INTERVAL_MS_MIN_VALUE, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(1, now);
-        assertEquals(1, belt.getTickIntervalMs());
+        belt.setTickIntervalMs(TICK_INTERVAL_MS_MAX_VALUE, now);
+        assertEquals(TICK_INTERVAL_MS_MAX_VALUE, belt.getTickIntervalMs());
 
-        belt.setTickIntervalMs(0, now);
-        assertEquals(1, belt.getTickIntervalMs());
-
-        belt.setTickIntervalMs(-1, now);
-        assertEquals(1, belt.getTickIntervalMs());
+        belt.setTickIntervalMs(TICK_INTERVAL_MS_MAX_VALUE + 1, now);
+        assertEquals(TICK_INTERVAL_MS_MAX_VALUE, belt.getTickIntervalMs());
     }
 
     @Test
