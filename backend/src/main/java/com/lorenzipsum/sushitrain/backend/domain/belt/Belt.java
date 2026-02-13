@@ -133,7 +133,7 @@ public class Belt {
         return (int) offset;
     }
 
-    public void rebaseOffsetAt(Instant now) {
+    private void rebaseOffsetAt(Instant now) {
         this.baseRotationOffset = currentOffsetAt(now);
         this.offsetStartedAt = now;
     }

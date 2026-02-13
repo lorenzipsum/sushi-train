@@ -33,10 +33,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(PlateDtoMapperImpl.class)
-@WebMvcTest({PlateController.class, MoneyYenMapperImpl.class})
+@WebMvcTest(PlateController.class)
+@Import({PlateDtoMapperImpl.class, MoneyYenMapperImpl.class})
 class PlateControllerTest {
-    public static final String BASE_URI = "/api/v1/plates";
+    private static final String BASE_URI = "/api/v1/plates";
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
