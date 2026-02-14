@@ -7,105 +7,136 @@ import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.MoneyYenMapperImpl;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.menu.dto.MenuItemDtoMapperImpl;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.util.List;
 import java.util.UUID;
 
+import static com.lorenzipsum.sushitrain.backend.interfaces.rest.common.ControllerAdvice.*;
+import static com.lorenzipsum.sushitrain.backend.interfaces.rest.menu.MenuItemController.BASE_URL_MENU_ITEM_CONTROLLER;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(MenuItemController.class)
 @Import({MenuItemDtoMapperImpl.class, MoneyYenMapperImpl.class})
+@WebMvcTest(MenuItemController.class)
+@AutoConfigureRestTestClient
 class MenuItemControllerTest {
 
-    public static final String BASE_URL = "/api/v1/menu-items";
     @Autowired
-    private MockMvc mockMvc;
+    RestTestClient client;
+
     @MockitoBean
     MenuItemService service;
 
     @Test
-    void getMenuItem_returns200() throws Exception {
+    @DisplayName("GET /api/v1/menu-items/{id} returns 200 with menu item details")
+    void getMenuItem_returns200() {
         // arrange
         var amountInYen = 500;
         var menuItem = MenuItem.create("California Roll", PlateTier.GREEN, MoneyYen.of(amountInYen));
         given(service.getMenuItem(menuItem.getId())).willReturn(menuItem);
 
         // act & assert
-        mockMvc.perform(get(BASE_URL + "/{id}", menuItem.getId().toString()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("id").value(menuItem.getId().toString()))
-                .andExpect(jsonPath("name").value(menuItem.getName()))
-                .andExpect(jsonPath("defaultTier").value(menuItem.getDefaultTier().toString()))
-                .andExpect(jsonPath("basePrice").value(amountInYen))
-                .andExpect(jsonPath("createdAt").exists());
+        client.get()
+                .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", menuItem.getId())
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(menuItem.getId().toString())
+                .jsonPath("$.name").isEqualTo(menuItem.getName())
+                .jsonPath("$.defaultTier").isEqualTo(menuItem.getDefaultTier().toString())
+                .jsonPath("$.basePrice").isEqualTo(amountInYen)
+                .jsonPath("$.createdAt").exists();
+
+        verify(service).getMenuItem(menuItem.getId());
+        verifyNoMoreInteractions(service);
     }
 
     @Test
-    void getMenuItem_notFound_returns404() throws Exception {
+    @DisplayName("GET /api/v1/menu-items/{id} with non-existent id returns 404 ProblemDetail")
+    void getMenuItem_notFound_returns404() {
         // arrange
         var nonExistentId = UUID.randomUUID();
         given(service.getMenuItem(nonExistentId))
                 .willThrow(new ResourceNotFoundException("Menu", nonExistentId));
 
         // act & assert
-        mockMvc.perform(get(BASE_URL + "/{id}", nonExistentId))
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.title").value("Resource not found"))
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.detail").value("Menu not found: " + nonExistentId))
-                .andExpect(jsonPath("$.instance").value("/api/v1/menu-items/" + nonExistentId))
-                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/not-found"));
+        client.get()
+                .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", nonExistentId)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_404_TITLE)
+                .jsonPath("$.status").isEqualTo(404)
+                .jsonPath("$.detail").isEqualTo("Menu not found: " + nonExistentId)
+                .jsonPath("$.instance").isEqualTo(BASE_URL_MENU_ITEM_CONTROLLER + "/" + nonExistentId)
+                .jsonPath("$.type").isEqualTo(PROBLEM_404_URI);
+
+        verify(service).getMenuItem(nonExistentId);
+        verifyNoMoreInteractions(service);
     }
 
     @Test
-    void getMenuItem_invalidUUID_returns400() throws Exception {
+    @DisplayName("GET /api/v1/menu-items/{id} with invalid UUID returns 400 ProblemDetail")
+    void getMenuItem_invalidUUID_returns400() {
         // arrange
         var invalidId = "invalid-uuid";
 
         // act & assert
-        mockMvc.perform(get(BASE_URL + "/{id}", invalidId))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.title").value("Invalid parameter"))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").value("Parameter 'id' must be a UUID"))
-                .andExpect(jsonPath("$.instance").value("/api/v1/menu-items/" + invalidId))
-                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/invalid-parameter"));
+        client.get()
+                .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", invalidId)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_INVALID_PARAM_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.detail").isEqualTo("Parameter 'id' must be a UUID")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_MENU_ITEM_CONTROLLER + "/" + invalidId)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_INVALID_PARAM_URI);
+
+        verifyNoInteractions(service);
     }
 
     @Test
-    void getMenuItems_serverError_returns500() throws Exception {
+    @DisplayName("GET /api/v1/menu-items/{id} with unexpected error returns 500 ProblemDetail")
+    void getMenuItem_serverError_returns500() {
         // arrange
         var menuItemId = UUID.randomUUID();
         given(service.getMenuItem(menuItemId))
                 .willThrow(new RuntimeException("Unexpected error"));
 
         // act & assert
-        mockMvc.perform(get(BASE_URL + "/{id}", menuItemId))
-                .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.title").value("Internal server error"))
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.detail").value("Unexpected server error"))
-                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
+        client.get()
+                .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", menuItemId)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_500_TITLE)
+                .jsonPath("$.status").isEqualTo(500)
+                .jsonPath("$.detail").isEqualTo("Unexpected server error")
+                .jsonPath("$.type").isEqualTo(PROBLEM_500_URI);
+
+        verify(service).getMenuItem(menuItemId);
+        verifyNoMoreInteractions(service);
     }
 
     @Test
-    void getAllMenuItems_returns200() throws Exception {
+    @DisplayName("GET /api/v1/menu-items with valid pagination returns 200 with paginated menu items")
+    void getAllMenuItems_returns200() {
         // arrange
         var menuItem1 = MenuItem.create("California Roll", PlateTier.GREEN, MoneyYen.of(500));
         var menuItem2 = MenuItem.create("Spicy Tuna Roll", PlateTier.RED, MoneyYen.of(700));
@@ -115,43 +146,73 @@ class MenuItemControllerTest {
         given(service.getAllMenuItems(pageRequest)).willReturn(page);
 
         // act & assert
-        mockMvc.perform(get(BASE_URL).param("page", "0").param("size", "2"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.page.number").value(0))
-                .andExpect(jsonPath("$.page.size").value(2))
-                .andExpect(jsonPath("$.content[0].id").value(menuItem1.getId().toString()))
-                .andExpect(jsonPath("$.content[1].id").value(menuItem2.getId().toString()));
+        client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(BASE_URL_MENU_ITEM_CONTROLLER)
+                        .queryParam("page", "0")
+                        .queryParam("size", "2")
+                        .build())
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.content.length()").isEqualTo(2)
+                .jsonPath("$.page.number").isEqualTo(0)
+                .jsonPath("$.page.size").isEqualTo(2)
+                .jsonPath("$.content[0].id").isEqualTo(menuItem1.getId().toString())
+                .jsonPath("$.content[1].id").isEqualTo(menuItem2.getId().toString());
+
+        verify(service).getAllMenuItems(pageRequest);
+        verifyNoMoreInteractions(service);
     }
 
     @Test
-    void getAllMenuItems_invalidPagination_returns400() throws Exception {
-        // act & assert
-        mockMvc.perform(get(BASE_URL).param("page", "-1").param("size", "0"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.title").value("Validation failed"))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").value("One or more parameters are invalid"))
-                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/validation-failed"))
-                .andExpect(jsonPath("$.errors").exists());
+    @DisplayName("GET /api/v1/menu-items with invalid pagination parameters returns 400 ProblemDetail")
+    void getAllMenuItems_invalidPagination_returns400() {
+        client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(BASE_URL_MENU_ITEM_CONTROLLER)
+                        .queryParam("page", "-1")
+                        .queryParam("size", "0")
+                        .build())
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_VALIDATION_FAILED_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.detail").isEqualTo("One or more parameters are invalid")
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_VALIDATION_FAILED_URI)
+                .jsonPath("$.errors").exists();
+
+        verifyNoInteractions(service);
     }
 
     @Test
-    void getAllMenuItems_serverError_returns500() throws Exception {
+    @DisplayName("GET /api/v1/menu-items with unexpected error returns 500 ProblemDetail")
+    void getAllMenuItems_serverError_returns500() {
         // arrange
         var pageRequest = PageRequest.of(0, 10);
         given(service.getAllMenuItems(pageRequest))
                 .willThrow(new RuntimeException("Unexpected error"));
 
         // act & assert
-        mockMvc.perform(get(BASE_URL).param("page", "0").param("size", "10"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.title").value("Internal server error"))
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.detail").value("Unexpected server error"))
-                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/internal"));
+        client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(BASE_URL_MENU_ITEM_CONTROLLER)
+                        .queryParam("page", "0")
+                        .queryParam("size", "10")
+                        .build())
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_500_TITLE)
+                .jsonPath("$.status").isEqualTo(500)
+                .jsonPath("$.detail").isEqualTo("Unexpected server error")
+                .jsonPath("$.type").isEqualTo(PROBLEM_500_URI);
+
+        verify(service).getAllMenuItems(pageRequest);
+        verifyNoMoreInteractions(service);
     }
 }
