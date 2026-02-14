@@ -35,7 +35,10 @@ public class MenuItemController {
     }
 
     @GetMapping(path = "/{id}", produces = APPLICATION_JSON_VALUE)
-    @Operation(summary = "Get a menu item by id", description = "Returns a single menu item. If the id does not exist, returns a ProblemDetail (404).")
+    @Operation(
+            summary = "Get a menu item by id",
+            description = "Returns a single menu item. If the id does not exist, returns a ProblemDetail (404)."
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Menu item found",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
@@ -54,13 +57,15 @@ public class MenuItemController {
         return mapper.toDto(service.getMenuItem(id));
     }
 
-
     @GetMapping(produces = APPLICATION_JSON_VALUE)
-    @Operation(summary = "Get all menu items", description = "Returns a paginated list of all menu items.")
+    @Operation(
+            summary = "Get all menu items",
+            description = "Returns a paginated list of all menu items (PagedModel<MenuItemDto>)."
+    )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "List of menu items",
+            @ApiResponse(responseCode = "200", description = "Paginated list of menu items",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = MenuItemDto.class))),
+                            schema = @Schema(implementation = PagedModel.class))),
             @ApiResponse(responseCode = "400", description = "Invalid pagination parameters",
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class))),
