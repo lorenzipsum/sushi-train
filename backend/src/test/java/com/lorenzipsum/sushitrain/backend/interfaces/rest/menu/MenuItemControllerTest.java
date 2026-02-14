@@ -46,10 +46,11 @@ class MenuItemControllerTest {
         var menuItem = MenuItem.create("California Roll", PlateTier.GREEN, MoneyYen.of(amountInYen));
         given(service.getMenuItem(menuItem.getId())).willReturn(menuItem);
 
-        // act & assert
+        // act
         client.get()
                 .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", menuItem.getId())
                 .exchange()
+                // assert
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -71,10 +72,11 @@ class MenuItemControllerTest {
         given(service.getMenuItem(nonExistentId))
                 .willThrow(new ResourceNotFoundException("Menu", nonExistentId));
 
-        // act & assert
+        // act
         client.get()
                 .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", nonExistentId)
                 .exchange()
+                // assert
                 .expectStatus().isNotFound()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
@@ -94,10 +96,11 @@ class MenuItemControllerTest {
         // arrange
         var invalidId = "invalid-uuid";
 
-        // act & assert
+        // act
         client.get()
                 .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", invalidId)
                 .exchange()
+                // assert
                 .expectStatus().isBadRequest()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
@@ -118,10 +121,11 @@ class MenuItemControllerTest {
         given(service.getMenuItem(menuItemId))
                 .willThrow(new RuntimeException("Unexpected error"));
 
-        // act & assert
+        // act
         client.get()
                 .uri(BASE_URL_MENU_ITEM_CONTROLLER + "/{id}", menuItemId)
                 .exchange()
+                // assert
                 .expectStatus().is5xxServerError()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
@@ -145,7 +149,7 @@ class MenuItemControllerTest {
 
         given(service.getAllMenuItems(pageRequest)).willReturn(page);
 
-        // act & assert
+        // act
         client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(BASE_URL_MENU_ITEM_CONTROLLER)
@@ -153,6 +157,7 @@ class MenuItemControllerTest {
                         .queryParam("size", "2")
                         .build())
                 .exchange()
+                // assert
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -169,6 +174,7 @@ class MenuItemControllerTest {
     @Test
     @DisplayName("GET /api/v1/menu-items with invalid pagination parameters returns 400 ProblemDetail")
     void getAllMenuItems_invalidPagination_returns400() {
+        // act
         client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(BASE_URL_MENU_ITEM_CONTROLLER)
@@ -176,6 +182,7 @@ class MenuItemControllerTest {
                         .queryParam("size", "0")
                         .build())
                 .exchange()
+                // assert
                 .expectStatus().isBadRequest()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
@@ -196,7 +203,7 @@ class MenuItemControllerTest {
         given(service.getAllMenuItems(pageRequest))
                 .willThrow(new RuntimeException("Unexpected error"));
 
-        // act & assert
+        // act
         client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(BASE_URL_MENU_ITEM_CONTROLLER)
@@ -204,6 +211,7 @@ class MenuItemControllerTest {
                         .queryParam("size", "10")
                         .build())
                 .exchange()
+                // assert
                 .expectStatus().is5xxServerError()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()

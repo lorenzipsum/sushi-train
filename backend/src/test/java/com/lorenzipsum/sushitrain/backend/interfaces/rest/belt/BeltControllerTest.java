@@ -71,18 +71,19 @@ class BeltControllerTest {
         var now = Instant.now();
         if (expectedTicks != null) belt.setTickIntervalMs(expectedTicks, now);
         if (expectedSpeed != null) belt.setSpeedSlotsPerTick(expectedSpeed, now);
-
         given(beltService.updateBeltParameters(belt.getId(), expectedTicks, expectedSpeed)).willReturn(belt);
 
-        // act & assert
+        // act
         var body = client.patch()
                 .uri(BASE_URL_BELT_CONTROLLER + "/{id}", belt.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(updateRequest)
                 .exchange()
+                // assert
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
-                .expectBody().jsonPath("$.id").isEqualTo(belt.getId().toString());
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(belt.getId().toString());
 
         if (expectedTicks != null) {
             body.jsonPath("$.tickIntervalMs").isEqualTo(expectedTicks);
@@ -100,13 +101,16 @@ class BeltControllerTest {
     @MethodSource("invalidUpdates")
     @DisplayName("PATCH /api/v1/belts/{id} with invalid parameters should return 400 with ProblemDetail")
     void updateBeltParameters_invalid_updates_not_ok(BeltUpdateRequest updateRequest, String errorKey) {
+        // arrange
         var beltId = UUID.randomUUID();
 
+        // act
         client.patch()
                 .uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(updateRequest)
                 .exchange()
+                // assert
                 .expectStatus().isBadRequest()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
