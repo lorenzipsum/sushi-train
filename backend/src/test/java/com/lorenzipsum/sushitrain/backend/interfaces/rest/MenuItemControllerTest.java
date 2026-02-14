@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend.interfaces.rest.menu;
+package com.lorenzipsum.sushitrain.backend.interfaces.rest;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.menu.MenuItemService;
@@ -6,6 +6,7 @@ import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.MoneyYenMapperImpl;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.menu.MenuItemController;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.menu.dto.MenuItemDtoMapperImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

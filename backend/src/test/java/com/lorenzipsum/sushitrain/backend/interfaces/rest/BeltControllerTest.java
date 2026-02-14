@@ -1,8 +1,9 @@
-package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt;
+package com.lorenzipsum.sushitrain.backend.interfaces.rest;
 
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.BeltController;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltDtoMapperImpl;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltUpdateRequest;
 import org.junit.jupiter.api.DisplayName;

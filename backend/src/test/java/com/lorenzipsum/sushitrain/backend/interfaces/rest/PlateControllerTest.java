@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
+package com.lorenzipsum.sushitrain.backend.interfaces.rest;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
@@ -7,6 +7,7 @@ import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.MoneyYenMapperImpl;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.PlateController;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapperImpl;
 import org.junit.jupiter.api.DisplayName;
