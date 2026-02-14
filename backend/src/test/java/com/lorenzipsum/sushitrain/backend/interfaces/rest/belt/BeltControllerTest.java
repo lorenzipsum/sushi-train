@@ -60,7 +60,7 @@ class BeltControllerTest {
 
     @ParameterizedTest
     @MethodSource("validUpdates")
-    @DisplayName("updateBeltParameters with valid parameters should update and return ok")
+    @DisplayName("PATCH /api/v1/belts/{id} with valid parameters should update belt and return 200")
     void updateBeltParameters_valid_updates_ok(
             BeltUpdateRequest updateRequest,
             Integer expectedTicks,
@@ -98,7 +98,7 @@ class BeltControllerTest {
 
     @ParameterizedTest
     @MethodSource("invalidUpdates")
-    @DisplayName("updateBeltParameters with invalid parameters should return validation error")
+    @DisplayName("PATCH /api/v1/belts/{id} with invalid parameters should return 400 with ProblemDetail")
     void updateBeltParameters_invalid_updates_not_ok(BeltUpdateRequest updateRequest, String errorKey) {
         var beltId = UUID.randomUUID();
 
