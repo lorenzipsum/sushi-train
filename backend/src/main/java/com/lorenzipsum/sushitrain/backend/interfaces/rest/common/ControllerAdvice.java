@@ -19,14 +19,27 @@ import java.net.URI;
 @RestControllerAdvice
 @SuppressWarnings("unused")
 public class ControllerAdvice {
+    public static final String PROBLEM_BASE_URI = "https://api.sushitrain/errors";
+    public static final String PROBLEM_404_TITLE = "Resource not found";
+    public static final String PROBLEM_404_URI = PROBLEM_BASE_URI + "/not-found";
+    public static final String PROBLEM_400_INVALID_PARAM_TITLE = "Invalid parameter";
+    public static final String PROBLEM_400_INVALID_PARAM_URI = PROBLEM_BASE_URI + "/invalid-parameter";
+    public static final String PROBLEM_400_MISSING_PARAM_TITLE = "Missing required parameter";
+    public static final String PROBLEM_400_MISSING_PARAM_URI = PROBLEM_BASE_URI + "/missing-parameter";
+    public static final String PROBLEM_400_VALIDATION_FAILED_TITLE = "Validation failed";
+    public static final String PROBLEM_400_VALIDATION_FAILED_URI = PROBLEM_BASE_URI + "/validation-failed";
+    public static final String PROBLEM_400_MALFORMED_REQUEST_TITLE = "Malformed request";
+    public static final String PROBLEM_400_MALFORMED_REQUEST_URI = PROBLEM_BASE_URI + "/malformed-json";
+    public static final String PROBLEM_500_TITLE = "Internal server error";
+    public static final String PROBLEM_500_URI = PROBLEM_BASE_URI + "/internal";
 
     // 404
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
-        pd.setTitle("Resource not found");
+        pd.setTitle(PROBLEM_404_TITLE);
         pd.setDetail(ex.getMessage());
-        pd.setType(URI.create("https://api.sushitrain/errors/not-found"));
+        pd.setType(URI.create(PROBLEM_404_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
         return pd;
     }
@@ -35,10 +48,10 @@ public class ControllerAdvice {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle("Invalid parameter");
+        pd.setTitle(PROBLEM_400_INVALID_PARAM_TITLE);
         String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "required type";
         pd.setDetail("Parameter '" + ex.getName() + "' must be a " + requiredType);
-        pd.setType(URI.create("https://api.sushitrain/errors/invalid-parameter"));
+        pd.setType(URI.create(PROBLEM_400_INVALID_PARAM_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
         return pd;
     }
@@ -47,9 +60,9 @@ public class ControllerAdvice {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ProblemDetail handleMissingRequestParam(MissingServletRequestParameterException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle("Missing required parameter");
+        pd.setTitle(PROBLEM_400_MISSING_PARAM_TITLE);
         pd.setDetail("Missing required query parameter '" + ex.getParameterName() + "'");
-        pd.setType(URI.create("https://api.sushitrain/errors/missing-parameter"));
+        pd.setType(URI.create(PROBLEM_400_MISSING_PARAM_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
         pd.setProperty("parameter", ex.getParameterName());
         return pd;
@@ -59,9 +72,9 @@ public class ControllerAdvice {
     @ExceptionHandler(ConstraintViolationException.class)
     public ProblemDetail handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle("Validation failed");
+        pd.setTitle(PROBLEM_400_VALIDATION_FAILED_TITLE);
         pd.setDetail("One or more parameters are invalid");
-        pd.setType(URI.create("https://api.sushitrain/errors/validation-failed"));
+        pd.setType(URI.create(PROBLEM_400_VALIDATION_FAILED_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
 
         var errors = ex.getConstraintViolations().stream()
@@ -78,9 +91,9 @@ public class ControllerAdvice {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle("Malformed request");
+        pd.setTitle(PROBLEM_400_MALFORMED_REQUEST_TITLE);
         pd.setDetail("Request body is missing or malformed");
-        pd.setType(URI.create("https://api.sushitrain/errors/malformed-json"));
+        pd.setType(URI.create(PROBLEM_400_MALFORMED_REQUEST_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
         return pd;
     }
@@ -89,9 +102,9 @@ public class ControllerAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle("Validation failed");
+        pd.setTitle(PROBLEM_400_VALIDATION_FAILED_TITLE);
         pd.setDetail("One or more fields are invalid");
-        pd.setType(URI.create("https://api.sushitrain/errors/validation-failed"));
+        pd.setType(URI.create(PROBLEM_400_VALIDATION_FAILED_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
         var errors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(java.util.stream.Collectors.toMap(
@@ -106,9 +119,9 @@ public class ControllerAdvice {
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ProblemDetail handleHandlerMethodValidation(HandlerMethodValidationException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        pd.setTitle("Validation failed");
+        pd.setTitle(PROBLEM_400_VALIDATION_FAILED_TITLE);
         pd.setDetail("One or more parameters are invalid");
-        pd.setType(URI.create("https://api.sushitrain/errors/validation-failed"));
+        pd.setType(URI.create(PROBLEM_400_VALIDATION_FAILED_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
 
         var errors = ex.getAllErrors().stream()
@@ -124,9 +137,9 @@ public class ControllerAdvice {
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneric(Exception ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        pd.setTitle("Internal server error");
+        pd.setTitle(PROBLEM_500_TITLE);
         pd.setDetail("Unexpected server error");
-        pd.setType(URI.create("https://api.sushitrain/errors/internal"));
+        pd.setType(URI.create(PROBLEM_500_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
         return pd;
     }

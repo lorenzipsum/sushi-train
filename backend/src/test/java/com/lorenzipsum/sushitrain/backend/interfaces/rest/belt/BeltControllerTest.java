@@ -10,12 +10,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.time.Instant;
 import java.util.List;
@@ -23,23 +23,21 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.lorenzipsum.sushitrain.backend.domain.belt.Belt.*;
+import static com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.BeltController.BASE_URL_BELT_CONTROLLER;
+import static com.lorenzipsum.sushitrain.backend.interfaces.rest.common.ControllerAdvice.PROBLEM_400_VALIDATION_FAILED_TITLE;
+import static com.lorenzipsum.sushitrain.backend.interfaces.rest.common.ControllerAdvice.PROBLEM_400_VALIDATION_FAILED_URI;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Import(BeltDtoMapperImpl.class)
 @WebMvcTest(BeltController.class)
-@Import({BeltDtoMapperImpl.class})
-public class BeltControllerTest {
-    private static final String BASE_URL = "/api/v1/belts";
+@AutoConfigureRestTestClient
+class BeltControllerTest {
     @Autowired
-    MockMvc mockMvc;
+    RestTestClient client;
+
     @MockitoBean
     BeltService beltService;
-    @Autowired
-    private ObjectMapper objectMapper;
 
     static Stream<Arguments> validUpdates() {
         return Stream.of(
@@ -63,28 +61,36 @@ public class BeltControllerTest {
     @ParameterizedTest
     @MethodSource("validUpdates")
     @DisplayName("updateBeltParameters with valid parameters should update and return ok")
-    public void testUpdateBeltParameters_valid_updates_ok(
+    void updateBeltParameters_valid_updates_ok(
             BeltUpdateRequest updateRequest,
             Integer expectedTicks,
-            Integer expectedSpeed) throws Exception {
+            Integer expectedSpeed
+    ) {
         // arrange
         var belt = Belt.create("Test Belt", 10, List.of(new SeatSpec("1", 3)));
         var now = Instant.now();
-        if (expectedTicks != null) {
-            belt.setTickIntervalMs(expectedTicks, now);
-        }
-        if (expectedSpeed != null) {
-            belt.setSpeedSlotsPerTick(expectedSpeed, now);
-        }
+        if (expectedTicks != null) belt.setTickIntervalMs(expectedTicks, now);
+        if (expectedSpeed != null) belt.setSpeedSlotsPerTick(expectedSpeed, now);
+
         given(beltService.updateBeltParameters(belt.getId(), expectedTicks, expectedSpeed)).willReturn(belt);
 
         // act & assert
-        ResultActions result = patchUpdate(belt.getId(), updateRequest)
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON_VALUE));
-        result.andExpect(jsonPath("$.id").value(belt.getId().toString()));
-        if (expectedTicks != null) result.andExpect(jsonPath("$.tickIntervalMs").value(expectedTicks));
-        if (expectedSpeed != null) result.andExpect(jsonPath("$.speedSlotsPerTick").value(expectedSpeed));
+        var body = client.patch()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", belt.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(updateRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody().jsonPath("$.id").isEqualTo(belt.getId().toString());
+
+        if (expectedTicks != null) {
+            body.jsonPath("$.tickIntervalMs").isEqualTo(expectedTicks);
+        }
+
+        if (expectedSpeed != null) {
+            body.jsonPath("$.speedSlotsPerTick").isEqualTo(expectedSpeed);
+        }
 
         verify(beltService).updateBeltParameters(belt.getId(), expectedTicks, expectedSpeed);
         verifyNoMoreInteractions(beltService);
@@ -93,28 +99,25 @@ public class BeltControllerTest {
     @ParameterizedTest
     @MethodSource("invalidUpdates")
     @DisplayName("updateBeltParameters with invalid parameters should return validation error")
-    public void testUpdateBeltParameters_invalid_updates_not_ok(BeltUpdateRequest updateRequest, String errorKey) throws Exception {
-        // arrange
+    void updateBeltParameters_invalid_updates_not_ok(BeltUpdateRequest updateRequest, String errorKey) {
         var beltId = UUID.randomUUID();
 
-        // act & assert
-        patchUpdate(beltId, updateRequest)
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.title").value("Validation failed"))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.type").value("https://api.sushitrain/errors/validation-failed"))
-                .andExpect(jsonPath("$.detail").value("One or more fields are invalid"))
-                .andExpect(jsonPath("$.instance").value("/api/v1/belts/" + beltId))
-                .andExpect(jsonPath("$.errors").isMap())
-                .andExpect(jsonPath("$.errors." + errorKey).exists());
+        client.patch()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(updateRequest)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_VALIDATION_FAILED_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_VALIDATION_FAILED_URI)
+                .jsonPath("$.detail").isEqualTo("One or more fields are invalid")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId)
+                .jsonPath("$.errors").isMap()
+                .jsonPath("$.errors." + errorKey).exists();
 
         verifyNoInteractions(beltService);
-    }
-
-    private ResultActions patchUpdate(UUID beltId, BeltUpdateRequest req) throws Exception {
-        return mockMvc.perform(patch(BASE_URL + "/{id}", beltId)
-                .contentType(APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(req)));
     }
 }

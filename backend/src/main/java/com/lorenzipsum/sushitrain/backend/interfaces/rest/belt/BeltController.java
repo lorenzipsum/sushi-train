@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 @RestController
-@RequestMapping("/api/v1/belts")
+@RequestMapping(path = BeltController.BASE_URL_BELT_CONTROLLER, produces = APPLICATION_JSON_VALUE)
 public class BeltController {
+    public static final String BASE_URL_BELT_CONTROLLER = "/api/v1/belts";
     private final BeltService service;
     private final BeltDtoMapper mapper;
 
