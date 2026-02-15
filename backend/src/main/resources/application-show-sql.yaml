@@ -10,3 +10,11 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+
+    # tx logs
+    org.springframework.transaction: TRACE
+    org.springframework.transaction.interceptor: TRACE
+
+    # deeper Hibernate tx logs
+    org.hibernate.resource.transaction: DEBUG
+    org.hibernate.engine.transaction.internal: DEBUG

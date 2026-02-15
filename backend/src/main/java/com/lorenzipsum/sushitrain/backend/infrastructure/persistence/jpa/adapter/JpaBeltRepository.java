@@ -35,6 +35,7 @@ public class JpaBeltRepository implements BeltRepository {
     }
 
     @Override
+    @Transactional
     public Optional<Belt> findById(UUID id) {
         if (id == null) throw new IllegalArgumentException("Id cannot be null");
         return dao.findById(id).map(mapper::toDomain);
