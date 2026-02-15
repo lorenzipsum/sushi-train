@@ -1,5 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -16,8 +18,10 @@ public record BeltUpdateRequest(
         Integer speedSlotsPerTick) {
 
         @SuppressWarnings("unused")
-        @AssertTrue(message = "At least one parameter must be provided for update.")
-        public boolean isAnyParamProvided() {
+        @AssertTrue(message = "At least one parameter must be provided.")
+        @JsonIgnore
+        @Schema(hidden = true)
+        public boolean hasAnyParamProvided() {
                 return tickIntervalMs != null || speedSlotsPerTick != null;
         }
 }
