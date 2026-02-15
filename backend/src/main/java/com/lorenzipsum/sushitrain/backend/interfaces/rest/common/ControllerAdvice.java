@@ -116,6 +116,7 @@ public class ControllerAdvice {
         return pd;
     }
 
+    // 400: validation failures on method parameters (e.g. @Min/@Max on @RequestParam in controller method)
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ProblemDetail handleHandlerMethodValidation(HandlerMethodValidationException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -132,6 +133,18 @@ public class ControllerAdvice {
         pd.setProperty("errors", errors);
         return pd;
     }
+
+    // 400: other invalid parameters (e.g. invalid enum value, negative number where only positive allowed, etc.)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle(PROBLEM_400_INVALID_PARAM_TITLE);
+        pd.setDetail(ex.getMessage());
+        pd.setType(URI.create(PROBLEM_400_INVALID_PARAM_URI));
+        pd.setInstance(URI.create(request.getRequestURI()));
+        return pd;
+    }
+
 
     // 500
     @ExceptionHandler(Exception.class)

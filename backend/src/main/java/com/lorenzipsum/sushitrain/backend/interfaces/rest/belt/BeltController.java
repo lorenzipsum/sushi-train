@@ -38,7 +38,7 @@ public class BeltController {
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Update belt parameters",
-            description = "Partially updates belt, for example (at least one parameter must be provided)."
+            description = "Partially updates belt, for example speed parameters (at least one parameter must be provided)."
     )
     @ApiResponses({
             @ApiResponse(

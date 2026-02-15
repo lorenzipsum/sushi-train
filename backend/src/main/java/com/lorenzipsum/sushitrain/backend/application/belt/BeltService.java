@@ -4,6 +4,7 @@ import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundExc
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public class BeltService {
         this.repository = repository;
     }
 
+    @Transactional
     public Belt updateBeltParameters(UUID id, Integer tickIntervalMs, Integer speedSlotsPerTick) {
         if (tickIntervalMs == null && speedSlotsPerTick == null) {
             throw new IllegalArgumentException("At least one parameter must be provided for update.");
