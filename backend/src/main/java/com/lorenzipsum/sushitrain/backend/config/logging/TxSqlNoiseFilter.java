@@ -28,8 +28,8 @@ public class TxSqlNoiseFilter extends Filter<ILoggingEvent> {
 
         // only show specific transaction log entries to avoid noise
         if (msg.startsWith("Creating new transaction")) return FilterReply.NEUTRAL;
-        if (msg.startsWith("Committing JPA transaction")) return FilterReply.NEUTRAL;
         if (msg.startsWith("Rolling back JPA transaction")) return FilterReply.NEUTRAL;
+        if (msg.startsWith("Closing JPA EntityManager after transaction")) return FilterReply.NEUTRAL;
 
         return FilterReply.DENY;
     }
