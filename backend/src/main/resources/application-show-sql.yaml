@@ -1,20 +1,9 @@
-spring:
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: false
-
 logging:
   level:
+    root: WARN
+
     org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
-
-    # tx logs
-    org.springframework.transaction: TRACE
-    org.springframework.transaction.interceptor: TRACE
-
-    # deeper Hibernate tx logs
-    org.hibernate.resource.transaction: DEBUG
-    org.hibernate.engine.transaction.internal: DEBUG
+    org.hibernate.orm.jdbc.bind: OFF
+    # set 'TRACE' to log as well SQL parameters
+    org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+    # JpaTransactionManager is filtered in TxSqlNoiseFilter class to show only 'open transaction', 'rollback' or 'commit' statements

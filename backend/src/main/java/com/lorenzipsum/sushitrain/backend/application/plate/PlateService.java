@@ -9,6 +9,7 @@ import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -28,11 +29,13 @@ public class PlateService {
         return Instant.now().plusSeconds(7200);
     }
 
+    @Transactional(readOnly = true)
     public Plate getPlate(UUID id) {
         return repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Plate", id));
     }
 
+    @Transactional
     public Plate createPlate(UUID menuItemId, PlateTier tierSnapshot, MoneyYen priceAtCreation, Instant expiresAt) {
         var menuItem = menuItemRepository.findById(menuItemId).orElseThrow(
                 () -> new ResourceNotFoundException("MenuItem", menuItemId));
@@ -46,12 +49,14 @@ public class PlateService {
         return repository.save(plate);
     }
 
+    @Transactional
     public Plate expirePlate(UUID id) {
         var plate = getPlate(id);
         plate.expire();
         return repository.save(plate);
     }
 
+    @Transactional(readOnly = true)
     public Page<Plate> getAllPlates(Pageable pageable) {
         return repository.findAll(pageable);
     }
