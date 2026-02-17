@@ -16,7 +16,7 @@ import static com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.EXPIR
 import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.SALMON_NIGIRI_ID;
 import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.inTwoHours;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Import({JpaPlateRepository.class, PlateMapper.class, JpaMenuItemRepository.class, MenuItemMapper.class})
 class JpaPlateRepositoryIT extends JpaBaseRepositoryIT {
@@ -29,63 +29,55 @@ class JpaPlateRepositoryIT extends JpaBaseRepositoryIT {
     @Test
     @DisplayName("persist and load a Plate via adapter")
     void persistAndLoadPlate() {
-        // Arrange
         var menuItem = menuItemRepository.findById(SALMON_NIGIRI_ID).orElseThrow();
         var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
 
-        // Act
         var saved = repository.save(plate);
         em.flush();
         em.clear();
         var reloadedOpt = repository.findById(saved.getId());
 
-        // Assert
-        assertThat(saved.getId()).isNotNull();
-        assertThat(reloadedOpt).isPresent();
+        assertThat(saved.getId()).as("saved.id").isNotNull();
+        assertThat(reloadedOpt).as("reloadedOpt").isPresent();
 
-        Plate reloaded = reloadedOpt.get();
+        var reloaded = reloadedOpt.orElseThrow();
 
-        assertAll("Asserting reloaded values correct",
-                () -> assertEquals(plate.getId(), reloaded.getId()),
-                () -> assertEquals(plate.getTierSnapshot(), reloaded.getTierSnapshot()),
-                () -> assertEquals(plate.getPriceAtCreation(), reloaded.getPriceAtCreation()),
-                () -> assertEquals(plate.getExpiresAt().truncatedTo(ChronoUnit.MILLIS), reloaded.getExpiresAt().truncatedTo(ChronoUnit.MILLIS)),
-                () -> assertEquals(plate.getStatus(), reloaded.getStatus()),
-                () -> assertEquals(plate.getCreatedAt().truncatedTo(ChronoUnit.MILLIS), reloaded.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)),
-                () -> assertEquals(plate.getMenuItemId(), reloaded.getMenuItemId())
-        );
+        assertThat(reloaded.getId()).as("id").isEqualTo(plate.getId());
+        assertThat(reloaded.getTierSnapshot()).as("tierSnapshot").isEqualTo(plate.getTierSnapshot());
+        assertThat(reloaded.getPriceAtCreation()).as("priceAtCreation").isEqualTo(plate.getPriceAtCreation());
+        assertThat(reloaded.getExpiresAt()).as("expiresAt").isNotNull();
+        assertThat(reloaded.getExpiresAt().truncatedTo(ChronoUnit.MILLIS)).as("expiresAt (truncatedToMillis)").isEqualTo(plate.getExpiresAt().truncatedTo(ChronoUnit.MILLIS));
+        assertThat(reloaded.getStatus()).as("status").isEqualTo(plate.getStatus());
+        assertThat(reloaded.getCreatedAt()).as("createdAt").isNotNull();
+        assertThat(reloaded.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)).as("createdAt (truncatedToMillis)").isEqualTo(plate.getCreatedAt().truncatedTo(ChronoUnit.MILLIS));
+        assertThat(reloaded.getMenuItemId()).as("menuItemId").isEqualTo(plate.getMenuItemId());
     }
 
     @Test
     @DisplayName("persist checks for null values")
     void persistAndLoadPlate_not_ok() {
-        assertAll("Asserting null handling",
-                () -> assertThrows(IllegalArgumentException.class, () -> repository.save(null)),
-                () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
-        );
+        assertThrows(IllegalArgumentException.class, () -> repository.save(null));
+        assertThrows(IllegalArgumentException.class, () -> repository.findById(null));
     }
 
     @Test
     @DisplayName("expire a plate and verify status change")
     void expirePlate_changesStatus() {
-        // Arrange
         var menuItem = menuItemRepository.findById(SALMON_NIGIRI_ID).orElseThrow();
         var plate = Plate.create(menuItem.getId(), menuItem.getDefaultTier(), menuItem.getBasePrice(), inTwoHours());
         var saved = repository.save(plate);
         em.flush();
         em.clear();
-        var toExpire = repository.findById(saved.getId()).orElseThrow();
 
-        // Act
+        var toExpire = repository.findById(saved.getId()).orElseThrow();
         toExpire.expire();
+
         var expired = repository.save(toExpire);
         em.flush();
         em.clear();
         var reloadedOpt = repository.findById(expired.getId());
 
-        // Assert
-        assertThat(reloadedOpt).isPresent();
-        Plate reloaded = reloadedOpt.get();
-        assertEquals(EXPIRED, reloaded.getStatus());
+        assertThat(reloadedOpt).as("reloadedOpt").isPresent();
+        assertThat(reloadedOpt.orElseThrow().getStatus()).as("status").isEqualTo(EXPIRED);
     }
 }
