@@ -17,7 +17,8 @@ import java.util.List;
 
 import static com.lorenzipsum.sushitrain.backend.domain.belt.Belt.TICK_INTERVAL_MS_DEFAULT_VALUE;
 import static com.lorenzipsum.sushitrain.backend.testutil.TestFixtures.MAIN_BELT_ID;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Import({
         JpaBeltRepository.class,
@@ -35,83 +36,54 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
     @Test
     @DisplayName("Loading existing default belt fetches all data")
     void loadExistingBelt_ok() {
-        // important: make sure to adapt this test in case you change data in script 'V3_seed_belt.sql'
+        // important: adapt this test if you change data in script 'V3_seed_belt.sql'
         Belt belt = repository.findById(MAIN_BELT_ID).orElseThrow();
-
-        assertAll("Check default belt data",
-                () -> assertEquals("Main Belt", belt.getName()),
-                () -> assertEquals(TICK_INTERVAL_MS_DEFAULT_VALUE, belt.getTickIntervalMs()),
-                () -> assertEquals(1, belt.getSpeedSlotsPerTick()),
-                () -> assertEquals(192, belt.getSlotCount()),
-                () -> assertEquals(192, belt.getSlots().size()),
-                () -> assertEquals(24, belt.getSeats().size())
-        );
+        assertThat(belt).as("belt").isNotNull();
+        assertThat(belt.getName()).as("name").isEqualTo("Main Belt");
+        assertThat(belt.getTickIntervalMs()).as("tickIntervalMs").isEqualTo(TICK_INTERVAL_MS_DEFAULT_VALUE);
+        assertThat(belt.getSpeedSlotsPerTick()).as("speedSlotsPerTick").isEqualTo(1);
+        assertThat(belt.getSlotCount()).as("slotCount").isEqualTo(192);
+        assertThat(belt.getSlots()).as("slots").isNotNull().hasSize(192);
+        assertThat(belt.getSeats()).as("seats").isNotNull().hasSize(24);
     }
 
     @Test
     @DisplayName("Persisting of new belt is complete and ok")
     void creatingAndLoadingBelt_ok() {
-        // Arrange
-        var seatSpecs = List.of(
-                new SeatSpec("A1", 1),
-                new SeatSpec("B2", 7)
-        );
+        var seatSpecs = List.of(new SeatSpec("A1", 1), new SeatSpec("B2", 7));
         var belt = Belt.create("Default", 10, seatSpecs);
 
-        // Act
         repository.create(belt);
         em.flush();
         em.clear();
-
         var loaded = repository.findById(belt.getId()).orElseThrow();
 
-        // Assert (belt)
-        assertAll("Asserting belt basics",
-                () -> assertEquals(belt.getId(), loaded.getId()),
-                () -> assertEquals(belt.getName(), loaded.getName()),
-                () -> assertEquals(belt.getSlotCount(), loaded.getSlotCount()),
-                () -> assertEquals(belt.getBaseRotationOffset(), loaded.getBaseRotationOffset()),
-                () -> assertEquals(belt.getTickIntervalMs(), loaded.getTickIntervalMs()),
-                () -> assertEquals(belt.getSpeedSlotsPerTick(), loaded.getSpeedSlotsPerTick())
-        );
+        assertThat(loaded.getId()).as("id").isEqualTo(belt.getId());
+        assertThat(loaded.getName()).as("name").isEqualTo(belt.getName());
+        assertThat(loaded.getSlotCount()).as("slotCount").isEqualTo(belt.getSlotCount());
+        assertThat(loaded.getBaseRotationOffset()).as("baseRotationOffset").isEqualTo(belt.getBaseRotationOffset());
+        assertThat(loaded.getTickIntervalMs()).as("tickIntervalMs").isEqualTo(belt.getTickIntervalMs());
+        assertThat(loaded.getSpeedSlotsPerTick()).as("speedSlotsPerTick").isEqualTo(belt.getSpeedSlotsPerTick());
 
-        // Assert (slots)
-        assertAll("Asserting slots persisted",
-                () -> assertNotNull(loaded.getSlots()),
-                () -> assertEquals(belt.getSlots().size(), loaded.getSlots().size()),
-                () -> assertEquals(0, loaded.getSlots().getFirst().getPositionIndex()),
-                () -> assertEquals(9, loaded.getSlots().getLast().getPositionIndex()),
-                () -> assertNull(loaded.getSlots().getFirst().getPlateId())
-        );
+        assertThat(loaded.getSlots()).as("slots").isNotNull().hasSize(belt.getSlots().size());
+        assertThat(loaded.getSlots().getFirst().getPositionIndex()).as("slots.first.positionIndex").isEqualTo(0);
+        assertThat(loaded.getSlots().getLast().getPositionIndex()).as("slots.last.positionIndex").isEqualTo(9);
+        assertThat(loaded.getSlots().getFirst().getPlateId()).as("slots.first.plateId").isNull();
 
-        // Assert (seats)
-        assertAll("Asserting seats persisted",
-                () -> assertNotNull(loaded.getSeats()),
-                () -> assertEquals(2, loaded.getSeats().size())
-        );
+        assertThat(loaded.getSeats()).as("seats").isNotNull().hasSize(2);
 
-        var seatA1 = loaded.getSeats().stream()
-                .filter(s -> "A1".equals(s.getLabel()))
-                .findFirst()
-                .orElseThrow();
+        var seatA1 = loaded.getSeats().stream().filter(s -> "A1".equals(s.getLabel())).findFirst().orElseThrow();
+        var seatB2 = loaded.getSeats().stream().filter(s -> "B2".equals(s.getLabel())).findFirst().orElseThrow();
 
-        var seatB2 = loaded.getSeats().stream()
-                .filter(s -> "B2".equals(s.getLabel()))
-                .findFirst()
-                .orElseThrow();
-
-        assertAll("Asserting seat details",
-                () -> assertEquals(1, seatA1.getPositionIndex()),
-                () -> assertEquals(7, seatB2.getPositionIndex()),
-                () -> assertNotNull(seatA1.getId()),
-                () -> assertNotNull(seatB2.getId())
-        );
+        assertThat(seatA1.getPositionIndex()).as("seatA1.positionIndex").isEqualTo(1);
+        assertThat(seatB2.getPositionIndex()).as("seatB2.positionIndex").isEqualTo(7);
+        assertThat(seatA1.getId()).as("seatA1.id").isNotNull();
+        assertThat(seatB2.getId()).as("seatB2.id").isNotNull();
     }
 
     @Test
     @DisplayName("Updating parameters for existing belt ok without deleting slots")
     void updateExistingBelt_setTickIntervalMs_ok() {
-        // arrange
         Belt defaultBelt = repository.findParamsById(MAIN_BELT_ID).orElseThrow();
         int snapshotBaseRotationOffset = defaultBelt.getBaseRotationOffset();
         Instant snapshotOffsetStartedAt = defaultBelt.getOffsetStartedAt();
@@ -119,30 +91,24 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
         int snapshotSpeedSlotsPerTick = defaultBelt.getSpeedSlotsPerTick();
         int snapshotSlotCount = defaultBelt.getSlotCount();
 
-        // act
         defaultBelt.setTickIntervalMs(150, Instant.now());
         repository.saveParams(defaultBelt);
         em.flush();
         em.clear();
         Belt updatedBelt = repository.findParamsById(MAIN_BELT_ID).orElseThrow();
 
-        // assert
-        assertAll("Check if setting tick interval updated the right fields",
-                () -> assertEquals(150, updatedBelt.getTickIntervalMs()),
-                () -> assertEquals(snapshotSlotCount, updatedBelt.getSlotCount()),
-                () -> assertEquals(snapshotSpeedSlotsPerTick, updatedBelt.getSpeedSlotsPerTick()),
-                () -> assertNotEquals(snapshotBaseRotationOffset, updatedBelt.getBaseRotationOffset()),
-                () -> assertNotEquals(snapshotOffsetStartedAt, updatedBelt.getOffsetStartedAt()),
-                () -> assertNotEquals(snapshotTickIntervalMs, updatedBelt.getTickIntervalMs())
-        );
+        assertThat(updatedBelt.getTickIntervalMs()).as("tickIntervalMs").isEqualTo(150);
+        assertThat(updatedBelt.getSlotCount()).as("slotCount").isEqualTo(snapshotSlotCount);
+        assertThat(updatedBelt.getSpeedSlotsPerTick()).as("speedSlotsPerTick").isEqualTo(snapshotSpeedSlotsPerTick);
+        assertThat(updatedBelt.getBaseRotationOffset()).as("baseRotationOffset").isNotEqualTo(snapshotBaseRotationOffset);
+        assertThat(updatedBelt.getOffsetStartedAt()).as("offsetStartedAt").isNotEqualTo(snapshotOffsetStartedAt);
+        assertThat(updatedBelt.getTickIntervalMs()).as("tickIntervalMs (changed)").isNotEqualTo(snapshotTickIntervalMs);
     }
 
     @Test
     @DisplayName("persistAndLoadBelt_not_ok")
     void creatingBelt_not_ok() {
-        assertAll("Asserting null handling",
-                () -> assertThrows(IllegalArgumentException.class, () -> repository.create(null)),
-                () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
-        );
+        assertThrows(IllegalArgumentException.class, () -> repository.create(null));
+        assertThrows(IllegalArgumentException.class, () -> repository.findById(null));
     }
 }
