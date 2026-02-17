@@ -16,7 +16,7 @@ public abstract class JpaBaseRepositoryIT {
 
     @Container
     @ServiceConnection
-    protected static PostgreSQLContainer db = new PostgreSQLContainer("postgres:18-alpine");
+    protected static final PostgreSQLContainer db = new PostgreSQLContainer("postgres:18-alpine");
 
     @Autowired
     protected EntityManager em;
