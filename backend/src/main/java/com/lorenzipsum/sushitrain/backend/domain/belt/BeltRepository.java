@@ -6,5 +6,9 @@ import java.util.UUID;
 public interface BeltRepository {
     Optional<Belt> findById(UUID uuid);
 
-    Belt save(Belt belt);
+    Optional<Belt> findParamsById(UUID id);
+
+    Belt create(Belt belt);
+
+    Belt saveParams(Belt belt);
 }

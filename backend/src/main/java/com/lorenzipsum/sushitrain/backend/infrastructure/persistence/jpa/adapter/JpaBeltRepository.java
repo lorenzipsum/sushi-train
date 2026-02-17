@@ -1,5 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
+import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
@@ -40,29 +41,53 @@ public class JpaBeltRepository implements BeltRepository {
     }
 
     @Override
-    public Belt save(Belt belt) {
-        // only belt params can be updated, not seats or slots (plate to slot assignment is not handled here)
+    public Optional<Belt> findParamsById(UUID id) {
+        return dao.findParamsById(id).map(p ->
+                Belt.rehydrate(
+                        p.getId(),
+                        p.getName(),
+                        p.getSlotCount(),
+                        p.getBaseRotationOffset(),
+                        p.getTickIntervalMs(),
+                        p.getSpeedSlotsPerTick(),
+                        List.of(),
+                        List.of(),
+                        p.getOffsetStartedAt()
+                )
+        );
+    }
 
+    @Override
+    public Belt saveParams(Belt belt) {
+        int updated = dao.updateParams(
+                belt.getId(),
+                belt.getTickIntervalMs(),
+                belt.getSpeedSlotsPerTick(),
+                belt.getBaseRotationOffset(),
+                belt.getOffsetStartedAt()
+        );
+        if (updated == 0) throw new ResourceNotFoundException("Belt", belt.getId());
+        return belt;
+    }
+
+    @Override
+    public Belt create(Belt belt) {
         if (belt == null) throw new IllegalArgumentException("Belt cannot be null");
 
-        BeltEntity existingBelt = em.find(BeltEntity.class, belt.getId());
-
-        if (existingBelt != null) {
-            existingBelt.setSpeedSlotsPerTick(belt.getSpeedSlotsPerTick());
-            existingBelt.setTickIntervalMs(belt.getTickIntervalMs());
-            existingBelt.setBaseRotationOffset(belt.getBaseRotationOffset());
-            existingBelt.setOffsetStartedAt(belt.getOffsetStartedAt());
-            return mapper.toDomain(existingBelt);
-
-        }
-
         BeltEntity newBelt = mapper.toEntity(belt);
-        // new belt is created without assigned plates
-        List<BeltSlotEntity> beltSlots = belt.getSlots().stream().map(slot -> slotMapper.toEntity(slot, newBelt, null)).toList();
+
+        List<BeltSlotEntity> beltSlots = belt.getSlots().stream()
+                .map(slot -> slotMapper.toEntity(slot, newBelt, null))
+                .toList();
         newBelt.replaceSlots(beltSlots);
-        List<SeatEntity> seats = belt.getSeats().stream().map(seat -> seatMapper.toEntity(seat, newBelt)).toList();
+
+        List<SeatEntity> seats = belt.getSeats().stream()
+                .map(seat -> seatMapper.toEntity(seat, newBelt))
+                .toList();
         newBelt.replaceSeats(seats);
+
         em.persist(newBelt);
-        return mapper.toDomain(newBelt);
+        return belt;
     }
+
 }

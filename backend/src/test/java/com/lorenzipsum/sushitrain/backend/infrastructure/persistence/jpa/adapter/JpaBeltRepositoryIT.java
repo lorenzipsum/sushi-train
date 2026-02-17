@@ -50,7 +50,7 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
 
     @Test
     @DisplayName("Persisting of new belt is complete and ok")
-    void persistAndLoadNewBelt_includesSlotsAndSeats_ok() {
+    void creatingAndLoadingBelt_ok() {
         // Arrange
         var seatSpecs = List.of(
                 new SeatSpec("A1", 1),
@@ -59,7 +59,7 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
         var belt = Belt.create("Default", 10, seatSpecs);
 
         // Act
-        repository.save(belt);
+        repository.create(belt);
         em.flush();
         em.clear();
 
@@ -112,7 +112,7 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("Updating parameters for existing belt ok without deleting slots")
     void updateExistingBelt_setTickIntervalMs_ok() {
         // arrange
-        Belt defaultBelt = repository.findById(MAIN_BELT_ID).orElseThrow();
+        Belt defaultBelt = repository.findParamsById(MAIN_BELT_ID).orElseThrow();
         int snapshotBaseRotationOffset = defaultBelt.getBaseRotationOffset();
         Instant snapshotOffsetStartedAt = defaultBelt.getOffsetStartedAt();
         int snapshotTickIntervalMs = defaultBelt.getTickIntervalMs();
@@ -121,14 +121,15 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
 
         // act
         defaultBelt.setTickIntervalMs(150, Instant.now());
-        repository.save(defaultBelt);
+        repository.saveParams(defaultBelt);
         em.flush();
-        Belt updatedBelt = repository.findById(MAIN_BELT_ID).orElseThrow();
+        em.clear();
+        Belt updatedBelt = repository.findParamsById(MAIN_BELT_ID).orElseThrow();
 
         // assert
         assertAll("Check if setting tick interval updated the right fields",
                 () -> assertEquals(150, updatedBelt.getTickIntervalMs()),
-                () -> assertEquals(snapshotSlotCount, updatedBelt.getSlots().size()),
+                () -> assertEquals(snapshotSlotCount, updatedBelt.getSlotCount()),
                 () -> assertEquals(snapshotSpeedSlotsPerTick, updatedBelt.getSpeedSlotsPerTick()),
                 () -> assertNotEquals(snapshotBaseRotationOffset, updatedBelt.getBaseRotationOffset()),
                 () -> assertNotEquals(snapshotOffsetStartedAt, updatedBelt.getOffsetStartedAt()),
@@ -138,9 +139,9 @@ class JpaBeltRepositoryIT extends JpaBaseRepositoryIT {
 
     @Test
     @DisplayName("persistAndLoadBelt_not_ok")
-    void persistAndLoadBelt_not_ok() {
+    void creatingBelt_not_ok() {
         assertAll("Asserting null handling",
-                () -> assertThrows(IllegalArgumentException.class, () -> repository.save(null)),
+                () -> assertThrows(IllegalArgumentException.class, () -> repository.create(null)),
                 () -> assertThrows(IllegalArgumentException.class, () -> repository.findById(null))
         );
     }

@@ -50,7 +50,7 @@ class JpaOrderRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load an Order via adapter")
     void persistAndLoadOrders_ok() {
         // Arrange: create belt WITH seats and persist it
-        var belt = beltRepository.save(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
+        var belt = beltRepository.create(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
         em.flush();
         em.clear();
 
@@ -86,7 +86,7 @@ class JpaOrderRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist and load an Order containing a line")
     void persistAndLoadOrders_containing_line_ok() {
         // Arrange
-        var belt = beltRepository.save(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
+        var belt = beltRepository.create(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
         var seatId = beltRepository.findById(belt.getId()).orElseThrow().getSeats().getFirst().getId();
         var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
 
@@ -127,7 +127,7 @@ class JpaOrderRepositoryIT extends JpaBaseRepositoryIT {
     @DisplayName("persist order and remove line, then persist again")
     void persistAndLoadOrders_line_manipulations_ok() {
         // Arrange
-        var belt = beltRepository.save(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
+        var belt = beltRepository.create(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
         var seatId = beltRepository.findById(belt.getId()).orElseThrow().getSeats().getFirst().getId();
         var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
 

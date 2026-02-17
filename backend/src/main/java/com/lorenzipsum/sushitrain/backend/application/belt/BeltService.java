@@ -22,15 +22,14 @@ public class BeltService {
         if (tickIntervalMs == null && speedSlotsPerTick == null) {
             throw new IllegalArgumentException("At least one parameter must be provided for update.");
         }
-        Belt belt = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Belt", id));
-        Instant now = Instant.now();
 
-        if (tickIntervalMs != null) {
-            belt.setTickIntervalMs(tickIntervalMs, now);
-        }
-        if (speedSlotsPerTick != null) {
-            belt.setSpeedSlotsPerTick(speedSlotsPerTick, now);
-        }
-        return repository.save(belt);
+        Belt belt = repository.findParamsById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Belt", id));
+
+        Instant now = Instant.now();
+        if (tickIntervalMs != null) belt.setTickIntervalMs(tickIntervalMs, now);
+        if (speedSlotsPerTick != null) belt.setSpeedSlotsPerTick(speedSlotsPerTick, now);
+
+        return repository.saveParams(belt);
     }
 }
