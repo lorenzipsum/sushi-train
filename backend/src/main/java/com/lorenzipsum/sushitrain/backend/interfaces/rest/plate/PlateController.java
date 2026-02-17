@@ -55,7 +55,7 @@ public class PlateController {
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class)))})
     public PlateDto getPlate(
-            @Parameter(description = "Plate id", required = true, example = "a22b5bd2-285f-42eb-889a-8d2dd1f2d6c7")
+            @Parameter(description = "Plate id", required = true, example = "11111111-1111-1111-1111-111111111111")
             @PathVariable UUID id) {
         return mapper.toDto(service.getPlate(id));
     }
@@ -117,7 +117,7 @@ public class PlateController {
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class)))})
     public PlateDto expirePlate(
-            @Parameter(description = "Plate id", required = true, example = "a22b5bd2-285f-42eb-889a-8d2dd1f2d6c7")
+            @Parameter(description = "Plate id", required = true, example = "11111111-1111-1111-1111-111111111111")
             @PathVariable UUID id) {
         return mapper.toDto(service.expirePlate(id));
     }
