@@ -11,7 +11,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
-class SushiTrainBackendApplicationTests {
+class SushiTrainBackendApplicationIT {
 
     @Container
     @ServiceConnection
