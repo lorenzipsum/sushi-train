@@ -6,4 +6,6 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface BeltDtoMapper {
     BeltParamsDto toParamsDto(Belt belt);
+
+    BeltDto toDto(Belt belt);
 }

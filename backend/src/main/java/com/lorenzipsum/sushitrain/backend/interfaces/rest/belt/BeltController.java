@@ -2,6 +2,7 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt;
 
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltDtoMapper;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltParamsDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltUpdateRequest;
@@ -72,5 +73,41 @@ public class BeltController {
     ) {
         Belt belt = service.updateBeltParameters(id, request.tickIntervalMs(), request.speedSlotsPerTick());
         return mapper.toParamsDto(belt);
+    }
+
+    @GetMapping(path = "/{id}")
+    @Operation(
+            summary = "Get a belt",
+            description = "Returns the belt including its slots and seats."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Belt found",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = BeltDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter (e.g., id is not a UUID)",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Belt not found",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public BeltDto getBelt(@PathVariable UUID id) {
+        var belt = service.getBelt(id);
+        return mapper.toDto(belt);
     }
 }

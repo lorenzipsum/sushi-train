@@ -32,4 +32,10 @@ public class BeltService {
 
         return repository.saveParams(belt);
     }
+
+    @Transactional
+    public Belt getBelt(UUID id) {
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Belt", id));
+    }
 }

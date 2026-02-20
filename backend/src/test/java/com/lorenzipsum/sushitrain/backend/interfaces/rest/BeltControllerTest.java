@@ -36,11 +36,9 @@ import static org.mockito.Mockito.*;
 @AutoConfigureRestTestClient
 class BeltControllerTest {
 
-    @Autowired
-    RestTestClient client;
+    @Autowired RestTestClient client;
 
-    @MockitoBean
-    BeltService beltService;
+    @MockitoBean BeltService beltService;
 
     static Stream<Arguments> validUpdates() {
         return Stream.of(
@@ -64,12 +62,7 @@ class BeltControllerTest {
     @ParameterizedTest
     @MethodSource("validUpdates")
     @DisplayName("PATCH /api/v1/belts/{id} with valid parameters should update belt and return 200")
-    void updateBeltParameters_valid_updates_ok(
-            BeltUpdateRequest updateRequest,
-            Integer expectedTicks,
-            Integer expectedSpeed
-    ) {
-        // arrange
+    void updateBeltParameters_valid_updates_ok(BeltUpdateRequest updateRequest, Integer expectedTicks, Integer expectedSpeed) {
         var belt = Belt.create("Test Belt", 10, List.of(new SeatSpec("1", 3)));
         var now = Instant.now();
         if (expectedTicks != null) belt.setTickIntervalMs(expectedTicks, now);
@@ -77,24 +70,17 @@ class BeltControllerTest {
 
         given(beltService.updateBeltParameters(belt.getId(), expectedTicks, expectedSpeed)).willReturn(belt);
 
-        // act
-        var body = client.patch()
-                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", belt.getId())
+        var body = client.patch().uri(BASE_URL_BELT_CONTROLLER + "/{id}", belt.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(updateRequest)
                 .exchange()
-                // assert
                 .expectStatus().isOk()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody()
                 .jsonPath("$.id").isEqualTo(belt.getId().toString());
 
-        if (expectedTicks != null) {
-            body.jsonPath("$.tickIntervalMs").isEqualTo(expectedTicks);
-        }
-        if (expectedSpeed != null) {
-            body.jsonPath("$.speedSlotsPerTick").isEqualTo(expectedSpeed);
-        }
+        if (expectedTicks != null) body.jsonPath("$.tickIntervalMs").isEqualTo(expectedTicks);
+        if (expectedSpeed != null) body.jsonPath("$.speedSlotsPerTick").isEqualTo(expectedSpeed);
 
         verify(beltService).updateBeltParameters(belt.getId(), expectedTicks, expectedSpeed);
         verifyNoMoreInteractions(beltService);
@@ -104,16 +90,12 @@ class BeltControllerTest {
     @MethodSource("invalidUpdates")
     @DisplayName("PATCH /api/v1/belts/{id} with invalid parameters should return 400 with ProblemDetail")
     void updateBeltParameters_invalid_updates_not_ok(BeltUpdateRequest updateRequest, String errorKey) {
-        // arrange
         var beltId = UUID.randomUUID();
 
-        // act
-        client.patch()
-                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+        client.patch().uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(updateRequest)
                 .exchange()
-                // assert
                 .expectStatus().isBadRequest()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
@@ -131,13 +113,10 @@ class BeltControllerTest {
     @Test
     @DisplayName("PATCH /api/v1/belts/{id} with non-UUID id should return 400 invalid-parameter ProblemDetail")
     void updateBeltParameters_invalid_uuid_returns_400_problemDetail() {
-        // arrange
         var invalidId = "not-a-uuid";
         var request = new BeltUpdateRequest(250, null);
 
-        // act + assert
-        client.patch()
-                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", invalidId)
+        client.patch().uri(BASE_URL_BELT_CONTROLLER + "/{id}", invalidId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .exchange()
@@ -156,16 +135,12 @@ class BeltControllerTest {
     @Test
     @DisplayName("PATCH /api/v1/belts/{id} when belt does not exist should return 404 not-found ProblemDetail")
     void updateBeltParameters_not_found_returns_404_problemDetail() {
-        // arrange
         var beltId = UUID.randomUUID();
         var request = new BeltUpdateRequest(250, null);
 
-        given(beltService.updateBeltParameters(beltId, 250, null))
-                .willThrow(new ResourceNotFoundException("Belt", beltId));
+        given(beltService.updateBeltParameters(beltId, 250, null)).willThrow(new ResourceNotFoundException("Belt", beltId));
 
-        // act + assert
-        client.patch()
-                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+        client.patch().uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .exchange()
@@ -185,16 +160,12 @@ class BeltControllerTest {
     @Test
     @DisplayName("PATCH /api/v1/belts/{id} on unexpected error should return 500 internal ProblemDetail")
     void updateBeltParameters_unexpected_returns_500_problemDetail() {
-        // arrange
         var beltId = UUID.randomUUID();
         var request = new BeltUpdateRequest(250, null);
 
-        given(beltService.updateBeltParameters(beltId, 250, null))
-                .willThrow(new RuntimeException("boom"));
+        given(beltService.updateBeltParameters(beltId, 250, null)).willThrow(new RuntimeException("boom"));
 
-        // act + assert
-        client.patch()
-                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+        client.patch().uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .exchange()
@@ -214,13 +185,10 @@ class BeltControllerTest {
     @Test
     @DisplayName("PATCH /api/v1/belts/{id} with malformed JSON should return 400 malformed-json ProblemDetail")
     void updateBeltParameters_malformed_json_returns_400_problemDetail() {
-        // arrange
         var beltId = UUID.randomUUID();
         var malformedJson = "{";
 
-        // act + assert
-        client.patch()
-                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+        client.patch().uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(malformedJson)
                 .exchange()
@@ -239,12 +207,9 @@ class BeltControllerTest {
     @Test
     @DisplayName("PATCH /api/v1/belts/{id} with missing body should return 400 malformed-json ProblemDetail")
     void updateBeltParameters_missing_body_returns_400_problemDetail() {
-        // arrange
         var beltId = UUID.randomUUID();
 
-        // act + assert
-        client.patch()
-                .uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+        client.patch().uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -257,5 +222,108 @@ class BeltControllerTest {
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId);
 
         verifyNoInteractions(beltService);
+    }
+
+    // -----------------------
+    // GET /api/v1/belts/{id}
+    // -----------------------
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id} should return 200 and BeltDto when found")
+    void getBelt_ok_returns_200_and_dto() {
+        var belt = Belt.create("Test Belt", 10, List.of(new SeatSpec("A1", 1), new SeatSpec("B2", 7)));
+        given(beltService.getBelt(belt.getId())).willReturn(belt);
+
+        client.get().uri(BASE_URL_BELT_CONTROLLER + "/{id}", belt.getId())
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(belt.getId().toString())
+                .jsonPath("$.name").isEqualTo(belt.getName())
+                .jsonPath("$.slotCount").isEqualTo(belt.getSlotCount())
+                .jsonPath("$.baseRotationOffset").isEqualTo(belt.getBaseRotationOffset())
+                .jsonPath("$.tickIntervalMs").isEqualTo(belt.getTickIntervalMs())
+                .jsonPath("$.speedSlotsPerTick").isEqualTo(belt.getSpeedSlotsPerTick())
+                .jsonPath("$.offsetStartedAt").exists()
+
+                // slots array sanity
+                .jsonPath("$.slots").isArray()
+                .jsonPath("$.slots.length()").isEqualTo(belt.getSlotCount())
+                .jsonPath("$.slots[0].id").exists()
+                .jsonPath("$.slots[0].positionIndex").isEqualTo(0)
+                .jsonPath("$.slots[0].plateId").isEmpty()
+                .jsonPath("$.slots[" + (belt.getSlotCount() - 1) + "].positionIndex").isEqualTo(belt.getSlotCount() - 1)
+
+                // seats array sanity
+                .jsonPath("$.seats").isArray()
+                .jsonPath("$.seats.length()").isEqualTo(belt.getSeats().size())
+                .jsonPath("$.seats[0].id").exists()
+                .jsonPath("$.seats[0].positionIndex").exists()
+                .jsonPath("$.seats[0].label").exists();
+
+        verify(beltService).getBelt(belt.getId());
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id} with non-UUID id should return 400 invalid-parameter ProblemDetail")
+    void getBelt_invalid_uuid_returns_400_problemDetail() {
+        var invalidId = "not-a-uuid";
+
+        client.get().uri(BASE_URL_BELT_CONTROLLER + "/{id}", invalidId)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_INVALID_PARAM_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_INVALID_PARAM_URI)
+                .jsonPath("$.detail").isEqualTo("Parameter 'id' must be a UUID")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + invalidId);
+
+        verifyNoInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id} when belt does not exist should return 404 not-found ProblemDetail")
+    void getBelt_not_found_returns_404_problemDetail() {
+        var beltId = UUID.randomUUID();
+        given(beltService.getBelt(beltId)).willThrow(new ResourceNotFoundException("Belt", beltId));
+
+        client.get().uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_404_TITLE)
+                .jsonPath("$.status").isEqualTo(404)
+                .jsonPath("$.type").isEqualTo(PROBLEM_404_URI)
+                .jsonPath("$.detail").isEqualTo("Belt not found: " + beltId)
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId);
+
+        verify(beltService).getBelt(beltId);
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id} on unexpected error should return 500 internal ProblemDetail")
+    void getBelt_unexpected_returns_500_problemDetail() {
+        var beltId = UUID.randomUUID();
+        given(beltService.getBelt(beltId)).willThrow(new RuntimeException("boom"));
+
+        client.get().uri(BASE_URL_BELT_CONTROLLER + "/{id}", beltId)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_500_TITLE)
+                .jsonPath("$.status").isEqualTo(500)
+                .jsonPath("$.type").isEqualTo(PROBLEM_500_URI)
+                .jsonPath("$.detail").isEqualTo("Unexpected server error")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId);
+
+        verify(beltService).getBelt(beltId);
+        verifyNoMoreInteractions(beltService);
     }
 }
