@@ -1,11 +1,15 @@
-package com.lorenzipsum.sushitrain.backend.interfaces.rest;
+package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt;
 
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.BeltController;
+import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
+import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltDtoMapperImpl;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltSnapshotDtoMapper;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,14 +35,15 @@ import static com.lorenzipsum.sushitrain.backend.interfaces.rest.common.Controll
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@Import(BeltDtoMapperImpl.class)
+@Import({BeltDtoMapperImpl.class, BeltSnapshotDtoMapper.class})
 @WebMvcTest(BeltController.class)
 @AutoConfigureRestTestClient
 class BeltControllerTest {
 
-    @Autowired RestTestClient client;
-
-    @MockitoBean BeltService beltService;
+    @Autowired
+    RestTestClient client;
+    @MockitoBean
+    BeltService beltService;
 
     static Stream<Arguments> validUpdates() {
         return Stream.of(
@@ -324,6 +329,112 @@ class BeltControllerTest {
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId);
 
         verify(beltService).getBelt(beltId);
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id}/snapshot returns 200 and contains belt params + slots")
+    void getBeltSnapshot_ok() {
+        var beltId = UUID.randomUUID();
+        var slot0 = UUID.randomUUID();
+        var slot1 = UUID.randomUUID();
+        var plateId = UUID.randomUUID();
+        var menuItemId = UUID.randomUUID();
+        var startedAt = Instant.parse("2026-02-20T00:00:00Z");
+        var expiresAt = Instant.parse("2026-02-20T02:00:00Z");
+
+        var rows = List.of(
+                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot0, 0, null, null, null, null, null, null, null),
+                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, MoneyYen.of(450), PlateStatus.ON_BELT, expiresAt)
+        );
+
+        given(beltService.getBeltSnapshotRows(beltId)).willReturn(rows);
+
+        client.get()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}/snapshot", beltId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.beltId").isEqualTo(beltId.toString())
+                .jsonPath("$.beltName").isEqualTo("Main Belt")
+                .jsonPath("$.beltSlotCount").isEqualTo(2)
+                .jsonPath("$.slots").isArray()
+                .jsonPath("$.slots.length()").isEqualTo(2)
+                .jsonPath("$.slots[0].positionIndex").isEqualTo(0)
+                .jsonPath("$.slots[0].plate").doesNotExist()
+                .jsonPath("$.slots[1].positionIndex").isEqualTo(1)
+                .jsonPath("$.slots[1].plate.plateId").isEqualTo(plateId.toString())
+                .jsonPath("$.slots[1].plate.menuItemId").isEqualTo(menuItemId.toString())
+                .jsonPath("$.slots[1].plate.menuItemName").isEqualTo("Salmon Nigiri");
+
+        verify(beltService).getBeltSnapshotRows(beltId);
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id}/snapshot with non-UUID id returns 400 invalid-parameter ProblemDetail")
+    void getBeltSnapshot_invalid_uuid_returns_400_problemDetail() {
+        var invalidId = "not-a-uuid";
+
+        client.get()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}/snapshot", invalidId)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_INVALID_PARAM_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_INVALID_PARAM_URI)
+                .jsonPath("$.detail").isEqualTo("Parameter 'id' must be a UUID")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + invalidId + "/snapshot");
+
+        verifyNoInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id}/snapshot when belt does not exist returns 404 ProblemDetail")
+    void getBeltSnapshot_not_found_returns_404_problemDetail() {
+        var beltId = UUID.randomUUID();
+
+        given(beltService.getBeltSnapshotRows(beltId)).willThrow(new ResourceNotFoundException("Belt", beltId));
+
+        client.get()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}/snapshot", beltId)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_404_TITLE)
+                .jsonPath("$.status").isEqualTo(404)
+                .jsonPath("$.type").isEqualTo(PROBLEM_404_URI)
+                .jsonPath("$.detail").isEqualTo("Belt not found: " + beltId)
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/snapshot");
+
+        verify(beltService).getBeltSnapshotRows(beltId);
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id}/snapshot on unexpected error returns 500 ProblemDetail")
+    void getBeltSnapshot_unexpected_returns_500_problemDetail() {
+        var beltId = UUID.randomUUID();
+
+        given(beltService.getBeltSnapshotRows(beltId)).willThrow(new RuntimeException("boom"));
+
+        client.get()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}/snapshot", beltId)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_500_TITLE)
+                .jsonPath("$.status").isEqualTo(500)
+                .jsonPath("$.type").isEqualTo(PROBLEM_500_URI)
+                .jsonPath("$.detail").isEqualTo("Unexpected server error")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/snapshot");
+
+        verify(beltService).getBeltSnapshotRows(beltId);
         verifyNoMoreInteractions(beltService);
     }
 }

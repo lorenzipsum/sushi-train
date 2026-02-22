@@ -2,10 +2,7 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt;
 
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltDto;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltDtoMapper;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltParamsDto;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltUpdateRequest;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,10 +27,12 @@ public class BeltController {
 
     private final BeltService service;
     private final BeltDtoMapper mapper;
+    private final BeltSnapshotDtoMapper snapshotMapper;
 
-    public BeltController(BeltService service, BeltDtoMapper mapper) {
+    public BeltController(BeltService service, BeltDtoMapper mapper, BeltSnapshotDtoMapper snapshotMapper) {
         this.service = service;
         this.mapper = mapper;
+        this.snapshotMapper = snapshotMapper;
     }
 
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
@@ -109,5 +108,41 @@ public class BeltController {
     public BeltDto getBelt(@PathVariable UUID id) {
         var belt = service.getBelt(id);
         return mapper.toDto(belt);
+    }
+
+    @GetMapping(path = "/{id}/snapshot", produces = APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Get belt snapshot (slots with assigned plates)",
+            description = "Returns a belt snapshot optimized for UI rendering. Includes belt parameters and all slots ordered by positionIndex. Each slot contains an optional plate block if a plate is assigned."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Snapshot returned",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = BeltSnapshotDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter (e.g., id is not a UUID)",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Belt not found",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public BeltSnapshotDto getBeltSnapshot(@PathVariable UUID id) {
+        var rows = service.getBeltSnapshotRows(id);
+        return snapshotMapper.toDto(rows);
     }
 }

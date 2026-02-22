@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         JpaBeltRepository.class,
         JpaPlateRepository.class,
         BeltMapper.class,
+        BeltMapper.class,
         BeltSlotMapper.class,
         SeatMapper.class,
         PlateMapper.class
