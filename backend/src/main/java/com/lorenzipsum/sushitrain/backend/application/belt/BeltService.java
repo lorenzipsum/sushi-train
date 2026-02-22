@@ -51,4 +51,9 @@ public class BeltService {
         if (rows == null || rows.isEmpty()) throw new ResourceNotFoundException("Belt", id);
         return rows;
     }
+
+    @Transactional(readOnly = true)
+    public List<Belt> getAllBelts() {
+        return repository.findAllBelts();
+    }
 }

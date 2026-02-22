@@ -7,10 +7,23 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface BeltJpaDao extends JpaRepository<BeltEntity, UUID> {
+    @Query("""
+              select b.id as id,
+                     b.name as name,
+                     b.slotCount as slotCount,
+                     b.baseRotationOffset as baseRotationOffset,
+                     b.offsetStartedAt as offsetStartedAt,
+                     b.tickIntervalMs as tickIntervalMs,
+                     b.speedSlotsPerTick as speedSlotsPerTick
+                from BeltEntity b
+            """)
+    List<BeltParamsProjection> findAllBeltsWithParams();
+
     @Query("""
               select b.id as id,
                      b.name as name,

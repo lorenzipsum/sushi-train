@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -33,6 +34,102 @@ public class BeltController {
         this.service = service;
         this.mapper = mapper;
         this.snapshotMapper = snapshotMapper;
+    }
+
+    @GetMapping()
+    @Operation(
+            summary = "Get all belts",
+            description = "Returns all belts."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Belts returned",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = BeltDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public List<BeltDto> getAllBelts() {
+        var belts = service.getAllBelts();
+        return belts.stream().map(mapper::toDto).toList();
+    }
+
+    @GetMapping(path = "/{id}")
+    @Operation(
+            summary = "Get a belt",
+            description = "Returns the belt including its slots and seats."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Belt found",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = FullBeltDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter (e.g., id is not a UUID)",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Belt not found",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public FullBeltDto getBelt(@PathVariable UUID id) {
+        var belt = service.getBelt(id);
+        return mapper.toFullDto(belt);
+    }
+
+    @GetMapping(path = "/{id}/snapshot", produces = APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Get belt snapshot (slots with assigned plates)",
+            description = "Returns a belt snapshot optimized for UI rendering. Includes belt parameters and all slots ordered by positionIndex. Each slot contains an optional plate block if a plate is assigned."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Snapshot returned",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = BeltSnapshotDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter (e.g., id is not a UUID)",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Belt not found",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public BeltSnapshotDto getBeltSnapshot(@PathVariable UUID id) {
+        var rows = service.getBeltSnapshotRows(id);
+        return snapshotMapper.toDto(rows);
     }
 
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
@@ -72,77 +169,5 @@ public class BeltController {
     ) {
         Belt belt = service.updateBeltParameters(id, request.tickIntervalMs(), request.speedSlotsPerTick());
         return mapper.toParamsDto(belt);
-    }
-
-    @GetMapping(path = "/{id}")
-    @Operation(
-            summary = "Get a belt",
-            description = "Returns the belt including its slots and seats."
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Belt found",
-                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BeltDto.class))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid parameter (e.g., id is not a UUID)",
-                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-                            schema = @Schema(implementation = ProblemDetail.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Belt not found",
-                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-                            schema = @Schema(implementation = ProblemDetail.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Unexpected server error",
-                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-                            schema = @Schema(implementation = ProblemDetail.class))
-            )
-    })
-    public BeltDto getBelt(@PathVariable UUID id) {
-        var belt = service.getBelt(id);
-        return mapper.toDto(belt);
-    }
-
-    @GetMapping(path = "/{id}/snapshot", produces = APPLICATION_JSON_VALUE)
-    @Operation(
-            summary = "Get belt snapshot (slots with assigned plates)",
-            description = "Returns a belt snapshot optimized for UI rendering. Includes belt parameters and all slots ordered by positionIndex. Each slot contains an optional plate block if a plate is assigned."
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Snapshot returned",
-                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BeltSnapshotDto.class))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid parameter (e.g., id is not a UUID)",
-                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-                            schema = @Schema(implementation = ProblemDetail.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Belt not found",
-                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-                            schema = @Schema(implementation = ProblemDetail.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Unexpected server error",
-                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-                            schema = @Schema(implementation = ProblemDetail.class))
-            )
-    })
-    public BeltSnapshotDto getBeltSnapshot(@PathVariable UUID id) {
-        var rows = service.getBeltSnapshotRows(id);
-        return snapshotMapper.toDto(rows);
     }
 }

@@ -35,6 +35,22 @@ public class JpaBeltRepository implements BeltRepository {
     }
 
     @Override
+    public List<Belt> findAllBelts() {
+        return dao.findAllBeltsWithParams().stream().map(
+                p -> Belt.rehydrate(
+                        p.getId(),
+                        p.getName(),
+                        p.getSlotCount(),
+                        p.getBaseRotationOffset(),
+                        p.getTickIntervalMs(),
+                        p.getSpeedSlotsPerTick(),
+                        List.of(),
+                        List.of(),
+                        p.getOffsetStartedAt()
+                )).toList();
+    }
+
+    @Override
     public Optional<Belt> findById(UUID id) {
         if (id == null) throw new IllegalArgumentException("Id cannot be null");
         return dao.findById(id).map(mapper::toDomain);
@@ -89,5 +105,4 @@ public class JpaBeltRepository implements BeltRepository {
         em.persist(newBelt);
         return belt;
     }
-
 }

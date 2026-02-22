@@ -230,6 +230,56 @@ class BeltControllerTest {
     }
 
     // -----------------------
+    // GET /api/v1/belts
+    // -----------------------
+
+    @Test
+    @DisplayName("GET /api/v1/belts should return 200 and list of BeltDto")
+    void getAllBelts_ok_returns_200_and_list() {
+        var belt1 = Belt.create("Belt 1", 10, List.of(new SeatSpec("A1", 1)));
+        var belt2 = Belt.create("Belt 2", 12, List.of(new SeatSpec("B2", 3), new SeatSpec("C3", 8)));
+
+        given(beltService.getAllBelts()).willReturn(List.of(belt1, belt2));
+
+        client.get().uri(BASE_URL_BELT_CONTROLLER)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$").isArray()
+                .jsonPath("$.length()").isEqualTo(2)
+                .jsonPath("$[0].id").isEqualTo(belt1.getId().toString())
+                .jsonPath("$[0].name").isEqualTo(belt1.getName())
+                .jsonPath("$[0].slotCount").isEqualTo(belt1.getSlotCount())
+                .jsonPath("$[1].id").isEqualTo(belt2.getId().toString())
+                .jsonPath("$[1].name").isEqualTo(belt2.getName())
+                .jsonPath("$[1].slotCount").isEqualTo(belt2.getSlotCount());
+
+        verify(beltService).getAllBelts();
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts on unexpected error should return 500 internal ProblemDetail")
+    void getAllBelts_unexpected_returns_500_problemDetail() {
+        given(beltService.getAllBelts()).willThrow(new RuntimeException("boom"));
+
+        client.get().uri(BASE_URL_BELT_CONTROLLER)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_500_TITLE)
+                .jsonPath("$.status").isEqualTo(500)
+                .jsonPath("$.type").isEqualTo(PROBLEM_500_URI)
+                .jsonPath("$.detail").isEqualTo("Unexpected server error")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER);
+
+        verify(beltService).getAllBelts();
+        verifyNoMoreInteractions(beltService);
+    }
+
+    // -----------------------
     // GET /api/v1/belts/{id}
     // -----------------------
 

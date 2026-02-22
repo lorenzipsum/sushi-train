@@ -7,5 +7,7 @@ import org.mapstruct.Mapper;
 public interface BeltDtoMapper {
     BeltParamsDto toParamsDto(Belt belt);
 
+    FullBeltDto toFullDto(Belt belt);
+
     BeltDto toDto(Belt belt);
 }
