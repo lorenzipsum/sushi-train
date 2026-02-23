@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
@@ -14,7 +13,8 @@ public record CreatePlateAndPlaceOnBeltRequest(
         @NotNull UUID menuItemId,
         @Min(1) @Max(3) Integer numOfPlates,
         PlateTier tierSnapshot,
-        MoneyYen priceAtCreation,
+        @Min(0)
+        Integer priceAtCreation,
         @Future Instant expiresAt
 ) {
 }

@@ -498,7 +498,7 @@ class BeltControllerTest {
         var menuItemId = UUID.randomUUID();
         var expiresAt = Instant.parse("2026-03-01T10:00:00Z");
 
-        var request = new CreatePlateAndPlaceOnBeltRequest(menuItemId, 2, PlateTier.GREEN, MoneyYen.of(450), expiresAt);
+        var request = new CreatePlateAndPlaceOnBeltRequest(menuItemId, 2, PlateTier.GREEN, 450, expiresAt);
 
         var response = new CreatedPlatesOnBeltResponse(
                 beltId,
