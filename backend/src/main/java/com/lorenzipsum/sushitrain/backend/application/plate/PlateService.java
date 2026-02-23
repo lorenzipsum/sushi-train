@@ -60,4 +60,10 @@ public class PlateService {
     public Page<Plate> getAllPlates(Pageable pageable) {
         return repository.findAll(pageable);
     }
+
+    @Transactional
+    public Plate save(Plate plate) {
+        if (plate == null) throw new IllegalArgumentException("plate cannot be null");
+        return repository.save(plate);
+    }
 }

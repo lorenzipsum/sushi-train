@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
 
@@ -169,5 +170,61 @@ public class BeltController {
     ) {
         Belt belt = service.updateBeltParameters(id, request.tickIntervalMs(), request.speedSlotsPerTick());
         return mapper.toParamsDto(belt);
+    }
+
+    @PostMapping(path = "/{id}/plates", consumes = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Create plates and place them on the belt",
+            description = "Creates the given number of plates and assigns them immediately to free belt slots. " +
+                    "Requires enough free slots; also enforces a minimum gap of 5 slots between placed plates."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Plates created and placed",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = CreatedPlatesOnBeltResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter or validation failed",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Belt not found",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Not enough free slots available",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public CreatedPlatesOnBeltResponse createPlatesAndPlaceOnBelt(
+            @PathVariable UUID id,
+            @RequestBody @Valid CreatePlateAndPlaceOnBeltRequest request
+    ) {
+        var effectiveNum = (request.numOfPlates() == null) ? 1 : request.numOfPlates();
+
+        var normalized = new CreatePlateAndPlaceOnBeltRequest(
+                request.menuItemId(),
+                effectiveNum,
+                request.tierSnapshot(),
+                request.priceAtCreation(),
+                request.expiresAt()
+        );
+
+        return service.createPlatesAndPlaceOnBelt(id, normalized);
     }
 }

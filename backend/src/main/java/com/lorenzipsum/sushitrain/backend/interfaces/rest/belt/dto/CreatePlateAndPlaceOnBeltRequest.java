@@ -1,0 +1,20 @@
+package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto;
+
+import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record CreatePlateAndPlaceOnBeltRequest(
+        @NotNull UUID menuItemId,
+        @Min(1) @Max(3) Integer numOfPlates,
+        PlateTier tierSnapshot,
+        MoneyYen priceAtCreation,
+        @Future Instant expiresAt
+) {
+}

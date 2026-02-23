@@ -1,6 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt;
 
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
+import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsException;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
@@ -8,9 +9,7 @@ import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltDtoMapperImpl;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltSnapshotDtoMapper;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.BeltUpdateRequest;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -485,6 +484,172 @@ class BeltControllerTest {
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/snapshot");
 
         verify(beltService).getBeltSnapshotRows(beltId);
+        verifyNoMoreInteractions(beltService);
+    }
+
+    // -----------------------
+    // POST /api/v1/belts/{id}/plates
+    // -----------------------
+
+    @Test
+    @DisplayName("POST /api/v1/belts/{id}/plates returns 201 and CreatedPlatesOnBeltResponse")
+    void createPlatesAndPlaceOnBelt_ok_returns_201() {
+        var beltId = UUID.randomUUID();
+        var menuItemId = UUID.randomUUID();
+        var expiresAt = Instant.parse("2026-03-01T10:00:00Z");
+
+        var request = new CreatePlateAndPlaceOnBeltRequest(menuItemId, 2, PlateTier.GREEN, MoneyYen.of(450), expiresAt);
+
+        var response = new CreatedPlatesOnBeltResponse(
+                beltId,
+                2,
+                List.of(
+                        new CreatedPlatesOnBeltResponse.PlacedPlateDto(UUID.randomUUID(), UUID.randomUUID(), 0, menuItemId, expiresAt),
+                        new CreatedPlatesOnBeltResponse.PlacedPlateDto(UUID.randomUUID(), UUID.randomUUID(), 5, menuItemId, expiresAt)
+                )
+        );
+
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+                .willReturn(response);
+
+        client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.beltId").isEqualTo(beltId.toString())
+                .jsonPath("$.createdCount").isEqualTo(2)
+                .jsonPath("$.placedPlates").isArray()
+                .jsonPath("$.placedPlates.length()").isEqualTo(2)
+                .jsonPath("$.placedPlates[0].plateId").exists()
+                .jsonPath("$.placedPlates[0].slotId").exists()
+                .jsonPath("$.placedPlates[0].slotPositionIndex").exists()
+                .jsonPath("$.placedPlates[0].menuItemId").isEqualTo(menuItemId.toString())
+                .jsonPath("$.placedPlates[0].expiresAt").exists();
+
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/belts/{id}/plates with numOfPlates > 3 returns 400 validation ProblemDetail")
+    void createPlatesAndPlaceOnBelt_invalid_numOfPlates_returns_400() {
+        var beltId = UUID.randomUUID();
+        @SuppressWarnings("ConstantConditions")
+        var request = new CreatePlateAndPlaceOnBeltRequest(UUID.randomUUID(), 4, null, null, null);
+
+        client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_VALIDATION_FAILED_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_VALIDATION_FAILED_URI)
+                .jsonPath("$.errors").isMap()
+                .jsonPath("$.errors.numOfPlates").exists();
+
+        verifyNoInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/belts/{id}/plates with non-UUID id returns 400 invalid-parameter ProblemDetail")
+    void createPlatesAndPlaceOnBelt_invalid_uuid_returns_400_problemDetail() {
+        var invalidId = "not-a-uuid";
+        var request = new CreatePlateAndPlaceOnBeltRequest(UUID.randomUUID(), 1, null, null, null);
+
+        client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", invalidId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_INVALID_PARAM_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_INVALID_PARAM_URI)
+                .jsonPath("$.detail").isEqualTo("Parameter 'id' must be a UUID")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + invalidId + "/plates");
+
+        verifyNoInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/belts/{id}/plates when belt not found returns 404 ProblemDetail")
+    void createPlatesAndPlaceOnBelt_not_found_returns_404_problemDetail() {
+        var beltId = UUID.randomUUID();
+
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+                .willThrow(new ResourceNotFoundException("Belt", beltId));
+
+        client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new CreatePlateAndPlaceOnBeltRequest(UUID.randomUUID(), 1, null, null, null))
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_404_TITLE)
+                .jsonPath("$.status").isEqualTo(404)
+                .jsonPath("$.type").isEqualTo(PROBLEM_404_URI)
+                .jsonPath("$.detail").isEqualTo("Belt not found: " + beltId)
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/plates");
+
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/belts/{id}/plates when not enough free slots returns 409 ProblemDetail")
+    void createPlatesAndPlaceOnBelt_not_enough_slots_returns_409_problemDetail() {
+        var beltId = UUID.randomUUID();
+
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+                .willThrow(new NotEnoughFreeSlotsException(beltId, 3, 1));
+
+        client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new CreatePlateAndPlaceOnBeltRequest(UUID.randomUUID(), 3, null, null, null))
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_409_TITLE)
+                .jsonPath("$.status").isEqualTo(409)
+                .jsonPath("$.type").isEqualTo(PROBLEM_409_URI)
+                .jsonPath("$.detail").exists()
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/plates");
+
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/belts/{id}/plates on unexpected error returns 500 ProblemDetail")
+    void createPlatesAndPlaceOnBelt_unexpected_returns_500_problemDetail() {
+        var beltId = UUID.randomUUID();
+
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+                .willThrow(new RuntimeException("boom"));
+
+        client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new CreatePlateAndPlaceOnBeltRequest(UUID.randomUUID(), 1, null, null, null))
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_500_TITLE)
+                .jsonPath("$.status").isEqualTo(500)
+                .jsonPath("$.type").isEqualTo(PROBLEM_500_URI)
+                .jsonPath("$.detail").isEqualTo("Unexpected server error")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/plates");
+
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
         verifyNoMoreInteractions(beltService);
     }
 }

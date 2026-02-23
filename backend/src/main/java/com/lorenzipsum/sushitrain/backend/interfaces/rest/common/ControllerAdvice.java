@@ -1,10 +1,12 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.common;
 
+import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsException;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -32,6 +34,8 @@ public class ControllerAdvice {
     public static final String PROBLEM_400_MALFORMED_REQUEST_URI = PROBLEM_BASE_URI + "/malformed-json";
     public static final String PROBLEM_500_TITLE = "Internal server error";
     public static final String PROBLEM_500_URI = PROBLEM_BASE_URI + "/internal";
+    public static final String PROBLEM_409_TITLE = "Conflict";
+    public static final String PROBLEM_409_URI = "https://lorenzipsum.com/problems/conflict";
 
     // 404
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -145,6 +149,19 @@ public class ControllerAdvice {
         return pd;
     }
 
+    // 409: not enough free slots on the belt to place a new plate
+    @ExceptionHandler(NotEnoughFreeSlotsException.class)
+    public ResponseEntity<ProblemDetail> handleNotEnoughFreeSlots(NotEnoughFreeSlotsException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle(PROBLEM_409_TITLE);
+        pd.setType(URI.create(PROBLEM_409_URI));
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(request.getRequestURI()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(pd);
+    }
 
     // 500
     @ExceptionHandler(Exception.class)
