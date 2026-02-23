@@ -6,3 +6,8 @@ spring:
 logging:
   level:
     org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+
+app:
+  belt:
+    placement:
+      max-new-plates-per-request: 10

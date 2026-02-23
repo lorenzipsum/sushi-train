@@ -8,6 +8,7 @@ import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
 import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
+import com.lorenzipsum.sushitrain.backend.infrastructure.config.BeltPlacementProperties;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
 import org.junit.jupiter.api.DisplayName;
@@ -16,10 +17,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
@@ -37,12 +40,19 @@ import static org.mockito.Mockito.*;
 @Import({BeltDtoMapperImpl.class, BeltSnapshotDtoMapper.class})
 @WebMvcTest(BeltController.class)
 @AutoConfigureRestTestClient
+@EnableConfigurationProperties(BeltPlacementProperties.class)
+@TestPropertySource(properties = {
+        "app.belt-placement.min-empty-slots-between-new-plates",
+        "app.belt-placement.max-new-plates-per-request"
+})
 class BeltControllerTest {
 
     @Autowired
     RestTestClient client;
     @MockitoBean
     BeltService beltService;
+    @Autowired
+    BeltPlacementProperties props;
 
     static Stream<Arguments> validUpdates() {
         return Stream.of(
@@ -537,8 +547,9 @@ class BeltControllerTest {
     @DisplayName("POST /api/v1/belts/{id}/plates with numOfPlates > 3 returns 400 validation ProblemDetail")
     void createPlatesAndPlaceOnBelt_invalid_numOfPlates_returns_400() {
         var beltId = UUID.randomUUID();
-        @SuppressWarnings("ConstantConditions")
-        var request = new CreatePlateAndPlaceOnBeltRequest(UUID.randomUUID(), 4, null, null, null);
+        var tooManyPlates = props.maxNewPlatesPerRequest() + 1;
+        var request = new CreatePlateAndPlaceOnBeltRequest(UUID.randomUUID(), tooManyPlates, null, null, null);
+
 
         client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
                 .contentType(MediaType.APPLICATION_JSON)

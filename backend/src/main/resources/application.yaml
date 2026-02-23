@@ -12,3 +12,15 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+app:
+  plate-expiry:
+    enabled: true
+    # fixedDelay = wait THIS long after a run finishes before starting the next one
+    fixed-delay: 30s
+    # optional: wait a bit after startup before the first run
+    initial-delay: 10s
+  belt:
+    placement:
+      min-empty-slots-between-new-plates: 5
+      max-new-plates-per-request: 10

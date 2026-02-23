@@ -3,10 +3,8 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltSlotEntity;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,4 +21,13 @@ public interface BeltSlotJpaDao extends JpaRepository<BeltSlotEntity, UUID> {
              order by s.positionIndex asc
             """)
     List<BeltSlotEntity> findFreeSlotsForUpdate(UUID beltId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+           update BeltSlotEntity s
+              set s.plate = null
+            where s.plate.id in :plateIds
+           """)
+    @SuppressWarnings("UnusedReturnValue")
+    int clearPlateAssignments(@Param("plateIds") List<UUID> plateIds);
 }

@@ -7,6 +7,7 @@ import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
+import com.lorenzipsum.sushitrain.backend.infrastructure.config.BeltPlacementProperties;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.query.BeltJpaQuery;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltSlotJpaDao;
@@ -23,7 +24,6 @@ import java.util.UUID;
 
 @Service
 public class BeltService {
-    private static final int MIN_GAP_SLOTS = 5;
 
     private final BeltRepository repository;
     private final BeltJpaQuery beltJpaQuery;
@@ -31,17 +31,19 @@ public class BeltService {
     private final BeltSlotJpaDao beltSlotJpaDao;
     private final PlateService plateService;
     private final PlateJpaDao plateJpaDao;
+    private final BeltPlacementProperties props;
 
     public BeltService(BeltRepository repository,
                        BeltJpaQuery beltJpaQuery,
                        BeltSlotJpaDao beltSlotJpaDao,
                        PlateService plateService,
-                       PlateJpaDao plateJpaDao) {
+                       PlateJpaDao plateJpaDao, BeltPlacementProperties props) {
         this.repository = repository;
         this.beltJpaQuery = beltJpaQuery;
         this.beltSlotJpaDao = beltSlotJpaDao;
         this.plateService = plateService;
         this.plateJpaDao = plateJpaDao;
+        this.props = props;
     }
 
     @Transactional
@@ -90,14 +92,12 @@ public class BeltService {
 
         int num = (request.numOfPlates() == null) ? 1 : request.numOfPlates();
 
-        // Option A: lock free slots (plate_id is null)
         var freeSlots = beltSlotJpaDao.findFreeSlotsForUpdate(beltId);
         if (freeSlots.size() < num) {
             throw new NotEnoughFreeSlotsException(beltId, num, freeSlots.size());
         }
 
-        // Distribution rule: keep >= 5 slots between placements
-        var pickedSlots = BeltSlotPlacement.pickSlots(freeSlots, MIN_GAP_SLOTS, num);
+        var pickedSlots = BeltSlotPlacement.pickSlots(freeSlots, props.minEmptySlotsBetweenNewPlates(), num);
         if (pickedSlots.size() < num) {
             throw new NotEnoughFreeSlotsException(beltId, num, pickedSlots.size());
         }
