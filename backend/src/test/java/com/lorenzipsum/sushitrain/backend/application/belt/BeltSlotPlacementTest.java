@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BeltSlotPlacementTest {
 
     @Test
-    @DisplayName("pickSlots should pick first free slot then enforce min gap")
+    @DisplayName("pickSlots should pick first free slot then enforce min gap (when possible)")
     void pickSlots_enforces_gap() {
         // positions 0..19 are free
         var slots = slotsAtPositions(0, 20);
@@ -26,9 +26,9 @@ class BeltSlotPlacementTest {
     }
 
     @Test
-    @DisplayName("pickSlots should return fewer slots when gap rule prevents reaching requested count")
-    void pickSlots_returns_fewer_when_gap_prevents_count() {
-        // Free slots only at 0,1,2,3,4,5 (dense)
+    @DisplayName("pickSlots should top up ignoring gap when gap rule cannot reach requested count but enough free slots exist")
+    void pickSlots_tops_up_when_gap_prevents_count() {
+        // Dense free slots: 0..5
         var slots = List.of(
                 slot(0),
                 slot(1),
@@ -40,9 +40,9 @@ class BeltSlotPlacementTest {
 
         var picked = BeltSlotPlacement.pickSlots(slots, 5, 3);
 
-        // With min gap 5 and no further positions, only 0 and 5 are valid.
+        // Pass 1 would pick [0, 5], then top-up adds next earliest not already picked -> [0, 5, 1]
         assertThat(picked).extracting(BeltSlotEntity::getPositionIndex)
-                .containsExactly(0, 5);
+                .containsExactly(0, 5, 1);
     }
 
     @Test
@@ -53,6 +53,17 @@ class BeltSlotPlacementTest {
         var picked = BeltSlotPlacement.pickSlots(slots, 5, 0);
 
         assertThat(picked).isEmpty();
+    }
+
+    @Test
+    @DisplayName("pickSlots should return all free slots when requested count exceeds available")
+    void pickSlots_count_exceeds_available_returns_all() {
+        var slots = slotsAtPositions(0, 4); // 0,1,2,3
+
+        var picked = BeltSlotPlacement.pickSlots(slots, 5, 10);
+
+        assertThat(picked).extracting(BeltSlotEntity::getPositionIndex)
+                .containsExactly(0, 1, 2, 3);
     }
 
     @SuppressWarnings("SameParameterValue")

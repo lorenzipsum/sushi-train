@@ -3,27 +3,59 @@ package com.lorenzipsum.sushitrain.backend.application.belt;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltSlotEntity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 final class BeltSlotPlacement {
-    private BeltSlotPlacement() {}
+    private BeltSlotPlacement() {
+    }
 
     /**
      * Picks slots from a list already ordered by positionIndex.
-     * Rule: first chosen slot is the first free one; next must be at least minGapSlots ahead.
+     * Rules:
+     * 1) Prefer gap-respecting placement: first chosen slot is the first free one; next must be at least minGapSlots ahead.
      * Wrap-around ignored by design.
+     * 2) If pass (1) cannot reach requested count, but there are enough free slots overall, then "top up"
+     * by adding more free slots in order, ignoring the gap rule, without removing already picked ones.
      */
     static List<BeltSlotEntity> pickSlots(List<BeltSlotEntity> freeSlotsOrdered, int minGapSlots, int count) {
-        var picked = new ArrayList<BeltSlotEntity>(count);
+        if (count <= 0 || freeSlotsOrdered == null || freeSlotsOrdered.isEmpty()) {
+            return List.of();
+        }
+
+        int target = Math.min(count, freeSlotsOrdered.size());
+
+        if (minGapSlots <= 0) {
+            return new ArrayList<>(freeSlotsOrdered.subList(0, target));
+        }
+
+        // Pass 1: gap-respecting
+        var picked = new ArrayList<BeltSlotEntity>(target);
         Integer lastPos = null;
 
         for (var slot : freeSlotsOrdered) {
-            if (picked.size() >= count) break;
+            if (picked.size() >= target) break;
 
             int pos = slot.getPositionIndex();
             if (lastPos == null || (pos - lastPos) >= minGapSlots) {
                 picked.add(slot);
                 lastPos = pos;
+            }
+        }
+
+        // Pass 2: top-up ignoring gaps (only if there are enough free slots overall to satisfy target)
+        if (picked.size() < target) {
+            var pickedIds = new HashSet<>(picked.size());
+            for (var s : picked) {
+                pickedIds.add(s.getId());
+            }
+
+            for (var slot : freeSlotsOrdered) {
+                if (picked.size() >= target) break;
+
+                if (pickedIds.add(slot.getId())) {
+                    picked.add(slot);
+                }
             }
         }
 
