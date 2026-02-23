@@ -2,11 +2,11 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.MoneyYenMapperImpl;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.YenAmountMapperImpl;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapperImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ import static com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.PlateCont
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@Import({PlateDtoMapperImpl.class, MoneyYenMapperImpl.class})
+@Import({PlateDtoMapperImpl.class, YenAmountMapperImpl.class})
 @WebMvcTest(PlateController.class)
 @AutoConfigureRestTestClient
 class PlateControllerTest {
@@ -47,7 +47,7 @@ class PlateControllerTest {
         // arrange
         UUID menuItemId = UUID.randomUUID();
         PlateTier tier = PlateTier.GREEN;
-        MoneyYen price = MoneyYen.of(300);
+        YenAmount price = YenAmount.of(300);
         Instant expiresAt = Instant.now().plusSeconds(600);
         Plate plate = Plate.create(menuItemId, tier, price, expiresAt);
         UUID plateId = plate.getId();
@@ -159,14 +159,14 @@ class PlateControllerTest {
         var plate = Plate.create(
                 request.menuItemId(),
                 request.tierSnapshot(),
-                MoneyYen.of(request.priceAtCreation()),
+                YenAmount.of(request.priceAtCreation()),
                 request.expiresAt()
         );
 
         given(service.createPlate(
                 request.menuItemId(),
                 request.tierSnapshot(),
-                MoneyYen.of(request.priceAtCreation()),
+                YenAmount.of(request.priceAtCreation()),
                 request.expiresAt()
         )).willReturn(plate);
 
@@ -191,7 +191,7 @@ class PlateControllerTest {
         verify(service).createPlate(
                 request.menuItemId(),
                 request.tierSnapshot(),
-                MoneyYen.of(request.priceAtCreation()),
+                YenAmount.of(request.priceAtCreation()),
                 request.expiresAt()
         );
         verifyNoMoreInteractions(service);
@@ -236,7 +236,7 @@ class PlateControllerTest {
         given(service.createPlate(
                 request.menuItemId(),
                 request.tierSnapshot(),
-                MoneyYen.of(request.priceAtCreation()),
+                YenAmount.of(request.priceAtCreation()),
                 request.expiresAt()
         )).willThrow(new RuntimeException("boom"));
 
@@ -258,7 +258,7 @@ class PlateControllerTest {
         verify(service).createPlate(
                 request.menuItemId(),
                 request.tierSnapshot(),
-                MoneyYen.of(request.priceAtCreation()),
+                YenAmount.of(request.priceAtCreation()),
                 request.expiresAt()
         );
         verifyNoMoreInteractions(service);
@@ -270,7 +270,7 @@ class PlateControllerTest {
         // arrange
         UUID menuItemId = UUID.randomUUID();
         PlateTier tier = PlateTier.RED;
-        MoneyYen price = MoneyYen.of(400);
+        YenAmount price = YenAmount.of(400);
         Instant expiresAt = Instant.now().plusSeconds(1200);
         Plate plate = Plate.create(menuItemId, tier, price, expiresAt);
         UUID plateId = plate.getId();
@@ -372,8 +372,8 @@ class PlateControllerTest {
     @DisplayName("GET /api/v1/plates?page=0&size=2 should return 200 and paged plates")
     void getAllPlates_returns200() {
         // arrange
-        var plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
-        var plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
+        var plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, YenAmount.of(300), Instant.now().plusSeconds(600));
+        var plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, YenAmount.of(500), Instant.now().plusSeconds(1200));
         var pageRequest = PageRequest.of(0, 2);
         var page = new PageImpl<>(List.of(plate1, plate2), pageRequest, 2);
         given(service.getAllPlates(pageRequest)).willReturn(page);
@@ -401,8 +401,8 @@ class PlateControllerTest {
     @DisplayName("GET /api/v1/plates with missing params should use defaults and return 200")
     void getAllPlates_returns200_withDefaultParamsWhenMissing() {
         // arrange
-        Plate plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, MoneyYen.of(300), Instant.now().plusSeconds(600));
-        Plate plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(500), Instant.now().plusSeconds(1200));
+        Plate plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, YenAmount.of(300), Instant.now().plusSeconds(600));
+        Plate plate2 = Plate.create(UUID.randomUUID(), PlateTier.RED, YenAmount.of(500), Instant.now().plusSeconds(1200));
         PageRequest defaultPageRequest = PageRequest.of(0, 10);
         var page = new PageImpl<>(List.of(plate1, plate2), defaultPageRequest, 2);
         given(service.getAllPlates(defaultPageRequest)).willReturn(page);

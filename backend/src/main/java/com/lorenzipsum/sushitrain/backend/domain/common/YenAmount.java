@@ -6,25 +6,25 @@ import java.util.Locale;
 /**
  * Integer Yen to avoid floating point.
  */
-public record MoneyYen(int amount) {
+public record YenAmount(int amount) {
 
-    public MoneyYen {
+    public YenAmount {
         if (amount < 0) throw new IllegalArgumentException("Amount cannot be a negative value");
     }
 
-    public MoneyYen plus(MoneyYen other) {
+    public YenAmount plus(YenAmount other) {
         if (other == null) throw new IllegalArgumentException("Amount cannot be null");
         long sum = (long) this.amount + (long) other.amount;
         if (sum > Integer.MAX_VALUE) throw new ArithmeticException("amount overflow");
-        return new MoneyYen((int) sum);
+        return new YenAmount((int) sum);
     }
 
     public boolean isZero() {
         return amount == 0;
     }
 
-    public static MoneyYen of(int amount) {
-        return new MoneyYen(amount);
+    public static YenAmount of(int amount) {
+        return new YenAmount(amount);
     }
 
     @Override

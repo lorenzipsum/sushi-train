@@ -1,7 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapper;
@@ -89,7 +89,7 @@ public class PlateController {
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = CreatePlateRequest.class)))
             @Valid @RequestBody CreatePlateRequest request) {
-        MoneyYen optionalPrice = request.priceAtCreation() != null ? MoneyYen.of(request.priceAtCreation()) : null;
+        YenAmount optionalPrice = request.priceAtCreation() != null ? YenAmount.of(request.priceAtCreation()) : null;
 
         var plate = service.createPlate(
                 request.menuItemId(),

@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
@@ -17,8 +17,8 @@ class OrderTest {
 
     private final UUID seatId = UUID.randomUUID();
 
-    private final Plate chickenKaraagePlate = Plate.create(UUID.randomUUID(), PlateTier.GOLD, MoneyYen.of(800), inTwoHours());
-    private final Plate salmonNigiriPlate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
+    private final Plate chickenKaraagePlate = Plate.create(UUID.randomUUID(), PlateTier.GOLD, YenAmount.of(800), inTwoHours());
+    private final Plate salmonNigiriPlate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, YenAmount.of(450), inTwoHours());
 
     @Test
     @DisplayName("Order is opened with sane defaults")
@@ -60,7 +60,7 @@ class OrderTest {
                 () -> assertEquals(order.getId(), orderLine.getOrderId()),
                 () -> assertEquals(CHICKEN_KARAAGE, orderLine.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.GOLD, orderLine.getTierSnapshot()),
-                () -> assertEquals(MoneyYen.of(800), orderLine.getPriceAtPick()),
+                () -> assertEquals(YenAmount.of(800), orderLine.getPriceAtPick()),
                 () -> assertTrue(!orderLine.getPickedAt().isBefore(before)
                                 && !orderLine.getPickedAt().isAfter(after),
                         "pickedAt should be between 'before' and 'after'")
@@ -145,7 +145,7 @@ class OrderTest {
     void zero_price_allowed() {
         Order order = Order.open(seatId);
         var line = order.addLineFromPlate(salmonNigiriPlate.getId(), SALMON_NIGIRI, PlateTier.GREEN, 0);
-        assertEquals(MoneyYen.of(0), line.getPriceAtPick());
+        assertEquals(YenAmount.of(0), line.getPriceAtPick());
     }
 
     @Test
@@ -160,7 +160,7 @@ class OrderTest {
         assertAll("Removal of line is working",
                 () -> assertEquals(1, order.getLines().size()),
                 () -> assertSame(orderLine2, order.getLines().getFirst()),
-                () -> assertEquals(MoneyYen.of(450), order.total()),
+                () -> assertEquals(YenAmount.of(450), order.total()),
                 () -> assertThrows(IllegalArgumentException.class, () -> order.removeLine(orderLine1)));
 
         order.checkout();

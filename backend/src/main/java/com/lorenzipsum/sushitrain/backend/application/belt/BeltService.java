@@ -5,7 +5,7 @@ import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundExc
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.query.BeltJpaQuery;
@@ -108,7 +108,7 @@ public class BeltService {
             Plate plate = plateService.createPlate(
                     request.menuItemId(),
                     request.tierSnapshot(),
-                    MoneyYen.of(request.priceAtCreation()),
+                    YenAmount.of(request.priceAtCreation()),
                     request.expiresAt()
             );
 

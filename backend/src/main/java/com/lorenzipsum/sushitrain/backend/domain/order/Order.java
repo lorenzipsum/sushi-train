@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 
@@ -50,9 +50,9 @@ public class Order {
         return orderLine;
     }
 
-    public MoneyYen total() {
+    public YenAmount total() {
         int sum = lines.stream().mapToInt(l -> l.getPriceAtPick().amount()).sum();
-        return new MoneyYen(sum);
+        return new YenAmount(sum);
     }
 
     public void checkout() {

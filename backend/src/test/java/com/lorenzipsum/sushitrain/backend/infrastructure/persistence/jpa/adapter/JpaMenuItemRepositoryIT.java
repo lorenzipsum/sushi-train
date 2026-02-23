@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
@@ -30,14 +30,14 @@ class JpaMenuItemRepositoryIT extends JpaBaseRepositoryIT {
         assertThat(menuItem).as("menuItem").isNotNull();
         assertThat(menuItem.getName()).as("name").isEqualTo("Salmon Nigiri");
         assertThat(menuItem.getDefaultTier()).as("defaultTier").isEqualTo(PlateTier.GREEN);
-        assertThat(menuItem.getBasePrice()).as("basePrice").isEqualTo(new MoneyYen(450));
+        assertThat(menuItem.getBasePrice()).as("basePrice").isEqualTo(YenAmount.of(450));
         assertThat(menuItem.getCreatedAt()).as("createdAt").isNotNull();
     }
 
     @Test
     @DisplayName("persist and load a new MenuItem")
     void persistAndLoadNewMenuItem_ok() {
-        var menuItem = MenuItem.create("New Menu Item", PlateTier.GREEN, new MoneyYen(120));
+        var menuItem = MenuItem.create("New Menu Item", PlateTier.GREEN, YenAmount.of(120));
         var savedId = repository.save(menuItem).getId();
         em.flush();
         em.clear();

@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 
@@ -17,7 +17,7 @@ public record BeltSlotSnapshotDto(
             UUID menuItemId,
             String menuItemName,
             PlateTier tier,
-            MoneyYen priceAtCreation,
+            YenAmount priceAtCreation,
             PlateStatus status,
             Instant expiresAt
     ) {

@@ -1,7 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.application.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
@@ -36,7 +36,7 @@ public class PlateService {
     }
 
     @Transactional
-    public Plate createPlate(UUID menuItemId, PlateTier tierSnapshot, MoneyYen priceAtCreation, Instant expiresAt) {
+    public Plate createPlate(UUID menuItemId, PlateTier tierSnapshot, YenAmount priceAtCreation, Instant expiresAt) {
         var menuItem = menuItemRepository.findById(menuItemId).orElseThrow(
                 () -> new ResourceNotFoundException("MenuItem", menuItemId));
 

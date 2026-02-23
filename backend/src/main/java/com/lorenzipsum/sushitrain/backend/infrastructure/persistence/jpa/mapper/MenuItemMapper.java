@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Maps between domain MenuItem and JPA MenuItemEntity.
- * MoneyYen <-> INT column mapping lives here.
+ * YenAmount <-> INT column mapping lives here.
  */
 @Component
 public class MenuItemMapper {

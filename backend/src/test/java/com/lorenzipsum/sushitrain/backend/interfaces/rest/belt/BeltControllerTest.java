@@ -5,7 +5,7 @@ import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsE
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
@@ -394,7 +394,7 @@ class BeltControllerTest {
 
         var rows = List.of(
                 new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot0, 0, null, null, null, null, null, null, null),
-                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, MoneyYen.of(450), PlateStatus.ON_BELT, expiresAt)
+                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, YenAmount.of(450), PlateStatus.ON_BELT, expiresAt)
         );
 
         given(beltService.getBeltSnapshotRows(beltId)).willReturn(rows);

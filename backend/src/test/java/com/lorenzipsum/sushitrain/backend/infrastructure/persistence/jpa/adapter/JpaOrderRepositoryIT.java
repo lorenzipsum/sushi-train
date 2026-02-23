@@ -3,7 +3,7 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapte
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.order.Order;
 import com.lorenzipsum.sushitrain.backend.domain.order.OrderRepository;
@@ -77,7 +77,7 @@ class JpaOrderRepositoryIT extends JpaBaseRepositoryIT {
     void persistAndLoadOrders_containing_line_ok() {
         var belt = beltRepository.create(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
         var seatId = beltRepository.findById(belt.getId()).orElseThrow().getSeats().getFirst().getId();
-        var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
+        var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, YenAmount.of(400), inTwoHours()));
 
         var order = Order.open(seatId);
         var line = order.addLineFromPlate(plate.getId(), "Salmon Nigiri", PlateTier.GREEN, 400);
@@ -115,7 +115,7 @@ class JpaOrderRepositoryIT extends JpaBaseRepositoryIT {
     void persistAndLoadOrders_line_manipulations_ok() {
         var belt = beltRepository.create(Belt.create("Default", 10, List.of(new SeatSpec("A1", 1))));
         var seatId = beltRepository.findById(belt.getId()).orElseThrow().getSeats().getFirst().getId();
-        var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, MoneyYen.of(400), inTwoHours()));
+        var plate = plateRepository.save(Plate.create(SALMON_NIGIRI_ID, PlateTier.RED, YenAmount.of(400), inTwoHours()));
 
         var order = Order.open(seatId);
         order.addLineFromPlate(plate.getId(), "Salmon Nigiri", PlateTier.GREEN, 400);

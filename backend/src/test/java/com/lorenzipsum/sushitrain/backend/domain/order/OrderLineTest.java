@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +17,7 @@ class OrderLineTest {
 
     private final UUID seatId = UUID.randomUUID();
     private final Order order = Order.open(seatId);
-    private final Plate plate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
+    private final Plate plate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, YenAmount.of(450), inTwoHours());
 
     @Test
     @DisplayName("Order line can be created with sane defaults")
@@ -32,7 +32,7 @@ class OrderLineTest {
                 () -> assertEquals(order.getId(), orderLine.getOrderId()),
                 () -> assertEquals(SALMON_NIGIRI, orderLine.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.GREEN, orderLine.getTierSnapshot()),
-                () -> assertEquals(MoneyYen.of(450), orderLine.getPriceAtPick()),
+                () -> assertEquals(YenAmount.of(450), orderLine.getPriceAtPick()),
                 () -> assertTrue(!orderLine.getPickedAt().isBefore(before)
                                 && !orderLine.getPickedAt().isAfter(after),
                         "pickedAt should be between 'before' and 'after'")
@@ -43,7 +43,7 @@ class OrderLineTest {
     @DisplayName("Zero price is allowed (comped/discounted)")
     void zero_price_allowed() {
         var line = OrderLine.create(plate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.GREEN, 0);
-        assertEquals(MoneyYen.of(0), line.getPriceAtPick());
+        assertEquals(YenAmount.of(0), line.getPriceAtPick());
     }
 
     @Test
@@ -59,16 +59,16 @@ class OrderLineTest {
     @Test
     @DisplayName("Order line keeps snapshots")
     void create_snapshots_ok() {
-        var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, MoneyYen.of(250), inTwoHours());
+        var specialPlate = Plate.create(UUID.randomUUID(), PlateTier.RED, YenAmount.of(250), inTwoHours());
 
         var orderLine1 = OrderLine.create(specialPlate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.RED, specialPlate.getPriceAtCreation().amount());
         assertAll("Asserting sane defaults for order line 1",
                 () -> assertEquals(SALMON_NIGIRI, orderLine1.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.RED, orderLine1.getTierSnapshot()),
-                () -> assertEquals(MoneyYen.of(250), orderLine1.getPriceAtPick())
+                () -> assertEquals(YenAmount.of(250), orderLine1.getPriceAtPick())
         );
 
         var orderLine2 = OrderLine.create(specialPlate.getId(), order.getId(), SALMON_NIGIRI, PlateTier.GREEN, 550);
-        assertEquals(MoneyYen.of(550), orderLine2.getPriceAtPick());
+        assertEquals(YenAmount.of(550), orderLine2.getPriceAtPick());
     }
 }

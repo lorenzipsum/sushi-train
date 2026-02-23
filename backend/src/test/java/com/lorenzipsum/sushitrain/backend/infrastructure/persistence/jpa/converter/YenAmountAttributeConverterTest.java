@@ -1,20 +1,20 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.converter;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MoneyYenAttributeConverterTest {
+class YenAmountAttributeConverterTest {
 
-    private final MoneyYenAttributeConverter converter = new MoneyYenAttributeConverter();
+    private final YenAmountAttributeConverter converter = new YenAmountAttributeConverter();
 
     @Test
-    @DisplayName("convert MoneyYen to database column (Integer)")
+    @DisplayName("convert YenAmount to database column (Integer)")
     void convertToDatabaseColumn() {
         // given
-        MoneyYen money = new MoneyYen(1234);
+        YenAmount money = new YenAmount(1234);
 
         // when
         Integer dbValue = converter.convertToDatabaseColumn(money);
@@ -25,7 +25,7 @@ class MoneyYenAttributeConverterTest {
     }
 
     @Test
-    @DisplayName("convert null MoneyYen to database column")
+    @DisplayName("convert null YenAmount to database column")
     void convertToDatabaseColumnNull() {
         // when
         Integer dbValue = converter.convertToDatabaseColumn(null);
@@ -35,10 +35,10 @@ class MoneyYenAttributeConverterTest {
     }
 
     @Test
-    @DisplayName("convert Integer from database to MoneyYen")
+    @DisplayName("convert Integer from database to YenAmount")
     void convertToEntityAttribute() {
         // when
-        MoneyYen money = converter.convertToEntityAttribute(5678);
+        YenAmount money = converter.convertToEntityAttribute(5678);
 
         // then
         assertNotNull(money);
@@ -46,10 +46,10 @@ class MoneyYenAttributeConverterTest {
     }
 
     @Test
-    @DisplayName("convert null Integer from database to MoneyYen")
+    @DisplayName("convert null Integer from database to YenAmount")
     void convertToEntityAttributeNull() {
         // when
-        MoneyYen money = converter.convertToEntityAttribute(null);
+        YenAmount money = converter.convertToEntityAttribute(null);
 
         // then
         assertNull(money);

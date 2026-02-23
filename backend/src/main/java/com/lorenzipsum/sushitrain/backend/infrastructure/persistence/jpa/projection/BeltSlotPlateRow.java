@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 
@@ -21,7 +21,7 @@ public record BeltSlotPlateRow(
         UUID menuItemId,
         String menuItemName,
         PlateTier plateTier,
-        MoneyYen platePriceAtCreation,
+        YenAmount platePriceAtCreation,
         PlateStatus plateStatus,
         Instant plateExpiresAt
 ) {

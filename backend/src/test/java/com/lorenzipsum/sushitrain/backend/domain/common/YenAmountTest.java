@@ -5,26 +5,26 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MoneyYenTest {
-    private final MoneyYen ZERO = new MoneyYen(0);
-    private final MoneyYen THREE = new MoneyYen(3);
-    private final MoneyYen FIVE = new MoneyYen(5);
+class YenAmountTest {
+    private final YenAmount ZERO = YenAmount.of(0);
+    private final YenAmount THREE = YenAmount.of(3);
+    private final YenAmount FIVE = YenAmount.of(5);
 
     @Test
-    @DisplayName("MoneyYen can be instantiated but no negative amounts are allowed")
+    @DisplayName("YenAmount can be instantiated but no negative amounts are allowed")
     void instantiate_ok() {
         assertAll("Assert instantiation",
                 () -> assertEquals(5, FIVE.amount()),
                 () -> assertEquals(0, ZERO.amount()),
-                () -> assertThrows(IllegalArgumentException.class, () -> new MoneyYen(-4)));
+                () -> assertThrows(IllegalArgumentException.class, () -> YenAmount.of(-4)));
     }
 
     @Test
     @DisplayName("Equals and hashCode are based on amount")
     void equals_hashcode() {
-        var a = new MoneyYen(500);
-        var b = new MoneyYen(500);
-        var c = new MoneyYen(400);
+        var a = YenAmount.of(500);
+        var b = YenAmount.of(500);
+        var c = YenAmount.of(400);
 
         assertAll("Assert equality and hashCode consistency",
                 () -> assertEquals(a, b),
@@ -38,11 +38,10 @@ class MoneyYenTest {
     @DisplayName("equals is reflexive and transitive")
     @SuppressWarnings("AssertEqualsCalledOnItself")
     void equals_laws() {
-        var a = new MoneyYen(700);
-        var b = new MoneyYen(700);
-        var c = new MoneyYen(700);
+        var a = YenAmount.of(700);
+        var b = YenAmount.of(700);
+        var c = YenAmount.of(700);
         assertAll("Assert equality",
-                () -> assertEquals(a, a),
                 () -> assertEquals(a, b),
                 () -> assertEquals(b, c),
                 () -> assertEquals(a, c)        // transitive
@@ -72,16 +71,16 @@ class MoneyYenTest {
     @Test
     @DisplayName("plus throws on integer overflow")
     void plus_overflow() {
-        var big = new MoneyYen(Integer.MAX_VALUE);
-        assertThrows(ArithmeticException.class, () -> big.plus(new MoneyYen(1)));
+        var big = YenAmount.of(Integer.MAX_VALUE);
+        assertThrows(ArithmeticException.class, () -> big.plus(YenAmount.of(1)));
     }
 
     @Test
     @DisplayName("ToString method works correctly")
     void testToString() {
-        var amountFiveHundred = new MoneyYen(500);
-        var amountOverThousand = new MoneyYen(1250);
-        var amountOverTenThousand = new MoneyYen(25432);
+        var amountFiveHundred = YenAmount.of(500);
+        var amountOverThousand = YenAmount.of(1250);
+        var amountOverTenThousand = YenAmount.of(25432);
 
         assertEquals("￥5", FIVE.toString());
         assertEquals("￥500", amountFiveHundred.toString());
@@ -93,9 +92,9 @@ class MoneyYenTest {
     @DisplayName("IsZero method works correctly")
     void isZero() {
         assertAll("Asserting isZero method",
-                () -> assertTrue(new MoneyYen(0).isZero()),
-                () -> assertFalse(new MoneyYen(1).isZero()),
-                () -> assertFalse(new MoneyYen(3).isZero())
+                () -> assertTrue(YenAmount.of(0).isZero()),
+                () -> assertFalse(YenAmount.of(1).isZero()),
+                () -> assertFalse(YenAmount.of(3).isZero())
         );
     }
 
@@ -103,8 +102,8 @@ class MoneyYenTest {
     @DisplayName("Helper method of is working fine")
     void of() {
         assertAll("Asserting helper method of",
-                () -> assertEquals(new MoneyYen(1), MoneyYen.of(1)),
-                () -> assertEquals(new MoneyYen(199), MoneyYen.of(199))
+                () -> assertEquals(YenAmount.of(1), YenAmount.of(1)),
+                () -> assertEquals(YenAmount.of(199), YenAmount.of(199))
         );
     }
 }

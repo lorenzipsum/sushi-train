@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.belt;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
 import org.junit.jupiter.api.DisplayName;
@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BeltSlotTest {
 
-    private final Plate plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
-    private final Plate plate2 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
+    private final Plate plate1 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new YenAmount(450), inTwoHours());
+    private final Plate plate2 = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new YenAmount(450), inTwoHours());
 
     @Test
     @DisplayName("Belt creation creates slots with sane defaults")

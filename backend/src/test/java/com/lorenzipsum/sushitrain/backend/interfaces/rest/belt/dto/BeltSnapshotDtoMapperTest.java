@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
@@ -28,7 +28,7 @@ class BeltSnapshotDtoMapperTest {
 
         var rows = List.of(
                 new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, now, 900, 3, slot0, 0, null, null, null, null, null, null, null),
-                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, now, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, MoneyYen.of(450), PlateStatus.ON_BELT, expires)
+                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, now, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, YenAmount.of(450), PlateStatus.ON_BELT, expires)
         );
 
         var dto = mapper.toDto(rows);

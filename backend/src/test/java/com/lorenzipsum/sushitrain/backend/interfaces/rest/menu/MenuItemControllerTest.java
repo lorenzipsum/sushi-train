@@ -2,10 +2,10 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.menu;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.menu.MenuItemService;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItem;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.MoneyYenMapperImpl;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.YenAmountMapperImpl;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.menu.dto.MenuItemDtoMapperImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import static com.lorenzipsum.sushitrain.backend.interfaces.rest.menu.MenuItemCo
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@Import({MenuItemDtoMapperImpl.class, MoneyYenMapperImpl.class})
+@Import({MenuItemDtoMapperImpl.class, YenAmountMapperImpl.class})
 @WebMvcTest(MenuItemController.class)
 @AutoConfigureRestTestClient
 class MenuItemControllerTest {
@@ -43,7 +43,7 @@ class MenuItemControllerTest {
     void getMenuItem_returns200() {
         // arrange
         var amountInYen = 500;
-        var menuItem = MenuItem.create("California Roll", PlateTier.GREEN, MoneyYen.of(amountInYen));
+        var menuItem = MenuItem.create("California Roll", PlateTier.GREEN, YenAmount.of(amountInYen));
         given(service.getMenuItem(menuItem.getId())).willReturn(menuItem);
 
         // act
@@ -142,8 +142,8 @@ class MenuItemControllerTest {
     @DisplayName("GET /api/v1/menu-items with valid pagination returns 200 with paginated menu items")
     void getAllMenuItems_returns200() {
         // arrange
-        var menuItem1 = MenuItem.create("California Roll", PlateTier.GREEN, MoneyYen.of(500));
-        var menuItem2 = MenuItem.create("Spicy Tuna Roll", PlateTier.RED, MoneyYen.of(700));
+        var menuItem1 = MenuItem.create("California Roll", PlateTier.GREEN, YenAmount.of(500));
+        var menuItem2 = MenuItem.create("Spicy Tuna Roll", PlateTier.RED, YenAmount.of(700));
         var pageRequest = PageRequest.of(0, 2);
         var page = new PageImpl<>(List.of(menuItem1, menuItem2), pageRequest, 2);
 
