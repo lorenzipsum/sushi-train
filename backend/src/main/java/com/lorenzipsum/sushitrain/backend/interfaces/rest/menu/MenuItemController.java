@@ -25,7 +25,7 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 @RequestMapping(MenuItemController.BASE_URL_MENU_ITEM_CONTROLLER)
 @Tag(name = "Menu Items", description = "Operations for managing menu items")
 public class MenuItemController {
-    public static final String BASE_URL_MENU_ITEM_CONTROLLER = "/api/v1/menu-items";
+    static final String BASE_URL_MENU_ITEM_CONTROLLER = "/api/v1/menu-items";
     private final MenuItemService service;
     private final MenuItemDtoMapper mapper;
 

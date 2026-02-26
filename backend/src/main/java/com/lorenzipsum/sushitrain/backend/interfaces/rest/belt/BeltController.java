@@ -24,8 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 @RequestMapping(path = BeltController.BASE_URL_BELT_CONTROLLER, produces = APPLICATION_JSON_VALUE)
 @Tag(name = "Belts", description = "Operations for managing belts")
 public class BeltController {
-
-    public static final String BASE_URL_BELT_CONTROLLER = "/api/v1/belts";
+    static final String BASE_URL_BELT_CONTROLLER = "/api/v1/belts";
 
     private final BeltService service;
     private final BeltDtoMapper mapper;

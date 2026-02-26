@@ -2,6 +2,7 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.common;
 
 import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsException;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
+import com.lorenzipsum.sushitrain.backend.application.common.SeatAlreadyOccupiedException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -152,6 +153,20 @@ public class ControllerAdvice {
     // 409: not enough free slots on the belt to place a new plate
     @ExceptionHandler(NotEnoughFreeSlotsException.class)
     public ResponseEntity<ProblemDetail> handleNotEnoughFreeSlots(NotEnoughFreeSlotsException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle(PROBLEM_409_TITLE);
+        pd.setType(URI.create(PROBLEM_409_URI));
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(request.getRequestURI()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(pd);
+    }
+
+    // 409: seat already occupied
+    @ExceptionHandler(SeatAlreadyOccupiedException.class)
+    public ResponseEntity<ProblemDetail> handleSeatOccupied(SeatAlreadyOccupiedException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         pd.setTitle(PROBLEM_409_TITLE);
         pd.setType(URI.create(PROBLEM_409_URI));

@@ -30,7 +30,7 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 @RequestMapping(PlateController.BASE_URL_PLATE_CONTROLLER)
 @Tag(name = "Plates", description = "Operations for managing plates on the sushi belt")
 public class PlateController {
-    public static final String BASE_URL_PLATE_CONTROLLER = "/api/v1/plates";
+    static final String BASE_URL_PLATE_CONTROLLER = "/api/v1/plates";
     private final PlateService service;
     private final PlateDtoMapper mapper;
 
