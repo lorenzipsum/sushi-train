@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public class SeatAlreadyOccupiedException extends RuntimeException {
     public SeatAlreadyOccupiedException(UUID seatId) {
-        super("Seat already occpuied: " + seatId);
+        super("Seat already occupied: " + seatId);
     }
 }
