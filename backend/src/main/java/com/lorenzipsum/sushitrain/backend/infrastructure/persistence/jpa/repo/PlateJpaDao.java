@@ -34,4 +34,25 @@ public interface PlateJpaDao extends JpaRepository<PlateEntity, UUID> {
             @Param("plateIds") List<UUID> plateIds,
             @Param("allowedCurrentStatuses") List<PlateStatus> allowedCurrentStatuses
     );
+
+    @Query("""
+            select p.id
+              from PlateEntity p
+             where p.status = com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.ON_BELT
+               and exists (
+                    select 1
+                      from OrderLineEntity ol
+                     where ol.plate.id = p.id
+               )
+            """)
+    List<UUID> findOnBeltPlateIdsAlreadyAssignedToOrderLine();
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            update PlateEntity p
+               set p.status = com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.PICKED
+             where p.id in :plateIds
+               and p.status = com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus.ON_BELT
+            """)
+    int markPicked(@Param("plateIds") List<UUID> plateIds);
 }

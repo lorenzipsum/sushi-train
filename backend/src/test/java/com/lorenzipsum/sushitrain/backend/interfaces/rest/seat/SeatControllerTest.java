@@ -1,6 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.seat;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
+import com.lorenzipsum.sushitrain.backend.application.common.PlateNotPickableException;
 import com.lorenzipsum.sushitrain.backend.application.common.SeatAlreadyOccupiedException;
 import com.lorenzipsum.sushitrain.backend.application.common.SeatNotOccupiedException;
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -319,13 +319,13 @@ class SeatControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/seats/{id}/order-lines - Conflict (same plate picked twice)")
+    @DisplayName("POST /api/v1/seats/{id}/order-lines - Conflict (plate not pickable)")
     void pickPlate_conflict_duplicatePlate() {
         UUID seatId = UUID.randomUUID();
         UUID plateId = UUID.randomUUID();
 
         given(orderService.pickPlate(eq(seatId), eq(plateId)))
-                .willThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
+                .willThrow(new PlateNotPickableException(plateId));
 
         client.post()
                 .uri(BASE_URL_SEAT_CONTROLLER + "/{id}/order-lines", seatId)
@@ -335,11 +335,13 @@ class SeatControllerTest {
                 .expectStatus().isEqualTo(409)
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
-                .jsonPath("$.title").isEqualTo(PROBLEM_409_STATE_CONFLICT_TITLE)
+                .jsonPath("$.title").isEqualTo(PROBLEM_409_PLATE_NOT_PICKABLE_TITLE)
                 .jsonPath("$.status").isEqualTo(409)
-                .jsonPath("$.type").isEqualTo(PROBLEM_409_STATE_CONFLICT_URI)
-                .jsonPath("$.detail").isEqualTo("Request conflicts with current resource state.")
-                .jsonPath("$.errorCode").isEqualTo("RESOURCE_STATE_CONFLICT")
+                .jsonPath("$.type").isEqualTo(PROBLEM_409_PLATE_NOT_PICKABLE_URI)
+                .jsonPath("$.detail").isEqualTo("Plate " + plateId + " cannot be picked in its current state.")
+                .jsonPath("$.errorCode").isEqualTo("PLATE_NOT_PICKABLE")
+                .jsonPath("$.plateId").isEqualTo(plateId.toString())
+                .jsonPath("$.action").isEqualTo("choose-another-plate")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/order-lines");
 
         verify(orderService).pickPlate(eq(seatId), eq(plateId));
