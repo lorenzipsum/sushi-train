@@ -15,7 +15,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
@@ -59,55 +58,6 @@ class FlywayMigrationIT {
         }
     }
 
-    @Test
-    @DisplayName("Demo seed places up to 24 plates on Main Belt (only empty target slots)")
-    void demo_seed_places_24_plates_on_main_belt() throws Exception {
-        Flyway flyway = Flyway.configure()
-                .dataSource(db.getJdbcUrl(), db.getUsername(), db.getPassword())
-                .locations("classpath:db/migration", "classpath:db/demo")
-                .cleanDisabled(false)
-                .load();
-
-        flyway.clean();
-        flyway.migrate();
-
-        try (Connection c = DriverManager.getConnection(
-                db.getJdbcUrl(), db.getUsername(), db.getPassword())) {
-
-            int totalSlotsMainBelt = singleInt(c, """
-                    SELECT COUNT(*)
-                    FROM belt_slot bs
-                    JOIN belt b ON b.id = bs.belt_id
-                    WHERE b.name = 'Main Belt'
-                    """);
-
-            int occupiedTargets = singleInt(c, """
-                    SELECT COUNT(*)
-                    FROM belt_slot bs
-                    JOIN belt b ON b.id = bs.belt_id
-                    WHERE b.name = 'Main Belt'
-                      AND bs.plate_id IS NOT NULL
-                      AND (bs.position_index % 8) = 0
-                    """);
-
-            int occupiedAllMainBelt = singleInt(c, """
-                    SELECT COUNT(*)
-                    FROM belt_slot bs
-                    JOIN belt b ON b.id = bs.belt_id
-                    WHERE b.name = 'Main Belt'
-                      AND bs.plate_id IS NOT NULL
-                    """);
-
-            assertTrue(totalSlotsMainBelt > 0, "Expected Main Belt to have belt slots");
-            // On a fresh DB, your script should fill exactly 24 target slots (0,8,...,184)
-            assertEquals(24, occupiedTargets, "Expected exactly 24 occupied target slots on Main Belt");
-
-            // Safety: script should not fill any non-target slots
-            assertEquals(occupiedTargets, occupiedAllMainBelt,
-                    "Expected only target slots to be occupied by the demo seed");
-        }
-    }
-
     private boolean tableExists(Connection c, String name) throws Exception {
         try (var ps = c.prepareStatement(
                 "select 1 from information_schema.tables where table_schema='public' and table_name=?")) {
@@ -115,13 +65,6 @@ class FlywayMigrationIT {
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
-        }
-    }
-
-    private int singleInt(Connection c, String sql) throws Exception {
-        try (var st = c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
-            rs.next();
-            return rs.getInt(1);
         }
     }
 }

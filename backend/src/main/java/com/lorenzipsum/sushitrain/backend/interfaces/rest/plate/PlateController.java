@@ -1,7 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapper;
@@ -27,10 +27,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
 @RestController
-@RequestMapping("/api/v1/plates")
+@RequestMapping(PlateController.BASE_URL_PLATE_CONTROLLER)
 @Tag(name = "Plates", description = "Operations for managing plates on the sushi belt")
 public class PlateController {
-
+    static final String BASE_URL_PLATE_CONTROLLER = "/api/v1/plates";
     private final PlateService service;
     private final PlateDtoMapper mapper;
 
@@ -55,7 +55,7 @@ public class PlateController {
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class)))})
     public PlateDto getPlate(
-            @Parameter(description = "Plate id", required = true, example = "a22b5bd2-285f-42eb-889a-8d2dd1f2d6c7")
+            @Parameter(description = "Plate id", required = true, example = "11111111-1111-1111-1111-111111111111")
             @PathVariable UUID id) {
         return mapper.toDto(service.getPlate(id));
     }
@@ -89,7 +89,7 @@ public class PlateController {
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = CreatePlateRequest.class)))
             @Valid @RequestBody CreatePlateRequest request) {
-        MoneyYen optionalPrice = request.priceAtCreation() != null ? MoneyYen.of(request.priceAtCreation()) : null;
+        YenAmount optionalPrice = request.priceAtCreation() != null ? YenAmount.of(request.priceAtCreation()) : null;
 
         var plate = service.createPlate(
                 request.menuItemId(),
@@ -117,7 +117,7 @@ public class PlateController {
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class)))})
     public PlateDto expirePlate(
-            @Parameter(description = "Plate id", required = true, example = "a22b5bd2-285f-42eb-889a-8d2dd1f2d6c7")
+            @Parameter(description = "Plate id", required = true, example = "11111111-1111-1111-1111-111111111111")
             @PathVariable UUID id) {
         return mapper.toDto(service.expirePlate(id));
     }

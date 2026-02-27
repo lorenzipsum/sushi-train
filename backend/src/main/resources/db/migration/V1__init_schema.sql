@@ -17,9 +17,9 @@ BEGIN
 
     -- SEAT
     CREATE TABLE seat (
-        id                   UUID PRIMARY KEY,
-        label                TEXT NOT NULL,
-        belt_id              UUID NOT NULL REFERENCES belt(id) ON DELETE RESTRICT,
+        id              UUID PRIMARY KEY,
+        label           TEXT NOT NULL,
+        belt_id         UUID NOT NULL REFERENCES belt(id) ON DELETE RESTRICT,
         position_index  INTEGER NOT NULL,
         CONSTRAINT uk_belt_label UNIQUE (belt_id, label),
         CONSTRAINT uk_seat_position UNIQUE (belt_id, position_index),
@@ -89,6 +89,7 @@ BEGIN
         CONSTRAINT uk_belt_position UNIQUE (belt_id, position_index)
     );
     CREATE INDEX idx_belt_slot_belt ON belt_slot(belt_id);
-    CREATE INDEX idx_belt_slot_belt_position  ON belt_slot(belt_id, position_index);
+    CREATE INDEX idx_belt_slot_belt_position ON belt_slot(belt_id, position_index);
+    CREATE INDEX idx_belt_slot_free_by_belt_pos ON belt_slot (belt_id, position_index) WHERE plate_id IS NULL;
 
 END $$;

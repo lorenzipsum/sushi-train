@@ -1,0 +1,48 @@
+package com.lorenzipsum.sushitrain.backend.domain.common;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
+/**
+ * Integer Yen to avoid floating point.
+ */
+public record YenAmount(int amount) {
+
+    public YenAmount {
+        if (amount < 0) throw new IllegalArgumentException("Amount cannot be a negative value");
+    }
+
+    public YenAmount plus(YenAmount other) {
+        if (other == null) throw new IllegalArgumentException("Amount cannot be null");
+        long sum = (long) this.amount + (long) other.amount;
+        if (sum > Integer.MAX_VALUE) throw new ArithmeticException("amount overflow");
+        return new YenAmount((int) sum);
+    }
+
+    public boolean isZero() {
+        return amount == 0;
+    }
+
+    public static YenAmount of(int amount) {
+        return new YenAmount(amount);
+    }
+
+    @Override
+    @SuppressWarnings("NullableProblems")
+    public String toString() {
+        return formatYen(amount);
+    }
+
+    /**
+     * Formats an integer amount as Japanese Yen (¥),
+     * with comma grouping and no decimals.
+     *
+     * @param amount the amount in yen (integer)
+     * @return formatted string like "¥980" or "¥12,800"
+     */
+    private String formatYen(int amount) {
+        var yenFormat = NumberFormat.getCurrencyInstance(Locale.JAPAN);
+        yenFormat.setMaximumFractionDigits(0); // ensure no decimals
+        return yenFormat.format(amount);
+    }
+}

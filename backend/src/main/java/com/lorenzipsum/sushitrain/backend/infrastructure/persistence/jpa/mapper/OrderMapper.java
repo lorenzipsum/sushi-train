@@ -2,15 +2,9 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper
 
 import com.lorenzipsum.sushitrain.backend.domain.order.Order;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.OrderEntity;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.OrderLineEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.SeatEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-/**
- * Maps between domain Order and JPA OrderEntity.
- */
 @Component
 public class OrderMapper {
     private final OrderLineMapper orderLineMapper;
@@ -21,22 +15,25 @@ public class OrderMapper {
 
     public Order toDomain(OrderEntity e) {
         if (e == null) return null;
+
+        var orderId = e.getId();
+
         return Order.rehydrate(
-                e.getId(),
+                orderId,
                 e.getSeat().getId(),
-                e.getLines().stream().map(orderLineMapper::toDomain).toList(),
+                e.getLines().stream().map(orderLine ->
+                        orderLineMapper.toDomain(orderLine, orderId)).toList(),
                 e.getStatus(),
                 e.getCreatedAt(),
                 e.getClosedAt()
         );
     }
 
-    public OrderEntity toEntity(Order d, SeatEntity seat, List<OrderLineEntity> lines) {
+    public OrderEntity toEntity(Order d, SeatEntity seat) {
         if (d == null) return null;
         return new OrderEntity(
                 d.getId(),
                 seat,
-                lines,
                 d.getStatus(),
                 d.getCreatedAt(),
                 d.getClosedAt()

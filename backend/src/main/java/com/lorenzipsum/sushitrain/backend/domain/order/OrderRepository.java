@@ -1,5 +1,8 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -7,4 +10,8 @@ public interface OrderRepository {
     Optional<Order> findById(UUID uuid);
 
     Order save(Order order);
+
+    Optional<Order> findBySeatId(UUID seatId);
+
+    Page<Order> findAll(Pageable pageable);
 }

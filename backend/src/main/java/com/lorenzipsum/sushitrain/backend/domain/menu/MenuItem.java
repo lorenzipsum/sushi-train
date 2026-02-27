@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.menu;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 
 import java.time.Instant;
@@ -12,14 +12,14 @@ public class MenuItem {
     private UUID id;
     private String name;
     private PlateTier defaultTier;
-    private MoneyYen basePrice;
+    private YenAmount basePrice;
     private Instant createdAt;
 
     @SuppressWarnings("unused")
     protected MenuItem() {
     }
 
-    private MenuItem(UUID id, String name, PlateTier defaultTier, MoneyYen basePrice, Instant createdAt) {
+    private MenuItem(UUID id, String name, PlateTier defaultTier, YenAmount basePrice, Instant createdAt) {
         this.id = id;
         this.name = name;
         this.defaultTier = defaultTier;
@@ -27,7 +27,7 @@ public class MenuItem {
         this.createdAt = createdAt;
     }
 
-    public static MenuItem create(String name, PlateTier defaultTier, MoneyYen basePrice) {
+    public static MenuItem create(String name, PlateTier defaultTier, YenAmount basePrice) {
         if (name == null || name.isBlank()) throw new IllegalArgumentException("Name must not be blank");
         if (defaultTier == null) throw new IllegalArgumentException("Default tier cannot be null");
         if (basePrice == null) throw new IllegalArgumentException("Base price cannot be null");
@@ -37,7 +37,7 @@ public class MenuItem {
     /**
      * Rehydration factory for adapters (persistence).
      */
-    public static MenuItem rehydrate(UUID id, String name, PlateTier defaultTier, MoneyYen basePrice, Instant createdAt) {
+    public static MenuItem rehydrate(UUID id, String name, PlateTier defaultTier, YenAmount basePrice, Instant createdAt) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(defaultTier, "defaultTier");
@@ -58,7 +58,7 @@ public class MenuItem {
         return defaultTier;
     }
 
-    public MoneyYen getBasePrice() {
+    public YenAmount getBasePrice() {
         return basePrice;
     }
 

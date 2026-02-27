@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- enables %clr, default Spring Boot converters, etc. -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- register our custom converter -->
+    <conversionRule conversionWord="txmsg"
+                    converterClass="com.lorenzipsum.sushitrain.backend.config.logging.TxShortMessageConverter"/>
+
+    <!-- normal console: keep Spring Boot default look -->
+    <appender name="CONSOLE_DEFAULT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- tx console: only prints tx lines, in Matrix green, one compact line -->
+    <appender name="CONSOLE_TX" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="com.lorenzipsum.sushitrain.backend.config.logging.TxSqlNoiseFilter"/>
+        <encoder>
+            <!-- %clr is Spring Boot’s built-in coloring; {faint} optional -->
+            <pattern>%clr(%txmsg){green}%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Route ONLY JpaTransactionManager logs into CONSOLE_TX (and stop them going to root) -->
+    <logger name="org.springframework.orm.jpa.JpaTransactionManager" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE_TX"/>
+    </logger>
+
+    <!-- everything else stays default -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_DEFAULT"/>
+    </root>
+
+</configuration>

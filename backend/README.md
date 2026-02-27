@@ -1,100 +1,94 @@
-# 🍣 Sushi-Train Backend
+# Sushi Train Backend
 
-Spring Boot application providing the REST and WebSocket API for the Sushi-Train simulator.
+Spring Boot backend for the Sushi Train simulator.
 
----
+Repository: https://github.com/lorenzipsum/sushi-train
 
-## 🚀 Overview
+## Purpose
 
-This service implements the **domain logic**, **persistence**, and **real-time updates** for the Sushi-Train system.  
-It powers the Angular frontend via:
-- REST endpoints for managing belts, plates, and orders
-- WebSocket messages for live updates (belt rotation, plate picked, etc.)
+This service is the domain and persistence layer of the Sushi Train application.
+It manages sushi belt behavior, seat occupancy, order lifecycle, and plate handling.
 
----
+It provides:
+- REST APIs for belts, seats, plates, menu items, and orders.
+- PostgreSQL persistence with Flyway migrations.
+- Scheduled jobs for operational consistency (for example plate expiry and data-integrity repair).
+- Optional demo-mode console belt animation.
 
-## 🧱 Tech Stack
+## Tech Stack
 
-- **Java 21**
-- **Spring Boot 3.x**
-- **PostgreSQL**
-- **Flyway** (DB migrations)
-- **WebSocket**
-- **Docker / Docker Compose**
-- *(Phase 2+)* Kafka / Redpanda (event streaming)
+- Java 25
+- Spring Boot 4.x
+- PostgreSQL
+- Flyway
+- Springdoc OpenAPI (Swagger)
+- Docker / Docker Compose
 
----
+## Run Locally
 
-## ⚙️ Running Locally
+### Option 1: Docker Compose (recommended)
 
-### 1. Run with Docker Compose (recommended)
-From the repo root:
+From the `backend` directory:
+
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
-### 2. Or run manually
+Backend:
+- http://localhost:8088
+
+Swagger UI (when enabled by active profile):
+- http://localhost:8088/swagger-ui/index.html
+
+### Option 2: Run directly with Maven
+
 ```bash
-./mvnw spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-Backend runs on:  
-👉 [http://localhost:8088](http://localhost:8088)
+## Configuration Profiles
 
-Swagger UI (if enabled):  
-👉 [http://localhost:8088/swagger-ui.html](http://localhost:8088)
+- `local`: local datasource + Flyway + Swagger enabled.
+- `demo-mode`: enables console belt animation.
+- `show-sql`: verbose SQL logging.
 
----
+## Project Layout
 
-## 🧩 Project Layout
-
-```
+```text
 src/main/java/com/lorenzipsum/sushitrain/backend
- ├── domain/           # Core business logic (DDD entities, value objects)
- ├── application/      # Services, use cases, domain events
- ├── infrastructure/   # Persistence, configuration, adapters
- └── interfaces/       # REST + WebSocket controllers
+|- domain/          # business model
+|- application/     # use-case services
+|- infrastructure/  # persistence, schedulers, adapters
+`- interfaces/      # REST controllers and DTOs
 ```
 
-Configuration:
+```text
+src/main/resources
+|- application.yaml
+|- application-local.yaml
+|- application-demo-mode.yaml
+|- application-show-sql.yaml
+`- db/migration/    # Flyway SQL scripts
 ```
-src/main/resources/
- ├── application.yml
- └── db/migration/     # Flyway SQL scripts
-```
 
----
-
-## 🧠 Related Docs
-
-- [Architecture Overview](../docs/architecture.md)
-- [Domain Events](../docs/domain-events.md)
-- [Domain Model / ERD](../docs/domain-model.md)
-
----
-
-## 🧹 Common Commands
+## Common Commands
 
 ```bash
-./mvnw clean test      # Run unit tests
-./mvnw verify          # Full build with checks
-./mvnw spring-boot:run # Start the service locally
+./mvnw clean test
+./mvnw verify
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
----
+## Known Warning
 
-## 📜 License
+Lombok on newer JDKs may emit this warning during tests/build:
 
-MIT — feel free to use and adapt for learning or demos.
-
-## Known Warnings
-
-https://github.com/projectlombok/lombok/issues/3852#issuecomment-3009156228
---> warning can be ignored until lombok fixes it
-
-```bash
+```text
 WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
 WARNING: sun.misc.Unsafe::objectFieldOffset has been called by lombok.permit.Permit
 WARNING: Please consider reporting this to the maintainers of class lombok.permit.Permit
 WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
 ```
+
+Reference:
+https://github.com/projectlombok/lombok/issues/3852#issuecomment-3009156228

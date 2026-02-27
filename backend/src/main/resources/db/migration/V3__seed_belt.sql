@@ -7,7 +7,7 @@ DECLARE
   belt_uuid UUID := uuid_generate_v5(ns, 'belt:' || belt_name);
 
   slot_count INT := 192;
-  tick_interval_ms INT := 250;
+  tick_interval_ms INT := 500;
   speed_slots_per_tick INT := 1;
 BEGIN
 

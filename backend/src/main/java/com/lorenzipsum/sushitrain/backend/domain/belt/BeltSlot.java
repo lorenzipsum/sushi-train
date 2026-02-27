@@ -6,22 +6,20 @@ import java.util.UUID;
 @SuppressWarnings("LombokGetterMayBeUsed")
 public class BeltSlot {
     private final UUID id;
-    private final UUID beltId;
     private final int positionIndex;
     private UUID plateId;
 
-    public BeltSlot(UUID id, UUID beltId, int positionIndex, UUID plateId) {
+    public BeltSlot(UUID id, int positionIndex, UUID plateId) {
         this.id = id;
-        this.beltId = beltId;
         this.positionIndex = positionIndex;
         this.plateId = plateId;
     }
 
-    public static BeltSlot createEmptyAt(UUID beltId, int positionIndex) {
-        if (beltId == null) throw new IllegalArgumentException("Belt Id cannot be null");
+    static BeltSlot createEmptyAt(UUID beltId, int positionIndex) {
+        if (beltId == null) throw new IllegalArgumentException("beltId must not be null");
         if (positionIndex < 0) throw new IllegalArgumentException("Position index cannot be negative");
-        UUID slotId = UUID.nameUUIDFromBytes((beltId + ":" + positionIndex).getBytes(StandardCharsets.UTF_8));
-        return new BeltSlot(slotId, beltId, positionIndex, null);
+        UUID slotId = UUID.nameUUIDFromBytes((beltId + ":SLOT:" + positionIndex).getBytes(StandardCharsets.UTF_8));
+        return new BeltSlot(slotId, positionIndex, null);
     }
 
     public boolean isEmpty() {
@@ -45,13 +43,8 @@ public class BeltSlot {
         return take();
     }
 
-    // Getters
     public UUID getId() {
         return id;
-    }
-
-    public UUID getBeltId() {
-        return beltId;
     }
 
     public int getPositionIndex() {

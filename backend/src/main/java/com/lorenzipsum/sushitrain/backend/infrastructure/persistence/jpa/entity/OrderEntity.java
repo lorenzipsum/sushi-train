@@ -20,7 +20,7 @@ public class OrderEntity {
     private SeatEntity seat;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderLineEntity> lines;
+    private final List<OrderLineEntity> lines = new java.util.ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 16)
@@ -41,10 +41,9 @@ public class OrderEntity {
     protected OrderEntity() {
     }
 
-    public OrderEntity(UUID id, SeatEntity seat, List<OrderLineEntity> lines, OrderStatus status, Instant createdAt, Instant closedAt) {
+    public OrderEntity(UUID id, SeatEntity seat, OrderStatus status, Instant createdAt, Instant closedAt) {
         this.id = id;
         this.seat = seat;
-        this.lines = lines;
         this.status = status;
         this.createdAt = createdAt;
         this.closedAt = closedAt;

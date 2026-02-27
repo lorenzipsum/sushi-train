@@ -12,3 +12,25 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+app:
+  plate-expiry:
+    # Auto-expire old plates.
+    enabled: true
+    # fixedDelay = wait THIS long after a run finishes before starting the next one
+    fixed-delay: 30s
+    # optional: wait a bit after startup before the first run
+    initial-delay: 10s
+  data-integrity-repair:
+    # Safety net: repairs known DB inconsistencies (disabled by default).
+    enabled: false
+    # Run every 5 minutes when enabled.
+    fixed-delay: 5m
+    # Wait after startup before first repair run.
+    initial-delay: 30s
+  belt:
+    placement:
+      # Enforce spacing between newly placed plates on the belt.
+      min-empty-slots-between-new-plates: 5
+      # API-level cap for creating plates in a single request.
+      max-new-plates-per-request: 10

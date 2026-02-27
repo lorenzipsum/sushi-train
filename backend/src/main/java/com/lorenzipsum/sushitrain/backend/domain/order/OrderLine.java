@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 
 import java.time.Instant;
@@ -13,10 +13,10 @@ public class OrderLine {
     private UUID orderId;
     private final String menuItemNameSnapshot;
     private final PlateTier tierSnapshot;
-    private final MoneyYen priceAtPick;
+    private final YenAmount priceAtPick;
     private final Instant pickedAt;
 
-    private OrderLine(UUID id, UUID plateId, UUID orderId, String menuItemNameSnapshot, PlateTier tierSnapshot, MoneyYen priceAtPick, Instant pickedAt) {
+    private OrderLine(UUID id, UUID plateId, UUID orderId, String menuItemNameSnapshot, PlateTier tierSnapshot, YenAmount priceAtPick, Instant pickedAt) {
         this.id = id;
         this.plateId = plateId;
         this.orderId = orderId;
@@ -30,10 +30,10 @@ public class OrderLine {
         if (plateId == null) throw new IllegalArgumentException("Plate cannot be null");
         if (orderId == null) throw new IllegalArgumentException("Order cannot be null");
         if (priceInYen < 0) throw new IllegalArgumentException("Price cannot be a negative value");
-        return new OrderLine(UUID.randomUUID(), plateId, orderId, menuItemNameSnapshot, tierSnapshot, new MoneyYen(priceInYen), Instant.now());
+        return new OrderLine(UUID.randomUUID(), plateId, orderId, menuItemNameSnapshot, tierSnapshot, new YenAmount(priceInYen), Instant.now());
     }
 
-    public static OrderLine rehydrate(UUID id, UUID plateId, UUID orderId, String menuItemNameSnapshot, PlateTier tierSnapshot, MoneyYen priceAtPick, Instant pickedAt) {
+    public static OrderLine rehydrate(UUID id, UUID plateId, UUID orderId, String menuItemNameSnapshot, PlateTier tierSnapshot, YenAmount priceAtPick, Instant pickedAt) {
         return new OrderLine(id, plateId, orderId, menuItemNameSnapshot, tierSnapshot, priceAtPick, pickedAt);
     }
 
@@ -61,7 +61,7 @@ public class OrderLine {
         return tierSnapshot;
     }
 
-    public MoneyYen getPriceAtPick() {
+    public YenAmount getPriceAtPick() {
         return priceAtPick;
     }
 

@@ -1,11 +1,9 @@
 package com.lorenzipsum.sushitrain.backend.domain.order;
 
-import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import com.lorenzipsum.sushitrain.backend.domain.seat.Seat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,21 +15,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderTest {
 
-    private final Belt belt = Belt.create("Default", 10);
-    private final Seat seat = Seat.create("1", belt.getId(), 5);
-    private final Plate chickenKaraagePlate = Plate.create(UUID.randomUUID(), PlateTier.GOLD, MoneyYen.of(800), inTwoHours());
-    private final Plate salmonNigiriPlate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, new MoneyYen(450), inTwoHours());
+    private final UUID seatId = UUID.randomUUID();
+
+    private final Plate chickenKaraagePlate = Plate.create(UUID.randomUUID(), PlateTier.GOLD, YenAmount.of(800), inTwoHours());
+    private final Plate salmonNigiriPlate = Plate.create(UUID.randomUUID(), PlateTier.GREEN, YenAmount.of(450), inTwoHours());
 
     @Test
     @DisplayName("Order is opened with sane defaults")
     void open_ok() {
         var before = Instant.now();
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
         var after = Instant.now();
 
         assertAll("Asserting sane defaults for order",
                 () -> assertNotNull(order.getId()),
-                () -> assertEquals(seat.getId(), order.getSeatId()),
+                () -> assertEquals(seatId, order.getSeatId()),
                 () -> assertEquals(0, order.getLines().size()),
                 () -> assertEquals(OrderStatus.OPEN, order.getStatus()),
                 () -> assertTrue(!order.getCreatedAt().isBefore(before)
@@ -50,7 +48,7 @@ class OrderTest {
     @Test
     @DisplayName("Line can be added by plate")
     void addLineFromPlate_ok() {
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
 
         var before = Instant.now();
         var orderLine = order.addLineFromPlate(chickenKaraagePlate.getId(), CHICKEN_KARAAGE, PlateTier.GOLD, 800);
@@ -62,7 +60,7 @@ class OrderTest {
                 () -> assertEquals(order.getId(), orderLine.getOrderId()),
                 () -> assertEquals(CHICKEN_KARAAGE, orderLine.getMenuItemNameSnapshot()),
                 () -> assertEquals(PlateTier.GOLD, orderLine.getTierSnapshot()),
-                () -> assertEquals(MoneyYen.of(800), orderLine.getPriceAtPick()),
+                () -> assertEquals(YenAmount.of(800), orderLine.getPriceAtPick()),
                 () -> assertTrue(!orderLine.getPickedAt().isBefore(before)
                                 && !orderLine.getPickedAt().isAfter(after),
                         "pickedAt should be between 'before' and 'after'")
@@ -76,7 +74,7 @@ class OrderTest {
     @Test
     @DisplayName("Line cannot be added with null")
     void addLineFromPlate_not_ok() {
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
 
         assertAll("Asserting correct null handling",
                 () -> assertThrows(IllegalArgumentException.class, () -> order.addLineFromPlate(null, SALMON_NIGIRI, PlateTier.GREEN, 500)),
@@ -90,14 +88,14 @@ class OrderTest {
     @Test
     @DisplayName("Lines list is unmodifiable from the outside")
     void lines_are_unmodifiable() {
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
         assertThrows(UnsupportedOperationException.class, () -> order.getLines().add(null));
     }
 
     @Test
     @DisplayName("Total cost is correct")
     void total_ok() {
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
 
         var orderLine1 = order.addLineFromPlate(chickenKaraagePlate.getId(), CHICKEN_KARAAGE, PlateTier.GOLD, chickenKaraagePlate.getPriceAtCreation().amount());
         var orderLine2 = order.addLineFromPlate(salmonNigiriPlate.getId(), SALMON_NIGIRI, PlateTier.GREEN, salmonNigiriPlate.getPriceAtCreation().amount());
@@ -113,8 +111,7 @@ class OrderTest {
     @Test
     @DisplayName("Checkout works correctly")
     void checkout_ok() {
-
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
 
         order.addLineFromPlate(chickenKaraagePlate.getId(), CHICKEN_KARAAGE, PlateTier.GOLD, chickenKaraagePlate.getPriceAtCreation().amount());
 
@@ -137,7 +134,7 @@ class OrderTest {
     @Test
     @DisplayName("Checkout is not allowed twice")
     void checkout_twice_throws() {
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
         order.addLineFromPlate(salmonNigiriPlate.getId(), SALMON_NIGIRI, PlateTier.GREEN, 450);
         order.checkout();
         assertThrows(IllegalStateException.class, order::checkout);
@@ -146,14 +143,14 @@ class OrderTest {
     @Test
     @DisplayName("Zero price is allowed")
     void zero_price_allowed() {
-        Order order = Order.open(seat.getId());
+        Order order = Order.open(seatId);
         var line = order.addLineFromPlate(salmonNigiriPlate.getId(), SALMON_NIGIRI, PlateTier.GREEN, 0);
-        assertEquals(MoneyYen.of(0), line.getPriceAtPick());
+        assertEquals(YenAmount.of(0), line.getPriceAtPick());
     }
 
     @Test
     void removeLine_ok() {
-        Order order = Order.open(seat.getId());
+        Order order = Order.open(seatId);
 
         OrderLine orderLine1 = order.addLineFromPlate(chickenKaraagePlate.getId(), CHICKEN_KARAAGE, PlateTier.GOLD, chickenKaraagePlate.getPriceAtCreation().amount());
         OrderLine orderLine2 = order.addLineFromPlate(salmonNigiriPlate.getId(), SALMON_NIGIRI, PlateTier.GREEN, salmonNigiriPlate.getPriceAtCreation().amount());
@@ -163,7 +160,7 @@ class OrderTest {
         assertAll("Removal of line is working",
                 () -> assertEquals(1, order.getLines().size()),
                 () -> assertSame(orderLine2, order.getLines().getFirst()),
-                () -> assertEquals(MoneyYen.of(450), order.total()),
+                () -> assertEquals(YenAmount.of(450), order.total()),
                 () -> assertThrows(IllegalArgumentException.class, () -> order.removeLine(orderLine1)));
 
         order.checkout();
@@ -174,7 +171,7 @@ class OrderTest {
     @Test
     @DisplayName("After removing a line while OPEN, you can add another line")
     void remove_then_add_again_ok() {
-        var order = Order.open(seat.getId());
+        var order = Order.open(seatId);
         var line1 = order.addLineFromPlate(chickenKaraagePlate.getId(), CHICKEN_KARAAGE, PlateTier.GOLD, 800);
         order.removeLine(line1);
         order.addLineFromPlate(salmonNigiriPlate.getId(), SALMON_NIGIRI, PlateTier.GREEN, 450);

@@ -1,7 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.application.plate;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
@@ -9,6 +9,7 @@ import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -28,12 +29,14 @@ public class PlateService {
         return Instant.now().plusSeconds(7200);
     }
 
+    @Transactional(readOnly = true)
     public Plate getPlate(UUID id) {
         return repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Plate", id));
     }
 
-    public Plate createPlate(UUID menuItemId, PlateTier tierSnapshot, MoneyYen priceAtCreation, Instant expiresAt) {
+    @Transactional
+    public Plate createPlate(UUID menuItemId, PlateTier tierSnapshot, YenAmount priceAtCreation, Instant expiresAt) {
         var menuItem = menuItemRepository.findById(menuItemId).orElseThrow(
                 () -> new ResourceNotFoundException("MenuItem", menuItemId));
 
@@ -46,13 +49,21 @@ public class PlateService {
         return repository.save(plate);
     }
 
+    @Transactional
     public Plate expirePlate(UUID id) {
         var plate = getPlate(id);
         plate.expire();
         return repository.save(plate);
     }
 
+    @Transactional(readOnly = true)
     public Page<Plate> getAllPlates(Pageable pageable) {
         return repository.findAll(pageable);
+    }
+
+    @Transactional
+    public Plate save(Plate plate) {
+        if (plate == null) throw new IllegalArgumentException("plate cannot be null");
+        return repository.save(plate);
     }
 }

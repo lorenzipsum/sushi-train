@@ -1,16 +1,19 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
+import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltSlotEntity;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.SeatEntity;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.BeltSlotMapper;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.SeatMapper;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltJpaDao;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,72 +21,88 @@ import java.util.UUID;
 public class JpaBeltRepository implements BeltRepository {
 
     private final BeltJpaDao dao;
+    private final EntityManager em;
     private final BeltMapper mapper;
     private final BeltSlotMapper slotMapper;
-    private final EntityManager em;
+    private final SeatMapper seatMapper;
 
-    public JpaBeltRepository(BeltJpaDao dao, BeltMapper mapper, BeltSlotMapper slotMapper, EntityManager em) {
+    public JpaBeltRepository(EntityManager em, BeltJpaDao dao, BeltMapper mapper, BeltSlotMapper slotMapper, SeatMapper seatMapper) {
+        this.em = em;
         this.dao = dao;
         this.mapper = mapper;
         this.slotMapper = slotMapper;
-        this.em = em;
+        this.seatMapper = seatMapper;
+    }
+
+    @Override
+    public List<Belt> findAllBelts() {
+        return dao.findAllBeltsWithParams().stream().map(
+                p -> Belt.rehydrate(
+                        p.getId(),
+                        p.getName(),
+                        p.getSlotCount(),
+                        p.getBaseRotationOffset(),
+                        p.getTickIntervalMs(),
+                        p.getSpeedSlotsPerTick(),
+                        List.of(),
+                        List.of(),
+                        p.getOffsetStartedAt()
+                )).toList();
     }
 
     @Override
     public Optional<Belt> findById(UUID id) {
         if (id == null) throw new IllegalArgumentException("Id cannot be null");
-        return dao.findWithSlotsById(id).map(mapper::toDomain);
+        return dao.findById(id).map(mapper::toDomain);
     }
 
     @Override
-    public Belt save(Belt belt) {
+    public Optional<Belt> findParamsById(UUID id) {
+        return dao.findParamsById(id).map(p ->
+                Belt.rehydrate(
+                        p.getId(),
+                        p.getName(),
+                        p.getSlotCount(),
+                        p.getBaseRotationOffset(),
+                        p.getTickIntervalMs(),
+                        p.getSpeedSlotsPerTick(),
+                        List.of(),
+                        List.of(),
+                        p.getOffsetStartedAt()
+                )
+        );
+    }
+
+    @Override
+    public Belt saveParams(Belt belt) {
+        int updated = dao.updateParams(
+                belt.getId(),
+                belt.getTickIntervalMs(),
+                belt.getSpeedSlotsPerTick(),
+                belt.getBaseRotationOffset(),
+                belt.getOffsetStartedAt()
+        );
+        if (updated == 0) throw new ResourceNotFoundException("Belt", belt.getId());
+        return belt;
+    }
+
+    @Override
+    public Belt create(Belt belt) {
         if (belt == null) throw new IllegalArgumentException("Belt cannot be null");
 
-        var entity = dao.findWithSlotsById(belt.getId())
-                .orElseGet(() -> new BeltEntity(
-                        belt.getId(),
-                        belt.getName(),
-                        belt.getSlotCount(),
-                        belt.getBaseRotationOffset(),
-                        belt.getOffsetStartedAt(),
-                        belt.getTickIntervalMs(),
-                        belt.getSpeedSlotsPerTick()
-                ));
+        BeltEntity newBelt = mapper.toEntity(belt);
 
-        entity.setBaseRotationOffset(belt.getBaseRotationOffset());
-        entity.setTickIntervalMs(belt.getTickIntervalMs());
-        entity.setSpeedSlotsPerTick(belt.getSpeedSlotsPerTick());
+        List<BeltSlotEntity> beltSlots = belt.getSlots().stream()
+                .map(slot -> slotMapper.toEntity(slot, newBelt, null))
+                .toList();
+        newBelt.replaceSlots(beltSlots);
 
-        if (entity.getSlots() == null || entity.getSlots().isEmpty()) {
-            var newSlots = belt.getSlots().stream()
-                    .map(s -> {
-                        PlateEntity plateRef = (s.getPlateId() == null) ? null : em.getReference(PlateEntity.class, s.getPlateId());
-                        return slotMapper.toEntity(s, entity, plateRef);
-                    })
-                    .toList();
+        List<SeatEntity> seats = belt.getSeats().stream()
+                .map(seat -> seatMapper.toEntity(seat, newBelt))
+                .toList();
+        newBelt.replaceSeats(seats);
 
-            entity.replaceSlots(newSlots);
-        } else {
-            // Update existing slots in place by positionIndex
-            var byPos = entity.getSlots().stream()
-                    .collect(java.util.stream.Collectors.toMap(
-                            BeltSlotEntity::getPositionIndex,
-                            s -> s
-                    ));
-
-            for (var domainSlot : belt.getSlots()) {
-                var slotEntity = byPos.get(domainSlot.getPositionIndex());
-                if (slotEntity == null) {
-                    throw new IllegalStateException("Missing slot entity for position " + domainSlot.getPositionIndex());
-                }
-                PlateEntity plateRef = (domainSlot.getPlateId() == null)
-                        ? null
-                        : em.getReference(PlateEntity.class, domainSlot.getPlateId());
-                slotEntity.setPlate(plateRef);
-            }
-        }
-
-        var saved = dao.save(entity);
-        return mapper.toDomain(saved);
+        em.persist(newBelt);
+        return belt;
     }
 }

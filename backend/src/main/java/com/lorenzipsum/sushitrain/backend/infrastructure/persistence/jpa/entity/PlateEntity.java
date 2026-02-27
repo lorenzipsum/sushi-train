@@ -1,10 +1,11 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -26,7 +27,7 @@ public class PlateEntity {
     private PlateTier tierSnapshot;
 
     @Column(name = "price_at_creation_yen", nullable = false)
-    private MoneyYen priceAtCreation;
+    private YenAmount priceAtCreation;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -36,6 +37,7 @@ public class PlateEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 16)
+    @Setter
     private PlateStatus status;
 
     //optimistic concurrency
@@ -47,7 +49,7 @@ public class PlateEntity {
     protected PlateEntity() {
     }
 
-    public PlateEntity(UUID id, MenuItemEntity menuItemEntity, PlateTier tierSnapshot, MoneyYen priceAtCreation, Instant createdAt, Instant expiresAt, PlateStatus status) {
+    public PlateEntity(UUID id, MenuItemEntity menuItemEntity, PlateTier tierSnapshot, YenAmount priceAtCreation, Instant createdAt, Instant expiresAt, PlateStatus status) {
         this.id = id;
         this.menuItem = menuItemEntity;
         this.tierSnapshot = tierSnapshot;

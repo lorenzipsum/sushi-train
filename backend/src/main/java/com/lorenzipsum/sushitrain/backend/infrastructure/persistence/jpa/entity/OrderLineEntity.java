@@ -1,6 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity;
 
-import com.lorenzipsum.sushitrain.backend.domain.common.MoneyYen;
+import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class OrderLineEntity {
 
     @Embedded
     @AttributeOverride(name = "amount", column = @Column(name = "price_at_pick_yen", nullable = false))
-    private MoneyYen priceAtPick;
+    private YenAmount priceAtPick;
 
     @Column(name = "picked_at", nullable = false, updatable = false)
     private Instant pickedAt;
@@ -43,7 +43,7 @@ public class OrderLineEntity {
     protected OrderLineEntity() {
     }
 
-    public OrderLineEntity(UUID id, PlateEntity plate, OrderEntity order, String menuItemNameSnapshot, PlateTier tierSnapshot, MoneyYen priceAtPick, Instant pickedAt) {
+    public OrderLineEntity(UUID id, PlateEntity plate, OrderEntity order, String menuItemNameSnapshot, PlateTier tierSnapshot, YenAmount priceAtPick, Instant pickedAt) {
         this.id = id;
         this.plate = plate;
         this.order = order;
