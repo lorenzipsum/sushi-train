@@ -1,0 +1,8 @@
+app:
+  demo-belt-animation:
+    enabled: true
+    fixed-delay: 1000ms
+    initial-delay: 3s
+    clear-screen: true
+    # Optional: pin animation to a specific belt UUID.
+    # belt-id: 00000000-0000-0000-0000-000000000000
