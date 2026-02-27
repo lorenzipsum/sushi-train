@@ -629,10 +629,15 @@ class BeltControllerTest {
                 .expectStatus().is4xxClientError()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
-                .jsonPath("$.title").isEqualTo(PROBLEM_409_TITLE)
+                .jsonPath("$.title").isEqualTo(PROBLEM_409_NOT_ENOUGH_FREE_SLOTS_TITLE)
                 .jsonPath("$.status").isEqualTo(409)
-                .jsonPath("$.type").isEqualTo(PROBLEM_409_URI)
-                .jsonPath("$.detail").exists()
+                .jsonPath("$.type").isEqualTo(PROBLEM_409_NOT_ENOUGH_FREE_SLOTS_URI)
+                .jsonPath("$.detail").isEqualTo("Belt " + beltId + " does not have enough free slots: requested=3, available=1.")
+                .jsonPath("$.errorCode").isEqualTo("NOT_ENOUGH_FREE_SLOTS")
+                .jsonPath("$.beltId").isEqualTo(beltId.toString())
+                .jsonPath("$.requested").isEqualTo(3)
+                .jsonPath("$.available").isEqualTo(1)
+                .jsonPath("$.action").isEqualTo("reduce-number-of-plates")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/plates");
 
         verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));

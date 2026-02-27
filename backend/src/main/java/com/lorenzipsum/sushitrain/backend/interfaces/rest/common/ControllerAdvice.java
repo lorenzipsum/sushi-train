@@ -40,6 +40,16 @@ public class ControllerAdvice {
     public static final String PROBLEM_500_URI = PROBLEM_BASE_URI + "/internal";
     public static final String PROBLEM_409_TITLE = "Conflict";
     public static final String PROBLEM_409_URI = "https://lorenzipsum.com/problems/conflict";
+    public static final String PROBLEM_409_SEAT_ALREADY_OCCUPIED_TITLE = "Seat already occupied";
+    public static final String PROBLEM_409_SEAT_ALREADY_OCCUPIED_URI = PROBLEM_BASE_URI + "/seat-already-occupied";
+    public static final String PROBLEM_409_SEAT_NOT_OCCUPIED_TITLE = "Seat not occupied";
+    public static final String PROBLEM_409_SEAT_NOT_OCCUPIED_URI = PROBLEM_BASE_URI + "/seat-not-occupied";
+    public static final String PROBLEM_409_PLATE_NOT_PICKABLE_TITLE = "Plate not pickable";
+    public static final String PROBLEM_409_PLATE_NOT_PICKABLE_URI = PROBLEM_BASE_URI + "/plate-not-pickable";
+    public static final String PROBLEM_409_NOT_ENOUGH_FREE_SLOTS_TITLE = "Not enough free slots";
+    public static final String PROBLEM_409_NOT_ENOUGH_FREE_SLOTS_URI = PROBLEM_BASE_URI + "/not-enough-free-slots";
+    public static final String PROBLEM_409_STATE_CONFLICT_TITLE = "Resource state conflict";
+    public static final String PROBLEM_409_STATE_CONFLICT_URI = PROBLEM_BASE_URI + "/state-conflict";
 
     // 404
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -156,11 +166,17 @@ public class ControllerAdvice {
     // 409: not enough free slots on the belt to place a new plate
     @ExceptionHandler(NotEnoughFreeSlotsException.class)
     public ResponseEntity<ProblemDetail> handleNotEnoughFreeSlots(NotEnoughFreeSlotsException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
-        pd.setTitle(PROBLEM_409_TITLE);
-        pd.setType(URI.create(PROBLEM_409_URI));
-        pd.setDetail(ex.getMessage());
-        pd.setInstance(URI.create(request.getRequestURI()));
+        ProblemDetail pd = conflictProblem(
+                PROBLEM_409_NOT_ENOUGH_FREE_SLOTS_TITLE,
+                PROBLEM_409_NOT_ENOUGH_FREE_SLOTS_URI,
+                "Belt " + ex.beltId() + " does not have enough free slots: requested=" + ex.requested() + ", available=" + ex.available() + ".",
+                request,
+                "NOT_ENOUGH_FREE_SLOTS"
+        );
+        pd.setProperty("beltId", ex.beltId());
+        pd.setProperty("requested", ex.requested());
+        pd.setProperty("available", ex.available());
+        pd.setProperty("action", "reduce-number-of-plates");
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
@@ -170,11 +186,15 @@ public class ControllerAdvice {
     // 409: seat already occupied
     @ExceptionHandler(SeatAlreadyOccupiedException.class)
     public ResponseEntity<ProblemDetail> handleSeatOccupied(SeatAlreadyOccupiedException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
-        pd.setTitle(PROBLEM_409_TITLE);
-        pd.setType(URI.create(PROBLEM_409_URI));
-        pd.setDetail(ex.getMessage());
-        pd.setInstance(URI.create(request.getRequestURI()));
+        ProblemDetail pd = conflictProblem(
+                PROBLEM_409_SEAT_ALREADY_OCCUPIED_TITLE,
+                PROBLEM_409_SEAT_ALREADY_OCCUPIED_URI,
+                "Seat " + ex.seatId() + " already has an open order.",
+                request,
+                "SEAT_ALREADY_OCCUPIED"
+        );
+        pd.setProperty("seatId", ex.seatId());
+        pd.setProperty("action", "checkout-seat-first");
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
@@ -184,11 +204,15 @@ public class ControllerAdvice {
     // 409: seat is not occupied
     @ExceptionHandler(SeatNotOccupiedException.class)
     public ResponseEntity<ProblemDetail> handleSeatNotOccupied(SeatNotOccupiedException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
-        pd.setTitle(PROBLEM_409_TITLE);
-        pd.setType(URI.create(PROBLEM_409_URI));
-        pd.setDetail(ex.getMessage());
-        pd.setInstance(URI.create(request.getRequestURI()));
+        ProblemDetail pd = conflictProblem(
+                PROBLEM_409_SEAT_NOT_OCCUPIED_TITLE,
+                PROBLEM_409_SEAT_NOT_OCCUPIED_URI,
+                "Seat " + ex.seatId() + " has no open order.",
+                request,
+                "SEAT_NOT_OCCUPIED"
+        );
+        pd.setProperty("seatId", ex.seatId());
+        pd.setProperty("action", "occupy-seat-first");
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
@@ -198,11 +222,15 @@ public class ControllerAdvice {
     // 409: plate cannot be picked in current state
     @ExceptionHandler(PlateNotPickableException.class)
     public ResponseEntity<ProblemDetail> handlePlateNotPickable(PlateNotPickableException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
-        pd.setTitle(PROBLEM_409_TITLE);
-        pd.setType(URI.create(PROBLEM_409_URI));
-        pd.setDetail(ex.getMessage());
-        pd.setInstance(URI.create(request.getRequestURI()));
+        ProblemDetail pd = conflictProblem(
+                PROBLEM_409_PLATE_NOT_PICKABLE_TITLE,
+                PROBLEM_409_PLATE_NOT_PICKABLE_URI,
+                "Plate " + ex.plateId() + " cannot be picked in its current state.",
+                request,
+                "PLATE_NOT_PICKABLE"
+        );
+        pd.setProperty("plateId", ex.plateId());
+        pd.setProperty("action", "choose-another-plate");
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
@@ -212,15 +240,27 @@ public class ControllerAdvice {
     // 409: database-level uniqueness/conflict violations
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ProblemDetail> handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
-        pd.setTitle(PROBLEM_409_TITLE);
-        pd.setType(URI.create(PROBLEM_409_URI));
-        pd.setDetail("Request conflicts with current resource state");
-        pd.setInstance(URI.create(request.getRequestURI()));
+        ProblemDetail pd = conflictProblem(
+                PROBLEM_409_STATE_CONFLICT_TITLE,
+                PROBLEM_409_STATE_CONFLICT_URI,
+                "Request conflicts with current resource state.",
+                request,
+                "RESOURCE_STATE_CONFLICT"
+        );
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
                 .body(pd);
+    }
+
+    private ProblemDetail conflictProblem(String title, String typeUri, String detail, HttpServletRequest request, String errorCode) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle(title);
+        pd.setType(URI.create(typeUri));
+        pd.setDetail(detail);
+        pd.setInstance(URI.create(request.getRequestURI()));
+        pd.setProperty("errorCode", errorCode);
+        return pd;
     }
 
     // 500

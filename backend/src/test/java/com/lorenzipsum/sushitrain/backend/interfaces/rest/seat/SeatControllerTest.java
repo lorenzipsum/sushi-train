@@ -92,10 +92,13 @@ class SeatControllerTest {
                 .expectStatus().is4xxClientError()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
-                .jsonPath("$.title").isEqualTo(PROBLEM_409_TITLE)
+                .jsonPath("$.title").isEqualTo(PROBLEM_409_SEAT_ALREADY_OCCUPIED_TITLE)
                 .jsonPath("$.status").isEqualTo(409)
-                .jsonPath("$.type").isEqualTo(PROBLEM_409_URI)
-                .jsonPath("$.detail").isEqualTo("Seat already occupied: " + seatId)
+                .jsonPath("$.type").isEqualTo(PROBLEM_409_SEAT_ALREADY_OCCUPIED_URI)
+                .jsonPath("$.detail").isEqualTo("Seat " + seatId + " already has an open order.")
+                .jsonPath("$.errorCode").isEqualTo("SEAT_ALREADY_OCCUPIED")
+                .jsonPath("$.seatId").isEqualTo(seatId.toString())
+                .jsonPath("$.action").isEqualTo("checkout-seat-first")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/occupy");
     }
 
@@ -332,10 +335,11 @@ class SeatControllerTest {
                 .expectStatus().isEqualTo(409)
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
-                .jsonPath("$.title").isEqualTo(PROBLEM_409_TITLE)
+                .jsonPath("$.title").isEqualTo(PROBLEM_409_STATE_CONFLICT_TITLE)
                 .jsonPath("$.status").isEqualTo(409)
-                .jsonPath("$.type").isEqualTo(PROBLEM_409_URI)
-                .jsonPath("$.detail").isEqualTo("Request conflicts with current resource state")
+                .jsonPath("$.type").isEqualTo(PROBLEM_409_STATE_CONFLICT_URI)
+                .jsonPath("$.detail").isEqualTo("Request conflicts with current resource state.")
+                .jsonPath("$.errorCode").isEqualTo("RESOURCE_STATE_CONFLICT")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/order-lines");
 
         verify(orderService).pickPlate(eq(seatId), eq(plateId));
@@ -469,10 +473,13 @@ class SeatControllerTest {
                 .expectStatus().isEqualTo(409)
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectBody()
-                .jsonPath("$.title").isEqualTo(PROBLEM_409_TITLE)
+                .jsonPath("$.title").isEqualTo(PROBLEM_409_SEAT_NOT_OCCUPIED_TITLE)
                 .jsonPath("$.status").isEqualTo(409)
-                .jsonPath("$.type").isEqualTo(PROBLEM_409_URI)
-                .jsonPath("$.detail").isEqualTo("Seat is not occupied: " + seatId)
+                .jsonPath("$.type").isEqualTo(PROBLEM_409_SEAT_NOT_OCCUPIED_URI)
+                .jsonPath("$.detail").isEqualTo("Seat " + seatId + " has no open order.")
+                .jsonPath("$.errorCode").isEqualTo("SEAT_NOT_OCCUPIED")
+                .jsonPath("$.seatId").isEqualTo(seatId.toString())
+                .jsonPath("$.action").isEqualTo("occupy-seat-first")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/checkout");
 
         verify(orderService).checkout(seatId);
