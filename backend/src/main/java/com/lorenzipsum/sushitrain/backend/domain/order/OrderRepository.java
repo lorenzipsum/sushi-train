@@ -7,4 +7,6 @@ public interface OrderRepository {
     Optional<Order> findById(UUID uuid);
 
     Order save(Order order);
+
+    Optional<Order> findBySeatId(UUID seatId);
 }

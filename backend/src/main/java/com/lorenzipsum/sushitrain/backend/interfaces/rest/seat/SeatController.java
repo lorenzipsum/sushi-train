@@ -1,6 +1,8 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.seat;
 
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.PickPlateRequest;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatOrderDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
@@ -108,7 +111,51 @@ public class SeatController {
         return service.getSeatState(id);
     }
 
-    // TODO
-//    POST /api/v1/seats/{id}/order-lines body { "plateId": "..." }
-//    POST /api/v1/seats/{id}/checkout
+    @PostMapping(path = "/{id}/order-lines", consumes = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Pick a plate (create an order line)",
+            description = "Picks the given plate from the belt and adds it as an order line to the current open order of the seat. " +
+                    "Fails if the seat is not occupied or the plate is not pickable."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Plate picked and order line created",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SeatOrderDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter (e.g., id is not a UUID) or validation failed",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Seat not found (or referenced plate not found)",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Seat not occupied or plate not pickable",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public SeatOrderDto pickPlate(
+            @PathVariable UUID id,
+            @org.springframework.web.bind.annotation.RequestBody @Valid PickPlateRequest request
+    ) {
+        return service.pickPlate(id, request.plateId());
+    }
+
+    // TODO: POST /api/v1/seats/{id}/checkout
 }

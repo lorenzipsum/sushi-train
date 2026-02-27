@@ -55,4 +55,9 @@ public class JpaOrderRepository implements OrderRepository {
         OrderEntity saved = dao.save(orderEntity);
         return mapper.toDomain(saved);
     }
+
+    @Override
+    public Optional<Order> findBySeatId(UUID seatId) {
+        return dao.findBySeatId(seatId).map(mapper::toDomain);
+    }
 }
