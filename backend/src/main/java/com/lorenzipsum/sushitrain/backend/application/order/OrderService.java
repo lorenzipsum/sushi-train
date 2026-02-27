@@ -44,11 +44,22 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public SeatStateDto getSeatState(UUID seatId) {
+    public SeatOrderDto getSeatState(UUID seatId) {
         var seat = seatRepository.findById(seatId).orElseThrow(
                 () -> new ResourceNotFoundException("Seat", seatId)
         );
-        return new SeatStateDto(seat.getId(), seat.getLabel(), seat.getPositionIndex(), seatRepository.isSeatOccupied(seatId));
+
+        Order order = orderRepository.findBySeatId(seatId).orElseThrow(
+                () -> new IllegalStateException("No open order found for occupied seat: " + seatId)
+        );
+
+        return new SeatOrderDto(
+                seat.getId(),
+                seat.getLabel(),
+                seat.getPositionIndex(),
+                seatRepository.isSeatOccupied(seatId),
+                mapper.toSeatOrderDto(order)
+        );
     }
 
     @Transactional

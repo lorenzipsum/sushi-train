@@ -119,9 +119,28 @@ class SeatControllerTest {
     @DisplayName("GET /api/v1/seats/{id} - OK")
     void getSeatState_ok() {
         UUID seatId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+        Instant createdAt = Instant.parse("2026-01-01T00:00:00Z");
 
-        var expectedSeatState = new SeatStateDto(seatId, "A1", 0, false);
-        given(orderService.getSeatState(seatId)).willReturn(expectedSeatState);
+        var expectedSeatOrderDto = new SeatOrderDto(
+                seatId,
+                "A1",
+                0,
+                true,
+                new OrderSummaryDto(
+                        orderId,
+                        seatId,
+                        OrderStatus.OPEN,
+                        createdAt,
+                        null,
+                        List.of(
+                                new OrderLineDto("Salmon Nigiri", PlateTier.GREEN, 100)
+                        ),
+                        100
+                )
+        );
+
+        given(orderService.getSeatState(seatId)).willReturn(expectedSeatOrderDto);
 
         client.get().uri(BASE_URL_SEAT_CONTROLLER + "/{id}", seatId)
                 .exchange()
@@ -129,9 +148,20 @@ class SeatControllerTest {
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody()
                 .jsonPath("$.seatId").isEqualTo(seatId.toString())
-                .jsonPath("$.label").isEqualTo(expectedSeatState.label())
-                .jsonPath("$.positionIndex").isEqualTo(expectedSeatState.positionIndex())
-                .jsonPath("$.isOccupied").isEqualTo(expectedSeatState.isOccupied());
+                .jsonPath("$.label").isEqualTo("A1")
+                .jsonPath("$.positionIndex").isEqualTo(0)
+                .jsonPath("$.isOccupied").isEqualTo(true)
+                .jsonPath("$.orderSummary.orderId").isEqualTo(orderId.toString())
+                .jsonPath("$.orderSummary.seatId").isEqualTo(seatId.toString())
+                .jsonPath("$.orderSummary.status").isEqualTo(OrderStatus.OPEN.name())
+                .jsonPath("$.orderSummary.createdAt").isEqualTo(createdAt.toString())
+                .jsonPath("$.orderSummary.lines.length()").isEqualTo(1)
+                .jsonPath("$.orderSummary.lines[0].menuItemName").isEqualTo("Salmon Nigiri")
+                .jsonPath("$.orderSummary.lines[0].plateTier").isEqualTo(PlateTier.GREEN.name())
+                .jsonPath("$.orderSummary.lines[0].price").isEqualTo(100)
+                .jsonPath("$.orderSummary.totalPrice").isEqualTo(100);
+
+        verify(orderService).getSeatState(seatId);
     }
 
     @Test

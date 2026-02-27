@@ -107,7 +107,7 @@ public class SeatController {
                             schema = @Schema(implementation = ProblemDetail.class))
             )
     })
-    public SeatStateDto getSeatState(@PathVariable UUID id) {
+    public SeatOrderDto getSeatStateAndOrderSummary(@PathVariable UUID id) {
         return service.getSeatState(id);
     }
 
