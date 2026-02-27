@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface PlateRepository {
     Optional<Plate> findById(UUID uuid);
 
+    Optional<Plate> findByIdForUpdate(UUID uuid);
+
     Plate save(Plate plate);
 
     Page<Plate> findAll(Pageable pageable);

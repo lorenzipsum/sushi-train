@@ -3,15 +3,25 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.PlateEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 public interface PlateJpaDao extends JpaRepository<PlateEntity, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select p
+              from PlateEntity p
+             where p.id = :id
+            """)
+    java.util.Optional<PlateEntity> findByIdForUpdate(@Param("id") UUID id);
+
     @Query("""
             select p.id
               from PlateEntity p

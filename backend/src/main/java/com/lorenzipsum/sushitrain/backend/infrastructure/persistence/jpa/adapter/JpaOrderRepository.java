@@ -11,8 +11,6 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.mapper.
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.OrderJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -64,8 +62,8 @@ public class JpaOrderRepository implements OrderRepository {
     }
 
     @Override
-    public Page<Order> findAll(Pageable pageable) {
-        if (pageable == null) throw new IllegalArgumentException("Pageable cannot be null");
-        return dao.findAll(pageable).map(mapper::toDomain);
+    public Optional<Order> findBySeatIdForUpdate(UUID seatId) {
+        if (seatId == null) throw new IllegalArgumentException("seatId cannot be null");
+        return dao.findBySeatIdForUpdate(seatId).map(mapper::toDomain);
     }
 }
