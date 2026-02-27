@@ -3,6 +3,7 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt;
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -130,6 +131,41 @@ public class BeltController {
     public BeltSnapshotDto getBeltSnapshot(@PathVariable UUID id) {
         var rows = service.getBeltSnapshotRows(id);
         return snapshotMapper.toDto(rows);
+    }
+
+    @GetMapping(path = "/{id}/seats")
+    @Operation(
+            summary = "Get seat overview by belt",
+            description = "Returns all seats of a belt with occupancy status."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Seat overview returned",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SeatStateDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter (e.g., id is not a UUID)",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Belt not found",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public List<SeatStateDto> getSeatOverview(@PathVariable UUID id) {
+        return service.getSeatStates(id);
     }
 
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)

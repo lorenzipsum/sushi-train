@@ -11,6 +11,7 @@ import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.infrastructure.config.BeltPlacementProperties;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -494,6 +495,79 @@ class BeltControllerTest {
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/snapshot");
 
         verify(beltService).getBeltSnapshotRows(beltId);
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id}/seats returns 200 and seat occupancy overview")
+    void getSeatOverview_ok_returns_200_and_list() {
+        var beltId = UUID.randomUUID();
+        var seat1 = new SeatStateDto(UUID.randomUUID(), "A1", 1, true);
+        var seat2 = new SeatStateDto(UUID.randomUUID(), "A2", 3, false);
+
+        given(beltService.getSeatStates(beltId)).willReturn(List.of(seat1, seat2));
+
+        client.get()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}/seats", beltId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$").isArray()
+                .jsonPath("$.length()").isEqualTo(2)
+                .jsonPath("$[0].seatId").isEqualTo(seat1.seatId().toString())
+                .jsonPath("$[0].label").isEqualTo("A1")
+                .jsonPath("$[0].positionIndex").isEqualTo(1)
+                .jsonPath("$[0].isOccupied").isEqualTo(true)
+                .jsonPath("$[1].seatId").isEqualTo(seat2.seatId().toString())
+                .jsonPath("$[1].label").isEqualTo("A2")
+                .jsonPath("$[1].positionIndex").isEqualTo(3)
+                .jsonPath("$[1].isOccupied").isEqualTo(false);
+
+        verify(beltService).getSeatStates(beltId);
+        verifyNoMoreInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id}/seats with non-UUID id returns 400 invalid-parameter ProblemDetail")
+    void getSeatOverview_invalid_uuid_returns_400_problemDetail() {
+        var invalidId = "not-a-uuid";
+
+        client.get()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}/seats", invalidId)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_INVALID_PARAM_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_INVALID_PARAM_URI)
+                .jsonPath("$.detail").isEqualTo("Parameter 'id' must be a UUID")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + invalidId + "/seats");
+
+        verifyNoInteractions(beltService);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/belts/{id}/seats when belt does not exist returns 404 ProblemDetail")
+    void getSeatOverview_not_found_returns_404_problemDetail() {
+        var beltId = UUID.randomUUID();
+
+        given(beltService.getSeatStates(beltId)).willThrow(new ResourceNotFoundException("Belt", beltId));
+
+        client.get()
+                .uri(BASE_URL_BELT_CONTROLLER + "/{id}/seats", beltId)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_404_TITLE)
+                .jsonPath("$.status").isEqualTo(404)
+                .jsonPath("$.type").isEqualTo(PROBLEM_404_URI)
+                .jsonPath("$.detail").isEqualTo("Belt not found: " + beltId)
+                .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/seats");
+
+        verify(beltService).getSeatStates(beltId);
         verifyNoMoreInteractions(beltService);
     }
 

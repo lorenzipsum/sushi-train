@@ -12,8 +12,10 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.project
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.query.BeltJpaQuery;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltSlotJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.CreatePlateAndPlaceOnBeltRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.CreatedPlatesOnBeltResponse;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,7 @@ public class BeltService {
     private final BeltJpaQuery beltJpaQuery;
 
     private final BeltSlotJpaDao beltSlotJpaDao;
+    private final SeatJpaDao seatJpaDao;
     private final PlateService plateService;
     private final PlateJpaDao plateJpaDao;
     private final BeltPlacementProperties props;
@@ -36,11 +39,13 @@ public class BeltService {
     public BeltService(BeltRepository repository,
                        BeltJpaQuery beltJpaQuery,
                        BeltSlotJpaDao beltSlotJpaDao,
+                       SeatJpaDao seatJpaDao,
                        PlateService plateService,
                        PlateJpaDao plateJpaDao, BeltPlacementProperties props) {
         this.repository = repository;
         this.beltJpaQuery = beltJpaQuery;
         this.beltSlotJpaDao = beltSlotJpaDao;
+        this.seatJpaDao = seatJpaDao;
         this.plateService = plateService;
         this.plateJpaDao = plateJpaDao;
         this.props = props;
@@ -79,6 +84,13 @@ public class BeltService {
     @Transactional(readOnly = true)
     public List<Belt> getAllBelts() {
         return repository.findAllBelts();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SeatStateDto> getSeatStates(UUID beltId) {
+        if (beltId == null) throw new IllegalArgumentException("beltId cannot be null");
+        repository.findParamsById(beltId).orElseThrow(() -> new ResourceNotFoundException("Belt", beltId));
+        return seatJpaDao.findSeatStatesByBeltId(beltId);
     }
 
     @Transactional
