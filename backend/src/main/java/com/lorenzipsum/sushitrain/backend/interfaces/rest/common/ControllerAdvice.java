@@ -1,10 +1,13 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.common;
 
 import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsException;
+import com.lorenzipsum.sushitrain.backend.application.common.PlateNotPickableException;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.common.SeatAlreadyOccupiedException;
+import com.lorenzipsum.sushitrain.backend.application.common.SeatNotOccupiedException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -171,6 +174,48 @@ public class ControllerAdvice {
         pd.setTitle(PROBLEM_409_TITLE);
         pd.setType(URI.create(PROBLEM_409_URI));
         pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(request.getRequestURI()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(pd);
+    }
+
+    // 409: seat is not occupied
+    @ExceptionHandler(SeatNotOccupiedException.class)
+    public ResponseEntity<ProblemDetail> handleSeatNotOccupied(SeatNotOccupiedException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle(PROBLEM_409_TITLE);
+        pd.setType(URI.create(PROBLEM_409_URI));
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(request.getRequestURI()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(pd);
+    }
+
+    // 409: plate cannot be picked in current state
+    @ExceptionHandler(PlateNotPickableException.class)
+    public ResponseEntity<ProblemDetail> handlePlateNotPickable(PlateNotPickableException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle(PROBLEM_409_TITLE);
+        pd.setType(URI.create(PROBLEM_409_URI));
+        pd.setDetail(ex.getMessage());
+        pd.setInstance(URI.create(request.getRequestURI()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(pd);
+    }
+
+    // 409: database-level uniqueness/conflict violations
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ProblemDetail> handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle(PROBLEM_409_TITLE);
+        pd.setType(URI.create(PROBLEM_409_URI));
+        pd.setDetail("Request conflicts with current resource state");
         pd.setInstance(URI.create(request.getRequestURI()));
 
         return ResponseEntity.status(HttpStatus.CONFLICT)

@@ -182,6 +182,12 @@ public class SeatController {
                             schema = @Schema(implementation = ProblemDetail.class))
             ),
             @ApiResponse(
+                    responseCode = "409",
+                    description = "Seat not occupied",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
                     responseCode = "500",
                     description = "Unexpected server error",
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,

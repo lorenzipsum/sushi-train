@@ -1,7 +1,9 @@
 package com.lorenzipsum.sushitrain.backend.application.order;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
+import com.lorenzipsum.sushitrain.backend.application.common.PlateNotPickableException;
 import com.lorenzipsum.sushitrain.backend.application.common.SeatAlreadyOccupiedException;
+import com.lorenzipsum.sushitrain.backend.application.common.SeatNotOccupiedException;
 import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.order.Order;
 import com.lorenzipsum.sushitrain.backend.domain.order.OrderRepository;
@@ -73,8 +75,14 @@ public class OrderService {
                 () -> new ResourceNotFoundException("MenuItem", plate.getMenuItemId())
         );
         var order = orderRepository.findBySeatId(seatId).orElseThrow(
-                () -> new IllegalStateException("No open order found for occupied seat: " + seatId)
+                () -> new SeatNotOccupiedException(seatId)
         );
+        try {
+            plate.pick();
+        } catch (IllegalStateException ex) {
+            throw new PlateNotPickableException(plateId);
+        }
+        plateRepository.save(plate);
 
         order.addLineFromPlate(
                 plate.getId(),
@@ -101,7 +109,7 @@ public class OrderService {
         );
 
         Order order = orderRepository.findBySeatId(seatId).orElseThrow(
-                () -> new IllegalStateException("No open order found for occupied seat: " + seatId)
+                () -> new SeatNotOccupiedException(seatId)
         );
 
         order.checkout();

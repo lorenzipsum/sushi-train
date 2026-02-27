@@ -2,6 +2,7 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.seat;
 
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.common.SeatAlreadyOccupiedException;
+import com.lorenzipsum.sushitrain.backend.application.common.SeatNotOccupiedException;
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -314,15 +316,13 @@ class SeatControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/seats/{id}/order-lines - Conflict")
-    void pickPlate_conflict() {
+    @DisplayName("POST /api/v1/seats/{id}/order-lines - Conflict (same plate picked twice)")
+    void pickPlate_conflict_duplicatePlate() {
         UUID seatId = UUID.randomUUID();
         UUID plateId = UUID.randomUUID();
 
-        // You likely have a more specific exception here (SeatNotOccupiedException, PlateNotPickableException, etc.)
-        // Replace SeatAlreadyOccupiedException with the real one when available.
         given(orderService.pickPlate(eq(seatId), eq(plateId)))
-                .willThrow(new SeatAlreadyOccupiedException(seatId)); // placeholder
+                .willThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
 
         client.post()
                 .uri(BASE_URL_SEAT_CONTROLLER + "/{id}/order-lines", seatId)
@@ -335,7 +335,7 @@ class SeatControllerTest {
                 .jsonPath("$.title").isEqualTo(PROBLEM_409_TITLE)
                 .jsonPath("$.status").isEqualTo(409)
                 .jsonPath("$.type").isEqualTo(PROBLEM_409_URI)
-                .jsonPath("$.detail").isEqualTo("Seat already occupied: " + seatId)
+                .jsonPath("$.detail").isEqualTo("Request conflicts with current resource state")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/order-lines");
 
         verify(orderService).pickPlate(eq(seatId), eq(plateId));
@@ -451,6 +451,28 @@ class SeatControllerTest {
                 .jsonPath("$.status").isEqualTo(404)
                 .jsonPath("$.type").isEqualTo(PROBLEM_404_URI)
                 .jsonPath("$.detail").isEqualTo("Seat not found: " + seatId)
+                .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/checkout");
+
+        verify(orderService).checkout(seatId);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/seats/{id}/checkout - Conflict (seat not occupied)")
+    void checkout_conflict_seatNotOccupied() {
+        UUID seatId = UUID.randomUUID();
+
+        given(orderService.checkout(seatId)).willThrow(new SeatNotOccupiedException(seatId));
+
+        client.post()
+                .uri(BASE_URL_SEAT_CONTROLLER + "/{id}/checkout", seatId)
+                .exchange()
+                .expectStatus().isEqualTo(409)
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_409_TITLE)
+                .jsonPath("$.status").isEqualTo(409)
+                .jsonPath("$.type").isEqualTo(PROBLEM_409_URI)
+                .jsonPath("$.detail").isEqualTo("Seat is not occupied: " + seatId)
                 .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/checkout");
 
         verify(orderService).checkout(seatId);
