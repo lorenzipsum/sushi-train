@@ -9,9 +9,12 @@ import com.lorenzipsum.sushitrain.backend.domain.order.Order;
 import com.lorenzipsum.sushitrain.backend.domain.order.OrderRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.OrderSummaryDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatOrderDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatOrderDtoMapper;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +64,11 @@ public class OrderService {
                 seatRepository.isSeatOccupied(seatId),
                 optional.map(mapper::toSeatOrderDto).orElse(null)
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderSummaryDto> getAllOrders(Pageable pageable) {
+        return orderRepository.findAll(pageable).map(mapper::toSeatOrderDto);
     }
 
     @Transactional
