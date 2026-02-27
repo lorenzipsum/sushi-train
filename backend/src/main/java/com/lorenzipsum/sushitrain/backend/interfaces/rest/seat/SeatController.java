@@ -157,5 +157,38 @@ public class SeatController {
         return service.pickPlate(id, request.plateId());
     }
 
-    // TODO: POST /api/v1/seats/{id}/checkout
+    @PostMapping(path = "/{id}/checkout")
+    @Operation(
+            summary = "Checkout seat order",
+            description = "Checks out the current open order for the given seat."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Order checked out",
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SeatOrderDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid parameter (e.g., id is not a UUID)",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Seat not found",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Unexpected server error",
+                    content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class))
+            )
+    })
+    public SeatOrderDto checkout(@PathVariable UUID id) {
+        return service.checkout(id);
+    }
 }

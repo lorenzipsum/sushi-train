@@ -165,6 +165,35 @@ class SeatControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/seats/{id} - OK (no order assigned)")
+    void getSeatState_ok_noOrderAssigned() {
+        UUID seatId = UUID.randomUUID();
+
+        var expectedSeatOrderDto = new SeatOrderDto(
+                seatId,
+                "A2",
+                1,
+                false,
+                null
+        );
+
+        given(orderService.getSeatState(seatId)).willReturn(expectedSeatOrderDto);
+
+        client.get().uri(BASE_URL_SEAT_CONTROLLER + "/{id}", seatId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.seatId").isEqualTo(seatId.toString())
+                .jsonPath("$.label").isEqualTo("A2")
+                .jsonPath("$.positionIndex").isEqualTo(1)
+                .jsonPath("$.isOccupied").isEqualTo(false)
+                .jsonPath("$.orderSummary").doesNotExist();
+
+        verify(orderService).getSeatState(seatId);
+    }
+
+    @Test
     @DisplayName("GET /api/v1/seats/{id} - Not Found")
     void getSeatState_notFound() {
         UUID seatId = UUID.randomUUID();
@@ -353,6 +382,94 @@ class SeatControllerTest {
                 .jsonPath("$.detail").isEqualTo("One or more fields are invalid")
                 .jsonPath("$.errors.plateId").isEqualTo("must not be null")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/order-lines");
+
+        verifyNoInteractions(orderService);
+    }
+
+    ///
+    /// POST /api/v1/seats/{id}/checkout
+    ///
+
+    @Test
+    @DisplayName("POST /api/v1/seats/{id}/checkout - OK")
+    void checkout_ok() {
+        UUID seatId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+        Instant createdAt = Instant.parse("2026-01-01T00:00:00Z");
+        Instant closedAt = Instant.parse("2026-01-01T00:30:00Z");
+
+        var expectedSeatOrderDto = new SeatOrderDto(
+                seatId,
+                "A1",
+                0,
+                false,
+                new OrderSummaryDto(
+                        orderId,
+                        seatId,
+                        OrderStatus.CHECKED_OUT,
+                        createdAt,
+                        closedAt,
+                        List.of(new OrderLineDto("Salmon Nigiri", PlateTier.GREEN, 100)),
+                        100
+                )
+        );
+
+        given(orderService.checkout(seatId)).willReturn(expectedSeatOrderDto);
+
+        client.post()
+                .uri(BASE_URL_SEAT_CONTROLLER + "/{id}/checkout", seatId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.seatId").isEqualTo(seatId.toString())
+                .jsonPath("$.label").isEqualTo("A1")
+                .jsonPath("$.positionIndex").isEqualTo(0)
+                .jsonPath("$.isOccupied").isEqualTo(false)
+                .jsonPath("$.orderSummary.orderId").isEqualTo(orderId.toString())
+                .jsonPath("$.orderSummary.status").isEqualTo(OrderStatus.CHECKED_OUT.name())
+                .jsonPath("$.orderSummary.closedAt").isEqualTo(closedAt.toString())
+                .jsonPath("$.orderSummary.totalPrice").isEqualTo(100);
+
+        verify(orderService).checkout(seatId);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/seats/{id}/checkout - Not Found")
+    void checkout_notFound() {
+        UUID seatId = UUID.randomUUID();
+
+        given(orderService.checkout(seatId)).willThrow(new ResourceNotFoundException("Seat", seatId));
+
+        client.post()
+                .uri(BASE_URL_SEAT_CONTROLLER + "/{id}/checkout", seatId)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_404_TITLE)
+                .jsonPath("$.status").isEqualTo(404)
+                .jsonPath("$.type").isEqualTo(PROBLEM_404_URI)
+                .jsonPath("$.detail").isEqualTo("Seat not found: " + seatId)
+                .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/" + seatId + "/checkout");
+
+        verify(orderService).checkout(seatId);
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/seats/{id}/checkout - Bad Request (invalid UUID)")
+    void checkout_badRequest_invalidUuid() {
+        client.post()
+                .uri(BASE_URL_SEAT_CONTROLLER + "/{id}/checkout", "not-a-uuid")
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo(PROBLEM_400_INVALID_PARAM_TITLE)
+                .jsonPath("$.status").isEqualTo(400)
+                .jsonPath("$.type").isEqualTo(PROBLEM_400_INVALID_PARAM_URI)
+                .jsonPath("$.detail").isEqualTo("Parameter 'id' must be a UUID")
+                .jsonPath("$.instance").isEqualTo(BASE_URL_SEAT_CONTROLLER + "/not-a-uuid/checkout");
 
         verifyNoInteractions(orderService);
     }

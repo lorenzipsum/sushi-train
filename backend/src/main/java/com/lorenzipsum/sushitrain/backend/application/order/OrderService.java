@@ -13,6 +13,7 @@ import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -49,16 +50,14 @@ public class OrderService {
                 () -> new ResourceNotFoundException("Seat", seatId)
         );
 
-        Order order = orderRepository.findBySeatId(seatId).orElseThrow(
-                () -> new IllegalStateException("No open order found for occupied seat: " + seatId)
-        );
+        Optional<Order> optional = orderRepository.findBySeatId(seatId);
 
         return new SeatOrderDto(
                 seat.getId(),
                 seat.getLabel(),
                 seat.getPositionIndex(),
                 seatRepository.isSeatOccupied(seatId),
-                mapper.toSeatOrderDto(order)
+                optional.map(mapper::toSeatOrderDto).orElse(null)
         );
     }
 
@@ -73,8 +72,7 @@ public class OrderService {
         var menuItem = menuItemRepository.findById(plate.getMenuItemId()).orElseThrow(
                 () -> new ResourceNotFoundException("MenuItem", plate.getMenuItemId())
         );
-
-        Order order = orderRepository.findBySeatId(seatId).orElseThrow(
+        var order = orderRepository.findBySeatId(seatId).orElseThrow(
                 () -> new IllegalStateException("No open order found for occupied seat: " + seatId)
         );
 
@@ -92,6 +90,28 @@ public class OrderService {
                 seat.getLabel(),
                 seat.getPositionIndex(),
                 true,
+                mapper.toSeatOrderDto(savedOrder)
+        );
+    }
+
+    @Transactional
+    public SeatOrderDto checkout(UUID seatId) {
+        var seat = seatRepository.findById(seatId).orElseThrow(
+                () -> new ResourceNotFoundException("Seat", seatId)
+        );
+
+        Order order = orderRepository.findBySeatId(seatId).orElseThrow(
+                () -> new IllegalStateException("No open order found for occupied seat: " + seatId)
+        );
+
+        order.checkout();
+        Order savedOrder = orderRepository.save(order);
+
+        return new SeatOrderDto(
+                seat.getId(),
+                seat.getLabel(),
+                seat.getPositionIndex(),
+                seatRepository.isSeatOccupied(seatId),
                 mapper.toSeatOrderDto(savedOrder)
         );
     }
