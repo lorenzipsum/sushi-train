@@ -38,6 +38,12 @@ public class JpaPlateRepository implements PlateRepository {
     }
 
     @Override
+    public Optional<Plate> findByIdForUpdate(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Id cannot be null");
+        return dao.findByIdForUpdate(id).map(mapper::toDomain);
+    }
+
+    @Override
     @Transactional
     public Plate save(Plate plate) {
         if (plate == null) throw new IllegalArgumentException("Plate cannot be null");

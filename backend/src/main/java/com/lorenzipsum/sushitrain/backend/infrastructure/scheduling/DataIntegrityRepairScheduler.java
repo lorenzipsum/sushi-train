@@ -1,5 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.scheduling;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,10 +19,20 @@ class DataIntegrityRepairScheduler {
     private final DataIntegrityRepairService service;
     private final DataIntegrityRepairJobProperties props;
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private final Counter runsCounter;
+    private final Counter detectedPlatesCounter;
+    private final Counter repairedSlotsCounter;
+    private final Counter repairedPlatesCounter;
+    private final Counter failuresCounter;
 
-    DataIntegrityRepairScheduler(DataIntegrityRepairService service, DataIntegrityRepairJobProperties props) {
+    DataIntegrityRepairScheduler(DataIntegrityRepairService service, DataIntegrityRepairJobProperties props, MeterRegistry meterRegistry) {
         this.service = service;
         this.props = props;
+        this.runsCounter = meterRegistry.counter("sushitrain.data_integrity_repair.runs");
+        this.detectedPlatesCounter = meterRegistry.counter("sushitrain.data_integrity_repair.detected_plates");
+        this.repairedSlotsCounter = meterRegistry.counter("sushitrain.data_integrity_repair.repaired_slots");
+        this.repairedPlatesCounter = meterRegistry.counter("sushitrain.data_integrity_repair.repaired_plates");
+        this.failuresCounter = meterRegistry.counter("sushitrain.data_integrity_repair.failures");
     }
 
     @Scheduled(
@@ -38,7 +50,11 @@ class DataIntegrityRepairScheduler {
         }
 
         try {
+            runsCounter.increment();
             var summary = service.repairKnownAnomalies();
+            detectedPlatesCounter.increment(summary.detectedPlates());
+            repairedSlotsCounter.increment(summary.clearedSlots());
+            repairedPlatesCounter.increment(summary.markedPicked());
             if (summary.detectedPlates() > 0) {
                 log.warn(
                         "Repaired data anomalies: detectedPlates={}, clearedSlots={}, markedPicked={}",
@@ -50,6 +66,7 @@ class DataIntegrityRepairScheduler {
                 log.debug("No data anomalies detected.");
             }
         } catch (RuntimeException ex) {
+            failuresCounter.increment();
             log.error("Data integrity repair job failed.", ex);
             throw ex;
         } finally {
