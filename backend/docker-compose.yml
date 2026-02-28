@@ -27,7 +27,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: demo-mode
       DB_URL: jdbc:postgresql://postgres:5432/sushitrain
       DB_USER: sushitrain
       DB_PASSWORD: sushitrain

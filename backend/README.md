@@ -34,6 +34,13 @@ From the `backend` directory:
 docker compose up --build
 ```
 
+If Flyway fails with a checksum mismatch after migration file changes, reset local containers and volumes:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
 Backend:
 - http://localhost:8088
 
