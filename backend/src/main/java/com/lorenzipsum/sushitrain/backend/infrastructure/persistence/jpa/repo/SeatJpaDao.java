@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo;
 
-import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.SeatEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +17,7 @@ public interface SeatJpaDao extends JpaRepository<SeatEntity, UUID> {
     boolean isSeatOccupied(UUID seatId);
 
     @Query("""
-            SELECT new com.lorenzipsum.sushitrain.backend.application.view.SeatStateView(
+            SELECT new com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatStateRow(
                 s.id,
                 s.label,
                 s.positionIndex,
@@ -30,5 +29,5 @@ public interface SeatJpaDao extends JpaRepository<SeatEntity, UUID> {
             GROUP BY s.id, s.label, s.positionIndex
             ORDER BY s.positionIndex ASC
             """)
-    List<SeatStateView> findSeatStatesByBeltId(UUID beltId);
+    List<SeatStateRow> findSeatStatesByBeltId(UUID beltId);
 }

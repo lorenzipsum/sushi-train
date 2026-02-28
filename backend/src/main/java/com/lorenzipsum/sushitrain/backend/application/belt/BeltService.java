@@ -13,6 +13,7 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.query.B
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltSlotJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatStateRow;
 import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,7 +89,9 @@ public class BeltService {
     public List<SeatStateView> getSeatStates(UUID beltId) {
         if (beltId == null) throw new IllegalArgumentException("beltId cannot be null");
         repository.findParamsById(beltId).orElseThrow(() -> new ResourceNotFoundException("Belt", beltId));
-        return seatJpaDao.findSeatStatesByBeltId(beltId);
+        return seatJpaDao.findSeatStatesByBeltId(beltId).stream()
+                .map(this::toSeatStateView)
+                .toList();
     }
 
     @Transactional
@@ -139,5 +142,9 @@ public class BeltService {
         }
 
         return new CreatedPlatesResult(beltId, placed.size(), placed);
+    }
+
+    private SeatStateView toSeatStateView(SeatStateRow row) {
+        return new SeatStateView(row.seatId(), row.label(), row.positionIndex(), row.isOccupied());
     }
 }
