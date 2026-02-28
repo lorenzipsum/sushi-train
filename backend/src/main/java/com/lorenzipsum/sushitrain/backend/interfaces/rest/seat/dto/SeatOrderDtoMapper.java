@@ -4,6 +4,8 @@ import com.lorenzipsum.sushitrain.backend.application.view.OrderLineView;
 import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
 import com.lorenzipsum.sushitrain.backend.application.view.SeatOrderView;
 import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.OrderLineDto;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.OrderSummaryDto;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

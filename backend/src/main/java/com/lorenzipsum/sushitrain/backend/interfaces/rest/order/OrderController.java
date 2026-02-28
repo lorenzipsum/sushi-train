@@ -1,8 +1,8 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.order;
 
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.OrderSummaryDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.OrderSummaryDtoMapper;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.OrderSummaryDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

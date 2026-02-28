@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto;
+package com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto;
 
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 
