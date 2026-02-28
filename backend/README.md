@@ -98,6 +98,54 @@ src/main/resources
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
+## E2E Scenario Script
+
+Script path:
+- `scripts/e2e-scenario.ps1`
+
+What it covers:
+- create batches of plates on the belt
+- occupy seats, pick plates, checkout
+- expire on-belt plates
+- negative case: try to expire a picked plate
+- change belt speed
+
+Prerequisites:
+- backend is running and reachable (default: `http://localhost:8088`)
+- belt, seats, and menu items are available (for example via `local` / `demo-mode`)
+
+Run (default values):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\e2e-scenario.ps1
+```
+
+Run against custom base URL:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\e2e-scenario.ps1 -BaseUrl http://localhost:8088
+```
+
+Deterministic run (stable random selection):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\e2e-scenario.ps1 -BaseUrl http://localhost:8088 -Seed 42
+```
+
+Optional parameters:
+- `-CreateBatches` (default `5`)
+- `-PlatesPerBatch` (default `10`)
+- `-PickCount` (default `5`)
+- `-ExpireOnBeltCount` (default `3`)
+- `-Seed` (optional deterministic random seed)
+
+If the app fails on startup after Flyway migration changes while using Docker Compose, reset DB volume:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
 ## Known Warning
 
 Lombok on newer JDKs may emit this warning during tests/build:
