@@ -1,8 +1,8 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.demo;
 
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
+import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,7 +50,7 @@ class DemoBeltConsoleAnimator {
             }
 
             Belt belt = beltService.getBelt(beltId);
-            List<SeatStateDto> seatStates = beltService.getSeatStates(beltId);
+            List<SeatStateView> seatStates = beltService.getSeatStates(beltId);
             printFrame(renderFrame(belt, seatStates));
         } catch (RuntimeException ex) {
             System.err.println("[demo-mode] Belt animation skipped: " + ex.getMessage());
@@ -66,7 +66,7 @@ class DemoBeltConsoleAnimator {
         return belts.getFirst().getId();
     }
 
-    private String renderFrame(Belt belt, List<SeatStateDto> seats) {
+    private String renderFrame(Belt belt, List<SeatStateView> seats) {
         int slotCount = belt.getSlotCount();
         int offset = belt.currentOffsetAt(Instant.now());
 
@@ -88,11 +88,11 @@ class DemoBeltConsoleAnimator {
             beltTrack[visualPos] = 'o';
         }
 
-        long occupiedSeats = seats.stream().filter(SeatStateDto::isOccupied).count();
+        long occupiedSeats = seats.stream().filter(SeatStateView::isOccupied).count();
         long platesOnBelt = belt.getSlots().stream().filter(s -> s.getPlateId() != null).count();
 
         String seatSummary = seats.stream()
-                .sorted(Comparator.comparingInt(SeatStateDto::positionIndex))
+                .sorted(Comparator.comparingInt(SeatStateView::positionIndex))
                 .map(s -> s.label() + ":" + (s.isOccupied() ? "occupied" : "free"))
                 .collect(Collectors.joining(" | "));
 

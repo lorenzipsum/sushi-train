@@ -1,8 +1,11 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt;
 
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltService;
+import com.lorenzipsum.sushitrain.backend.application.belt.CreatePlatesCommand;
+import com.lorenzipsum.sushitrain.backend.application.belt.CreatedPlatesResult;
 import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsException;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
+import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
 import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
@@ -11,7 +14,6 @@ import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.infrastructure.config.BeltPlacementProperties;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,7 +40,7 @@ import static com.lorenzipsum.sushitrain.backend.interfaces.rest.common.Controll
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@Import({BeltDtoMapperImpl.class, BeltSnapshotDtoMapper.class})
+@Import({BeltDtoMapperImpl.class, BeltSnapshotDtoMapper.class, BeltPlatesDtoMapperImpl.class})
 @WebMvcTest(BeltController.class)
 @AutoConfigureRestTestClient
 @EnableConfigurationProperties(BeltPlacementProperties.class)
@@ -502,8 +504,8 @@ class BeltControllerTest {
     @DisplayName("GET /api/v1/belts/{id}/seats returns 200 and seat occupancy overview")
     void getSeatOverview_ok_returns_200_and_list() {
         var beltId = UUID.randomUUID();
-        var seat1 = new SeatStateDto(UUID.randomUUID(), "A1", 1, true);
-        var seat2 = new SeatStateDto(UUID.randomUUID(), "A2", 3, false);
+        var seat1 = new SeatStateView(UUID.randomUUID(), "A1", 1, true);
+        var seat2 = new SeatStateView(UUID.randomUUID(), "A2", 3, false);
 
         given(beltService.getSeatStates(beltId)).willReturn(List.of(seat1, seat2));
 
@@ -584,16 +586,16 @@ class BeltControllerTest {
 
         var request = new CreatePlateAndPlaceOnBeltRequest(menuItemId, 2, PlateTier.GREEN, 450, expiresAt);
 
-        var response = new CreatedPlatesOnBeltResponse(
+        var response = new CreatedPlatesResult(
                 beltId,
                 2,
                 List.of(
-                        new CreatedPlatesOnBeltResponse.PlacedPlateDto(UUID.randomUUID(), UUID.randomUUID(), 0, menuItemId, expiresAt),
-                        new CreatedPlatesOnBeltResponse.PlacedPlateDto(UUID.randomUUID(), UUID.randomUUID(), 5, menuItemId, expiresAt)
+                        new CreatedPlatesResult.PlacedPlateView(UUID.randomUUID(), UUID.randomUUID(), 0, menuItemId, expiresAt),
+                        new CreatedPlatesResult.PlacedPlateView(UUID.randomUUID(), UUID.randomUUID(), 5, menuItemId, expiresAt)
                 )
         );
 
-        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class)))
                 .willReturn(response);
 
         client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
@@ -613,7 +615,7 @@ class BeltControllerTest {
                 .jsonPath("$.placedPlates[0].menuItemId").isEqualTo(menuItemId.toString())
                 .jsonPath("$.placedPlates[0].expiresAt").exists();
 
-        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class));
         verifyNoMoreInteractions(beltService);
     }
 
@@ -668,7 +670,7 @@ class BeltControllerTest {
     void createPlatesAndPlaceOnBelt_not_found_returns_404_problemDetail() {
         var beltId = UUID.randomUUID();
 
-        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class)))
                 .willThrow(new ResourceNotFoundException("Belt", beltId));
 
         client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
@@ -684,7 +686,7 @@ class BeltControllerTest {
                 .jsonPath("$.detail").isEqualTo("Belt not found: " + beltId)
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/plates");
 
-        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class));
         verifyNoMoreInteractions(beltService);
     }
 
@@ -693,7 +695,7 @@ class BeltControllerTest {
     void createPlatesAndPlaceOnBelt_not_enough_slots_returns_409_problemDetail() {
         var beltId = UUID.randomUUID();
 
-        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class)))
                 .willThrow(new NotEnoughFreeSlotsException(beltId, 3, 1));
 
         client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
@@ -714,7 +716,7 @@ class BeltControllerTest {
                 .jsonPath("$.action").isEqualTo("reduce-number-of-plates")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/plates");
 
-        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class));
         verifyNoMoreInteractions(beltService);
     }
 
@@ -723,7 +725,7 @@ class BeltControllerTest {
     void createPlatesAndPlaceOnBelt_unexpected_returns_500_problemDetail() {
         var beltId = UUID.randomUUID();
 
-        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class)))
+        given(beltService.createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class)))
                 .willThrow(new RuntimeException("boom"));
 
         client.post().uri(BASE_URL_BELT_CONTROLLER + "/{id}/plates", beltId)
@@ -739,7 +741,7 @@ class BeltControllerTest {
                 .jsonPath("$.detail").isEqualTo("Unexpected server error")
                 .jsonPath("$.instance").isEqualTo(BASE_URL_BELT_CONTROLLER + "/" + beltId + "/plates");
 
-        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlateAndPlaceOnBeltRequest.class));
+        verify(beltService).createPlatesAndPlaceOnBelt(eq(beltId), any(CreatePlatesCommand.class));
         verifyNoMoreInteractions(beltService);
     }
 }

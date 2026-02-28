@@ -29,9 +29,11 @@ public class OrderController {
     static final String BASE_URL_ORDER_CONTROLLER = "/api/v1/orders";
 
     private final OrderService service;
+    private final OrderSummaryDtoMapper mapper;
 
-    public OrderController(OrderService service) {
+    public OrderController(OrderService service, OrderSummaryDtoMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @GetMapping
@@ -64,6 +66,6 @@ public class OrderController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(200) int size
     ) {
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return new PagedModel<>(service.getAllOrders(pageable));
+        return new PagedModel<>(service.getAllOrders(pageable).map(mapper::toDto));
     }
 }

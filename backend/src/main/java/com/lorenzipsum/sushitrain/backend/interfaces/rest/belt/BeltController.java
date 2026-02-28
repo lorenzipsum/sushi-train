@@ -30,11 +30,16 @@ public class BeltController {
     private final BeltService service;
     private final BeltDtoMapper mapper;
     private final BeltSnapshotDtoMapper snapshotMapper;
+    private final BeltPlatesDtoMapper platesMapper;
 
-    public BeltController(BeltService service, BeltDtoMapper mapper, BeltSnapshotDtoMapper snapshotMapper) {
+    public BeltController(BeltService service,
+                          BeltDtoMapper mapper,
+                          BeltSnapshotDtoMapper snapshotMapper,
+                          BeltPlatesDtoMapper platesMapper) {
         this.service = service;
         this.mapper = mapper;
         this.snapshotMapper = snapshotMapper;
+        this.platesMapper = platesMapper;
     }
 
     @GetMapping()
@@ -165,7 +170,7 @@ public class BeltController {
             )
     })
     public List<SeatStateDto> getSeatOverview(@PathVariable UUID id) {
-        return service.getSeatStates(id);
+        return platesMapper.toSeatStateDtos(service.getSeatStates(id));
     }
 
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
@@ -250,16 +255,8 @@ public class BeltController {
             @PathVariable UUID id,
             @RequestBody @Valid CreatePlateAndPlaceOnBeltRequest request
     ) {
-        var effectiveNum = (request.numOfPlates() == null) ? 1 : request.numOfPlates();
-
-        var normalized = new CreatePlateAndPlaceOnBeltRequest(
-                request.menuItemId(),
-                effectiveNum,
-                request.tierSnapshot(),
-                request.priceAtCreation(),
-                request.expiresAt()
+        return platesMapper.toResponse(
+                service.createPlatesAndPlaceOnBelt(id, platesMapper.toCommand(request))
         );
-
-        return service.createPlatesAndPlaceOnBelt(id, normalized);
     }
 }

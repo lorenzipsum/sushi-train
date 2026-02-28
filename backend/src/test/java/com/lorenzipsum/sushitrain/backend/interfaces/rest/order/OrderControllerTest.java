@@ -1,15 +1,16 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.order;
 
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
+import com.lorenzipsum.sushitrain.backend.application.view.OrderLineView;
+import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.OrderLineDto;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.OrderSummaryDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @WebMvcTest(OrderController.class)
 @AutoConfigureRestTestClient
+@Import(OrderSummaryDtoMapperImpl.class)
 class OrderControllerTest {
 
     @Autowired
@@ -50,13 +52,13 @@ class OrderControllerTest {
         var pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         var content = List.of(
-                new OrderSummaryDto(
+                new OrderSummaryView(
                         orderId,
                         seatId,
                         OrderStatus.OPEN,
                         createdAt,
                         null,
-                        List.of(new OrderLineDto("Salmon Nigiri", PlateTier.GREEN, 100)),
+                        List.of(new OrderLineView("Salmon Nigiri", PlateTier.GREEN, 100)),
                         100
                 )
         );

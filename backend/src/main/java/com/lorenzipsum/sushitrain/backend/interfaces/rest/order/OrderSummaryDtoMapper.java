@@ -1,0 +1,10 @@
+package com.lorenzipsum.sushitrain.backend.interfaces.rest.order;
+
+import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.OrderSummaryDto;
+import org.mapstruct.Mapper;
+
+@Mapper(componentModel = "spring")
+public interface OrderSummaryDtoMapper {
+    OrderSummaryDto toDto(OrderSummaryView view);
+}

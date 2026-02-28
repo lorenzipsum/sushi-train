@@ -5,6 +5,10 @@ import com.lorenzipsum.sushitrain.backend.application.common.PlateNotPickableExc
 import com.lorenzipsum.sushitrain.backend.application.common.SeatAlreadyOccupiedException;
 import com.lorenzipsum.sushitrain.backend.application.common.SeatNotOccupiedException;
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
+import com.lorenzipsum.sushitrain.backend.application.view.OrderLineView;
+import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
+import com.lorenzipsum.sushitrain.backend.application.view.SeatOrderView;
+import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.*;
@@ -13,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -30,6 +35,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 @WebMvcTest(SeatController.class)
 @AutoConfigureRestTestClient
+@Import(SeatOrderDtoMapperImpl.class)
 class SeatControllerTest {
 
     @Autowired
@@ -47,7 +53,7 @@ class SeatControllerTest {
     void occupySeat_created() {
         UUID seatId = UUID.randomUUID();
 
-        var expectedSeatState = new SeatStateDto(seatId, "A1", 0, true);
+        var expectedSeatState = new SeatStateView(seatId, "A1", 0, true);
         given(orderService.occupySeat(seatId)).willReturn(expectedSeatState);
 
         client.post().uri(BASE_URL_SEAT_CONTROLLER + "/{id}/occupy", seatId)
@@ -127,19 +133,19 @@ class SeatControllerTest {
         UUID orderId = UUID.randomUUID();
         Instant createdAt = Instant.parse("2026-01-01T00:00:00Z");
 
-        var expectedSeatOrderDto = new SeatOrderDto(
+        var expectedSeatOrderDto = new SeatOrderView(
                 seatId,
                 "A1",
                 0,
                 true,
-                new OrderSummaryDto(
+                new OrderSummaryView(
                         orderId,
                         seatId,
                         OrderStatus.OPEN,
                         createdAt,
                         null,
                         List.of(
-                                new OrderLineDto("Salmon Nigiri", PlateTier.GREEN, 100)
+                                new OrderLineView("Salmon Nigiri", PlateTier.GREEN, 100)
                         ),
                         100
                 )
@@ -174,7 +180,7 @@ class SeatControllerTest {
     void getSeatState_ok_noOrderAssigned() {
         UUID seatId = UUID.randomUUID();
 
-        var expectedSeatOrderDto = new SeatOrderDto(
+        var expectedSeatOrderDto = new SeatOrderView(
                 seatId,
                 "A2",
                 1,
@@ -243,20 +249,20 @@ class SeatControllerTest {
         UUID orderId = UUID.randomUUID();
         Instant createdAt = Instant.parse("2026-01-01T00:00:00Z");
 
-        var expectedSeatOrderDto = new SeatOrderDto(
+        var expectedSeatOrderDto = new SeatOrderView(
                 seatId,
                 "A1",
                 1,
                 true,
-                new OrderSummaryDto(
+                new OrderSummaryView(
                         orderId,
                         seatId,
                         OrderStatus.OPEN,
                         createdAt,
                         null,
                         List.of(
-                                new OrderLineDto("Salmon Nigiri", PlateTier.GREEN, 100),
-                                new OrderLineDto("Tuna Roll", PlateTier.RED, 100)
+                                new OrderLineView("Salmon Nigiri", PlateTier.GREEN, 100),
+                                new OrderLineView("Tuna Roll", PlateTier.RED, 100)
                         ),
                         200
                 )
@@ -404,18 +410,18 @@ class SeatControllerTest {
         Instant createdAt = Instant.parse("2026-01-01T00:00:00Z");
         Instant closedAt = Instant.parse("2026-01-01T00:30:00Z");
 
-        var expectedSeatOrderDto = new SeatOrderDto(
+        var expectedSeatOrderDto = new SeatOrderView(
                 seatId,
                 "A1",
                 0,
                 false,
-                new OrderSummaryDto(
+                new OrderSummaryView(
                         orderId,
                         seatId,
                         OrderStatus.CHECKED_OUT,
                         createdAt,
                         closedAt,
-                        List.of(new OrderLineDto("Salmon Nigiri", PlateTier.GREEN, 100)),
+                        List.of(new OrderLineView("Salmon Nigiri", PlateTier.GREEN, 100)),
                         100
                 )
         );

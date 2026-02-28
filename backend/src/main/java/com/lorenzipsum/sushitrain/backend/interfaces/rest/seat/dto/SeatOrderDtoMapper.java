@@ -1,20 +1,18 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto;
 
-import com.lorenzipsum.sushitrain.backend.domain.order.Order;
-import com.lorenzipsum.sushitrain.backend.domain.order.OrderLine;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.common.dto.YenAmountMapper;
+import com.lorenzipsum.sushitrain.backend.application.view.OrderLineView;
+import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
+import com.lorenzipsum.sushitrain.backend.application.view.SeatOrderView;
+import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = YenAmountMapper.class)
+@Mapper(componentModel = "spring")
 public interface SeatOrderDtoMapper {
-    @Mapping(target = "orderId", source = "id")
-    @Mapping(target = "totalPrice", expression = "java(order.total().amount())")
-    OrderSummaryDto toSeatOrderDto(Order order);
+    SeatStateDto toSeatStateDto(SeatStateView view);
 
-    @SuppressWarnings("unused")
-    @Mapping(target = "menuItemName", source = "menuItemNameSnapshot")
-    @Mapping(target = "plateTier", source = "tierSnapshot")
-    @Mapping(target = "price", source = "priceAtPick")
-    OrderLineDto toOrderLineDto(OrderLine orderLine);
+    SeatOrderDto toSeatOrderDto(SeatOrderView view);
+
+    OrderSummaryDto toOrderSummaryDto(OrderSummaryView view);
+
+    OrderLineDto toOrderLineDto(OrderLineView view);
 }

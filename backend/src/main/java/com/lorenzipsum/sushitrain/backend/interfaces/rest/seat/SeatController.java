@@ -3,6 +3,7 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.seat;
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.PickPlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatOrderDto;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatOrderDtoMapper;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,9 +29,11 @@ public class SeatController {
     static final String BASE_URL_SEAT_CONTROLLER = "/api/v1/seats";
 
     private final OrderService service;
+    private final SeatOrderDtoMapper mapper;
 
-    public SeatController(OrderService service) {
+    public SeatController(OrderService service, SeatOrderDtoMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @PostMapping(path = "/{id}/occupy")
@@ -73,7 +76,7 @@ public class SeatController {
             )
     })
     public SeatStateDto occupySeat(@PathVariable UUID id) {
-        return service.occupySeat(id);
+        return mapper.toSeatStateDto(service.occupySeat(id));
     }
 
     @GetMapping(path = "/{id}")
@@ -108,7 +111,7 @@ public class SeatController {
             )
     })
     public SeatOrderDto getSeatStateAndOrderSummary(@PathVariable UUID id) {
-        return service.getSeatState(id);
+        return mapper.toSeatOrderDto(service.getSeatState(id));
     }
 
     @PostMapping(path = "/{id}/order-lines", consumes = APPLICATION_JSON_VALUE)
@@ -154,7 +157,7 @@ public class SeatController {
             @PathVariable UUID id,
             @org.springframework.web.bind.annotation.RequestBody @Valid PickPlateRequest request
     ) {
-        return service.pickPlate(id, request.plateId());
+        return mapper.toSeatOrderDto(service.pickPlate(id, request.plateId()));
     }
 
     @PostMapping(path = "/{id}/checkout")
@@ -195,6 +198,6 @@ public class SeatController {
             )
     })
     public SeatOrderDto checkout(@PathVariable UUID id) {
-        return service.checkout(id);
+        return mapper.toSeatOrderDto(service.checkout(id));
     }
 }

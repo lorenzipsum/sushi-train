@@ -13,9 +13,7 @@ import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.query.B
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltSlotJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.CreatePlateAndPlaceOnBeltRequest;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.CreatedPlatesOnBeltResponse;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
+import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,14 +85,14 @@ public class BeltService {
     }
 
     @Transactional(readOnly = true)
-    public List<SeatStateDto> getSeatStates(UUID beltId) {
+    public List<SeatStateView> getSeatStates(UUID beltId) {
         if (beltId == null) throw new IllegalArgumentException("beltId cannot be null");
         repository.findParamsById(beltId).orElseThrow(() -> new ResourceNotFoundException("Belt", beltId));
         return seatJpaDao.findSeatStatesByBeltId(beltId);
     }
 
     @Transactional
-    public CreatedPlatesOnBeltResponse createPlatesAndPlaceOnBelt(UUID beltId, CreatePlateAndPlaceOnBeltRequest request) {
+    public CreatedPlatesResult createPlatesAndPlaceOnBelt(UUID beltId, CreatePlatesCommand request) {
         if (beltId == null) throw new IllegalArgumentException("beltId cannot be null");
         if (request == null) throw new IllegalArgumentException("request cannot be null");
         if (request.menuItemId() == null) throw new IllegalArgumentException("menuItemId cannot be null");
@@ -114,7 +112,7 @@ public class BeltService {
             throw new NotEnoughFreeSlotsException(beltId, num, pickedSlots.size());
         }
 
-        var placed = new ArrayList<CreatedPlatesOnBeltResponse.PlacedPlateDto>(num);
+        var placed = new ArrayList<CreatedPlatesResult.PlacedPlateView>(num);
 
         for (var slot : pickedSlots) {
             Plate plate = plateService.createPlate(
@@ -131,7 +129,7 @@ public class BeltService {
             // assign to slot via JPA reference
             slot.setPlate(plateJpaDao.getReferenceById(plate.getId()));
 
-            placed.add(new CreatedPlatesOnBeltResponse.PlacedPlateDto(
+            placed.add(new CreatedPlatesResult.PlacedPlateView(
                     plate.getId(),
                     slot.getId(),
                     slot.getPositionIndex(),
@@ -140,6 +138,6 @@ public class BeltService {
             ));
         }
 
-        return new CreatedPlatesOnBeltResponse(beltId, placed.size(), placed);
+        return new CreatedPlatesResult(beltId, placed.size(), placed);
     }
 }
