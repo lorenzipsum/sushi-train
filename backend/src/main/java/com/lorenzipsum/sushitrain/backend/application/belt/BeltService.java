@@ -104,10 +104,14 @@ public class BeltService {
         var placed = new ArrayList<CreatedPlatesResult.PlacedPlateView>(num);
 
         for (var slot : pickedSlots) {
+            YenAmount priceAtCreation = request.priceAtCreation() == null
+                    ? null
+                    : YenAmount.of(request.priceAtCreation());
+
             Plate plate = plateService.createPlate(
                     request.menuItemId(),
                     request.tierSnapshot(),
-                    YenAmount.of(request.priceAtCreation()),
+                    priceAtCreation,
                     request.expiresAt()
             );
 
