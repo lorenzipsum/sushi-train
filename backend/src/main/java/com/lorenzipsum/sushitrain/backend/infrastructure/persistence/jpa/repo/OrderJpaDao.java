@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -54,6 +55,29 @@ public interface OrderJpaDao extends JpaRepository<OrderEntity, UUID> {
             ORDER BY ol.pickedAt ASC
             """)
     List<OrderLineView> findOrderLinesByOrderIds(@Param("orderIds") List<UUID> orderIds);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            WITH ranked_open_orders AS (
+                SELECT
+                    o.id,
+                    o.created_at,
+                    row_number() OVER (
+                        PARTITION BY o.seat_id
+                        ORDER BY o.created_at, o.id
+                    ) AS rn
+                FROM orders o
+                WHERE o.status = 'OPEN'
+            )
+            UPDATE orders o
+               SET status = 'CANCELED',
+                   closed_at = GREATEST(o.created_at, COALESCE(o.closed_at, now()))
+              FROM ranked_open_orders r
+             WHERE o.id = r.id
+               AND r.rn > 1
+               AND o.status = 'OPEN'
+            """, nativeQuery = true)
+    int closeDuplicateOpenOrdersPerSeat();
 
     interface OrderHeaderView {
         UUID getOrderId();

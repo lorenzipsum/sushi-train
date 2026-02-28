@@ -1,6 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.scheduling;
 
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltSlotJpaDao;
+import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.OrderJpaDao;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,11 +25,15 @@ class DataIntegrityRepairServiceTest {
     @Mock
     BeltSlotJpaDao beltSlotJpaDao;
 
+    @Mock
+    OrderJpaDao orderJpaDao;
+
     @InjectMocks
     DataIntegrityRepairService service;
 
     @Test
     void repairKnownAnomalies_no_anomalies() {
+        given(orderJpaDao.closeDuplicateOpenOrdersPerSeat()).willReturn(0);
         given(plateJpaDao.findOnBeltPlateIdsAlreadyAssignedToOrderLine()).willReturn(List.of());
 
         var result = service.repairKnownAnomalies();
@@ -36,6 +41,8 @@ class DataIntegrityRepairServiceTest {
         assertEquals(0, result.detectedPlates());
         assertEquals(0, result.clearedSlots());
         assertEquals(0, result.markedPicked());
+        assertEquals(0, result.duplicateOpenOrdersClosed());
+        verify(orderJpaDao).closeDuplicateOpenOrdersPerSeat();
         verify(plateJpaDao).findOnBeltPlateIdsAlreadyAssignedToOrderLine();
         verifyNoInteractions(beltSlotJpaDao);
     }
@@ -46,6 +53,7 @@ class DataIntegrityRepairServiceTest {
         UUID plate2 = UUID.randomUUID();
         var ids = List.of(plate1, plate2);
 
+        given(orderJpaDao.closeDuplicateOpenOrdersPerSeat()).willReturn(1);
         given(plateJpaDao.findOnBeltPlateIdsAlreadyAssignedToOrderLine()).willReturn(ids);
         given(beltSlotJpaDao.clearPlateAssignments(ids)).willReturn(2);
         given(plateJpaDao.markPicked(ids)).willReturn(2);
@@ -55,9 +63,11 @@ class DataIntegrityRepairServiceTest {
         assertEquals(2, result.detectedPlates());
         assertEquals(2, result.clearedSlots());
         assertEquals(2, result.markedPicked());
+        assertEquals(1, result.duplicateOpenOrdersClosed());
+        verify(orderJpaDao).closeDuplicateOpenOrdersPerSeat();
         verify(plateJpaDao).findOnBeltPlateIdsAlreadyAssignedToOrderLine();
         verify(beltSlotJpaDao).clearPlateAssignments(ids);
         verify(plateJpaDao).markPicked(ids);
-        verifyNoMoreInteractions(plateJpaDao, beltSlotJpaDao);
+        verifyNoMoreInteractions(orderJpaDao, plateJpaDao, beltSlotJpaDao);
     }
 }

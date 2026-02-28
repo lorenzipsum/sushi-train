@@ -44,7 +44,7 @@ class FlywayMigrationIT {
                 .load();
 
         var result = flyway.migrate();
-        assertTrue(result.migrationsExecuted >= 2, "Expected at least 2 migrations to run");
+        assertTrue(result.migrationsExecuted >= 3, "Expected at least 3 migrations to run");
 
         try (Connection c = DriverManager.getConnection(
                 db.getJdbcUrl(), db.getUsername(), db.getPassword())) {
@@ -55,6 +55,7 @@ class FlywayMigrationIT {
             assertTrue(tableExists(c, "orders"));
             assertTrue(tableExists(c, "order_line"));
             assertTrue(tableExists(c, "belt_slot"));
+            assertTrue(openOrderUniqueIndexExists(c));
         }
     }
 
@@ -62,6 +63,15 @@ class FlywayMigrationIT {
         try (var ps = c.prepareStatement(
                 "select 1 from information_schema.tables where table_schema='public' and table_name=?")) {
             ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private boolean openOrderUniqueIndexExists(Connection c) throws Exception {
+        try (var ps = c.prepareStatement(
+                "select 1 from pg_indexes where schemaname='public' and indexname='uk_orders_open_per_seat'")) {
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }

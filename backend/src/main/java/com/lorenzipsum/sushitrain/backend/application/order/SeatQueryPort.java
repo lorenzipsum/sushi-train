@@ -6,6 +6,8 @@ import java.util.UUID;
 public interface SeatQueryPort {
     Optional<SeatInfo> findSeatById(UUID seatId);
 
+    Optional<SeatInfo> findSeatByIdForUpdate(UUID seatId);
+
     boolean isSeatOccupied(UUID seatId);
 
     record SeatInfo(

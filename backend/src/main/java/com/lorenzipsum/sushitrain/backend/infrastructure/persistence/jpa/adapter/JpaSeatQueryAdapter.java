@@ -22,6 +22,12 @@ public class JpaSeatQueryAdapter implements SeatQueryPort {
     }
 
     @Override
+    public Optional<SeatInfo> findSeatByIdForUpdate(UUID seatId) {
+        return seatJpaDao.findByIdForUpdate(seatId)
+                .map(seat -> new SeatInfo(seat.getId(), seat.getLabel(), seat.getPositionIndex()));
+    }
+
+    @Override
     public boolean isSeatOccupied(UUID seatId) {
         return seatJpaDao.isSeatOccupied(seatId);
     }

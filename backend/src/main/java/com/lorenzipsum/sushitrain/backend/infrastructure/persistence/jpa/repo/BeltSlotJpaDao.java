@@ -26,8 +26,15 @@ public interface BeltSlotJpaDao extends JpaRepository<BeltSlotEntity, UUID> {
     @Query("""
            update BeltSlotEntity s
               set s.plate = null
+            where s.plate.id = :plateId
+           """)
+    void clearPlateAssignment(@Param("plateId") UUID plateId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+           update BeltSlotEntity s
+              set s.plate = null
             where s.plate.id in :plateIds
            """)
-    @SuppressWarnings("UnusedReturnValue")
     int clearPlateAssignments(@Param("plateIds") List<UUID> plateIds);
 }

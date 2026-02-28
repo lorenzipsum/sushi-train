@@ -23,6 +23,7 @@ class DataIntegrityRepairScheduler {
     private final Counter detectedPlatesCounter;
     private final Counter repairedSlotsCounter;
     private final Counter repairedPlatesCounter;
+    private final Counter repairedOrdersCounter;
     private final Counter failuresCounter;
 
     DataIntegrityRepairScheduler(DataIntegrityRepairService service, DataIntegrityRepairJobProperties props, MeterRegistry meterRegistry) {
@@ -32,6 +33,7 @@ class DataIntegrityRepairScheduler {
         this.detectedPlatesCounter = meterRegistry.counter("sushitrain.data_integrity_repair.detected_plates");
         this.repairedSlotsCounter = meterRegistry.counter("sushitrain.data_integrity_repair.repaired_slots");
         this.repairedPlatesCounter = meterRegistry.counter("sushitrain.data_integrity_repair.repaired_plates");
+        this.repairedOrdersCounter = meterRegistry.counter("sushitrain.data_integrity_repair.repaired_orders");
         this.failuresCounter = meterRegistry.counter("sushitrain.data_integrity_repair.failures");
     }
 
@@ -55,12 +57,14 @@ class DataIntegrityRepairScheduler {
             detectedPlatesCounter.increment(summary.detectedPlates());
             repairedSlotsCounter.increment(summary.clearedSlots());
             repairedPlatesCounter.increment(summary.markedPicked());
-            if (summary.detectedPlates() > 0) {
+            repairedOrdersCounter.increment(summary.duplicateOpenOrdersClosed());
+            if (summary.detectedPlates() > 0 || summary.duplicateOpenOrdersClosed() > 0) {
                 log.warn(
-                        "Repaired data anomalies: detectedPlates={}, clearedSlots={}, markedPicked={}",
+                        "Repaired data anomalies: detectedPlates={}, clearedSlots={}, markedPicked={}, duplicateOpenOrdersClosed={}",
                         summary.detectedPlates(),
                         summary.clearedSlots(),
-                        summary.markedPicked()
+                        summary.markedPicked(),
+                        summary.duplicateOpenOrdersClosed()
                 );
             } else {
                 log.debug("No data anomalies detected.");

@@ -1,13 +1,23 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo;
 
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.SeatEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SeatJpaDao extends JpaRepository<SeatEntity, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT s
+            FROM SeatEntity s
+            WHERE s.id = :seatId
+            """)
+    Optional<SeatEntity> findByIdForUpdate(UUID seatId);
 
     @Query("""
             SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END

@@ -27,29 +27,32 @@ public class OrderService {
     private final PlateRepository plateRepository;
     private final MenuItemRepository menuItemRepository;
     private final OrderQueryPort orderQueryPort;
+    private final BeltSlotCommandPort beltSlotCommandPort;
 
     public OrderService(OrderRepository orderRepository,
                         SeatQueryPort seatQueryPort,
                         PlateRepository plateRepository,
                         MenuItemRepository menuItemRepository,
-                        OrderQueryPort orderQueryPort) {
+                        OrderQueryPort orderQueryPort,
+                        BeltSlotCommandPort beltSlotCommandPort) {
         this.orderRepository = orderRepository;
         this.seatQueryPort = seatQueryPort;
         this.plateRepository = plateRepository;
         this.menuItemRepository = menuItemRepository;
         this.orderQueryPort = orderQueryPort;
+        this.beltSlotCommandPort = beltSlotCommandPort;
     }
 
     @Transactional
     public SeatStateView occupySeat(UUID seatId) {
-        var seat = seatQueryPort.findSeatById(seatId).orElseThrow(
+        var seat = seatQueryPort.findSeatByIdForUpdate(seatId).orElseThrow(
                 () -> new ResourceNotFoundException("Seat", seatId)
         );
         if (seatQueryPort.isSeatOccupied(seatId)) {
             throw new SeatAlreadyOccupiedException(seatId);
         }
         orderRepository.save(Order.open(seatId));
-        return new SeatStateView(seat.seatId(), seat.label(), seat.positionIndex(), seatQueryPort.isSeatOccupied(seatId));
+        return new SeatStateView(seat.seatId(), seat.label(), seat.positionIndex(), true);
     }
 
     @Transactional(readOnly = true)
@@ -94,6 +97,7 @@ public class OrderService {
             throw new PlateNotPickableException(plateId);
         }
         plateRepository.save(plate);
+        beltSlotCommandPort.clearPlateAssignment(plate.getId());
 
         order.addLineFromPlate(
                 plate.getId(),

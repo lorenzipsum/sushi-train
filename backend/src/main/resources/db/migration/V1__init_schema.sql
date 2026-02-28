@@ -67,6 +67,7 @@ BEGIN
     CREATE INDEX idx_orders_seat ON orders(seat_id);
     CREATE INDEX idx_orders_status_created ON orders(status, created_at);
     CREATE INDEX idx_orders_status ON orders(status);
+    CREATE UNIQUE INDEX uk_orders_open_per_seat ON orders (seat_id) WHERE status = 'OPEN';
 
     -- ORDER LINE
     CREATE TABLE order_line (
