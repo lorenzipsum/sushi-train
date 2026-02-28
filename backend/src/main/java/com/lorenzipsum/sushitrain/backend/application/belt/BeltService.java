@@ -3,17 +3,11 @@ package com.lorenzipsum.sushitrain.backend.application.belt;
 import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsException;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
+import com.lorenzipsum.sushitrain.backend.application.view.BeltSlotPlateView;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.plate.Plate;
-import com.lorenzipsum.sushitrain.backend.infrastructure.config.BeltPlacementProperties;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.query.BeltJpaQuery;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltSlotJpaDao;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatStateRow;
 import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,27 +21,21 @@ import java.util.UUID;
 public class BeltService {
 
     private final BeltRepository repository;
-    private final BeltJpaQuery beltJpaQuery;
-
-    private final BeltSlotJpaDao beltSlotJpaDao;
-    private final SeatJpaDao seatJpaDao;
+    private final BeltQueryPort beltQueryPort;
+    private final BeltSlotAllocationCommandPort beltSlotAllocationPort;
     private final PlateService plateService;
-    private final PlateJpaDao plateJpaDao;
-    private final BeltPlacementProperties props;
+    private final BeltPlacementRules beltPlacementRules;
 
     public BeltService(BeltRepository repository,
-                       BeltJpaQuery beltJpaQuery,
-                       BeltSlotJpaDao beltSlotJpaDao,
-                       SeatJpaDao seatJpaDao,
+                       BeltQueryPort beltQueryPort,
+                       BeltSlotAllocationCommandPort beltSlotAllocationPort,
                        PlateService plateService,
-                       PlateJpaDao plateJpaDao, BeltPlacementProperties props) {
+                       BeltPlacementRules beltPlacementRules) {
         this.repository = repository;
-        this.beltJpaQuery = beltJpaQuery;
-        this.beltSlotJpaDao = beltSlotJpaDao;
-        this.seatJpaDao = seatJpaDao;
+        this.beltQueryPort = beltQueryPort;
+        this.beltSlotAllocationPort = beltSlotAllocationPort;
         this.plateService = plateService;
-        this.plateJpaDao = plateJpaDao;
-        this.props = props;
+        this.beltPlacementRules = beltPlacementRules;
     }
 
     @Transactional
@@ -73,9 +61,9 @@ public class BeltService {
     }
 
     @Transactional(readOnly = true)
-    public List<BeltSlotPlateRow> getBeltSnapshotRows(UUID id) {
+    public List<BeltSlotPlateView> getBeltSnapshotRows(UUID id) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
-        var rows = beltJpaQuery.findBeltSnapshot(id);
+        var rows = beltQueryPort.findBeltSnapshot(id);
         if (rows == null || rows.isEmpty()) throw new ResourceNotFoundException("Belt", id);
         return rows;
     }
@@ -89,9 +77,7 @@ public class BeltService {
     public List<SeatStateView> getSeatStates(UUID beltId) {
         if (beltId == null) throw new IllegalArgumentException("beltId cannot be null");
         repository.findParamsById(beltId).orElseThrow(() -> new ResourceNotFoundException("Belt", beltId));
-        return seatJpaDao.findSeatStatesByBeltId(beltId).stream()
-                .map(this::toSeatStateView)
-                .toList();
+        return beltQueryPort.findSeatStates(beltId);
     }
 
     @Transactional
@@ -105,12 +91,12 @@ public class BeltService {
 
         int num = (request.numOfPlates() == null) ? 1 : request.numOfPlates();
 
-        var freeSlots = beltSlotJpaDao.findFreeSlotsForUpdate(beltId);
+        var freeSlots = beltSlotAllocationPort.findFreeSlotsForUpdate(beltId);
         if (freeSlots.size() < num) {
             throw new NotEnoughFreeSlotsException(beltId, num, freeSlots.size());
         }
 
-        var pickedSlots = BeltSlotPlacement.pickSlots(freeSlots, props.minEmptySlotsBetweenNewPlates(), num);
+        var pickedSlots = BeltSlotPlacement.pickSlots(freeSlots, beltPlacementRules.minEmptySlotsBetweenNewPlates(), num);
         if (pickedSlots.size() < num) {
             throw new NotEnoughFreeSlotsException(beltId, num, pickedSlots.size());
         }
@@ -130,21 +116,17 @@ public class BeltService {
             plateService.save(plate);
 
             // assign to slot via JPA reference
-            slot.setPlate(plateJpaDao.getReferenceById(plate.getId()));
+            beltSlotAllocationPort.assignPlateToSlot(slot.slotId(), plate.getId());
 
             placed.add(new CreatedPlatesResult.PlacedPlateView(
                     plate.getId(),
-                    slot.getId(),
-                    slot.getPositionIndex(),
+                    slot.slotId(),
+                    slot.positionIndex(),
                     plate.getMenuItemId(),
                     plate.getExpiresAt()
             ));
         }
 
         return new CreatedPlatesResult(beltId, placed.size(), placed);
-    }
-
-    private SeatStateView toSeatStateView(SeatStateRow row) {
-        return new SeatStateView(row.seatId(), row.label(), row.positionIndex(), row.isOccupied());
     }
 }

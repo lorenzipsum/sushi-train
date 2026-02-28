@@ -62,6 +62,18 @@ src/main/java/com/lorenzipsum/sushitrain/backend
 `- interfaces/      # REST controllers and DTOs
 ```
 
+## Abstraction And Naming
+
+To keep boundaries explicit and naming consistent across layers:
+
+- `*Repository` (domain): aggregate persistence contracts (load/save aggregate roots).
+- `*QueryPort` (application): read/projection use-cases that are not aggregate repositories.
+- `*CommandPort` (application): write/operational actions that are not aggregate repositories.
+- `Jpa*Repository` / `Jpa*Adapter` (infrastructure): JPA implementations of repositories and ports.
+
+This keeps application services readable by intent: aggregate state changes go through repositories, while
+cross-aggregate reads and operational DB actions go through query/command ports.
+
 ```text
 src/main/resources
 |- application.yaml

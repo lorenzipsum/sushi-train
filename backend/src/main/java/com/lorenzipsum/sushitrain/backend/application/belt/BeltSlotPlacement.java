@@ -1,7 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.application.belt;
 
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltSlotEntity;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +16,7 @@ final class BeltSlotPlacement {
      * 2) If pass (1) cannot reach requested count, but there are enough free slots overall, then "top up"
      * by adding more free slots in order, ignoring the gap rule, without removing already picked ones.
      */
-    static List<BeltSlotEntity> pickSlots(List<BeltSlotEntity> freeSlotsOrdered, int minGapSlots, int count) {
+    static List<BeltSlotAllocationCommandPort.FreeBeltSlot> pickSlots(List<BeltSlotAllocationCommandPort.FreeBeltSlot> freeSlotsOrdered, int minGapSlots, int count) {
         if (count <= 0 || freeSlotsOrdered == null || freeSlotsOrdered.isEmpty()) {
             return List.of();
         }
@@ -30,13 +28,13 @@ final class BeltSlotPlacement {
         }
 
         // Pass 1: gap-respecting
-        var picked = new ArrayList<BeltSlotEntity>(target);
+        var picked = new ArrayList<BeltSlotAllocationCommandPort.FreeBeltSlot>(target);
         Integer lastPos = null;
 
         for (var slot : freeSlotsOrdered) {
             if (picked.size() >= target) break;
 
-            int pos = slot.getPositionIndex();
+            int pos = slot.positionIndex();
             if (lastPos == null || (pos - lastPos) >= minGapSlots) {
                 picked.add(slot);
                 lastPos = pos;
@@ -47,13 +45,13 @@ final class BeltSlotPlacement {
         if (picked.size() < target) {
             var pickedIds = new HashSet<>(picked.size());
             for (var s : picked) {
-                pickedIds.add(s.getId());
+                pickedIds.add(s.slotId());
             }
 
             for (var slot : freeSlotsOrdered) {
                 if (picked.size() >= target) break;
 
-                if (pickedIds.add(slot.getId())) {
+                if (pickedIds.add(slot.slotId())) {
                     picked.add(slot);
                 }
             }

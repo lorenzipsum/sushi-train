@@ -5,6 +5,7 @@ import com.lorenzipsum.sushitrain.backend.application.belt.CreatePlatesCommand;
 import com.lorenzipsum.sushitrain.backend.application.belt.CreatedPlatesResult;
 import com.lorenzipsum.sushitrain.backend.application.common.NotEnoughFreeSlotsException;
 import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
+import com.lorenzipsum.sushitrain.backend.application.view.BeltSlotPlateView;
 import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.SeatSpec;
@@ -12,7 +13,6 @@ import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
 import com.lorenzipsum.sushitrain.backend.infrastructure.config.BeltPlacementProperties;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ import static com.lorenzipsum.sushitrain.backend.interfaces.rest.common.Controll
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@Import({BeltDtoMapperImpl.class, BeltSnapshotDtoMapper.class, BeltPlatesDtoMapperImpl.class})
+@Import(BeltApiMapperImpl.class)
 @WebMvcTest(BeltController.class)
 @AutoConfigureRestTestClient
 @EnableConfigurationProperties(BeltPlacementProperties.class)
@@ -406,8 +406,8 @@ class BeltControllerTest {
         var expiresAt = Instant.parse("2026-02-20T02:00:00Z");
 
         var rows = List.of(
-                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot0, 0, null, null, null, null, null, null, null),
-                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, YenAmount.of(450), PlateStatus.ON_BELT, expiresAt)
+                new BeltSlotPlateView(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot0, 0, null, null, null, null, null, null, null),
+                new BeltSlotPlateView(beltId, "Main Belt", 2, 10, startedAt, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, YenAmount.of(450), PlateStatus.ON_BELT, expiresAt)
         );
 
         given(beltService.getBeltSnapshotRows(beltId)).willReturn(rows);

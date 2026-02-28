@@ -1,8 +1,6 @@
 package com.lorenzipsum.sushitrain.backend.application.plate;
 
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.BeltSlotJpaDao;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.PlateJpaDao;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,12 +11,10 @@ import java.util.UUID;
 @Service
 public class PlateExpiryService {
 
-    private final PlateJpaDao plateJpaDao;
-    private final BeltSlotJpaDao beltSlotJpaDao;
+    private final PlateExpiryCommandPort plateExpiryCommandPort;
 
-    public PlateExpiryService(PlateJpaDao plateJpaDao, BeltSlotJpaDao beltSlotJpaDao) {
-        this.plateJpaDao = plateJpaDao;
-        this.beltSlotJpaDao = beltSlotJpaDao;
+    public PlateExpiryService(PlateExpiryCommandPort plateExpiryCommandPort) {
+        this.plateExpiryCommandPort = plateExpiryCommandPort;
     }
 
     /**
@@ -30,7 +26,7 @@ public class PlateExpiryService {
     public int expirePlatesNow() {
         Instant now = Instant.now();
 
-        List<UUID> expiredPlateIds = plateJpaDao.findExpiredPlateIds(
+        List<UUID> expiredPlateIds = plateExpiryCommandPort.findExpiredPlateIds(
                 List.of(PlateStatus.CREATED, PlateStatus.ON_BELT),
                 now
         );
@@ -42,13 +38,13 @@ public class PlateExpiryService {
         // TODO (batching): If the system grows (many belts / many plates), implement process in chunks (e.g. 500 ids at a time)
 
         // 1) mark plates as EXPIRED (only if they are still CREATED/ON_BELT, keeps it idempotent)
-        int updatedPlates = plateJpaDao.markExpired(
+        int updatedPlates = plateExpiryCommandPort.markExpired(
                 expiredPlateIds,
                 List.of(PlateStatus.CREATED, PlateStatus.ON_BELT)
         );
 
         // 2) remove plates from belt slots (if assigned)
-        beltSlotJpaDao.clearPlateAssignments(expiredPlateIds);
+        plateExpiryCommandPort.clearPlateAssignments(expiredPlateIds);
 
         return updatedPlates;
     }

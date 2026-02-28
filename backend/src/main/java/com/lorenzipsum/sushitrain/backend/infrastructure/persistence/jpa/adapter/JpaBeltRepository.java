@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapter;
 
-import com.lorenzipsum.sushitrain.backend.application.common.ResourceNotFoundException;
 import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.domain.belt.BeltRepository;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltEntity;
@@ -82,7 +81,7 @@ public class JpaBeltRepository implements BeltRepository {
                 belt.getBaseRotationOffset(),
                 belt.getOffsetStartedAt()
         );
-        if (updated == 0) throw new ResourceNotFoundException("Belt", belt.getId());
+        if (updated == 0) throw new IllegalStateException("Belt not found while updating parameters: " + belt.getId());
         return belt;
     }
 

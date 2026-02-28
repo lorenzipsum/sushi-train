@@ -1,9 +1,9 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto;
 
+import com.lorenzipsum.sushitrain.backend.application.view.BeltSlotPlateView;
 import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.projection.BeltSlotPlateRow;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class BeltSnapshotDtoMapperTest {
 
-    private final BeltSnapshotDtoMapper mapper = new BeltSnapshotDtoMapper();
+    private final BeltApiMapper mapper = new BeltApiMapperImpl();
 
     @Test
     void mapsRowsToSnapshotDto_ok() {
@@ -27,11 +27,11 @@ class BeltSnapshotDtoMapperTest {
         var expires = Instant.parse("2026-02-20T02:00:00Z");
 
         var rows = List.of(
-                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, now, 900, 3, slot0, 0, null, null, null, null, null, null, null),
-                new BeltSlotPlateRow(beltId, "Main Belt", 2, 10, now, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, YenAmount.of(450), PlateStatus.ON_BELT, expires)
+                new BeltSlotPlateView(beltId, "Main Belt", 2, 10, now, 900, 3, slot0, 0, null, null, null, null, null, null, null),
+                new BeltSlotPlateView(beltId, "Main Belt", 2, 10, now, 900, 3, slot1, 1, plateId, menuItemId, "Salmon Nigiri", PlateTier.GREEN, YenAmount.of(450), PlateStatus.ON_BELT, expires)
         );
 
-        var dto = mapper.toDto(rows);
+        var dto = mapper.toSnapshotDto(rows);
 
         assertThat(dto).isNotNull();
         assertThat(dto.beltId()).isEqualTo(beltId);

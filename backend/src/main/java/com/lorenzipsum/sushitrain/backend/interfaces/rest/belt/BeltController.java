@@ -28,18 +28,11 @@ public class BeltController {
     static final String BASE_URL_BELT_CONTROLLER = "/api/v1/belts";
 
     private final BeltService service;
-    private final BeltDtoMapper mapper;
-    private final BeltSnapshotDtoMapper snapshotMapper;
-    private final BeltPlatesDtoMapper platesMapper;
+    private final BeltApiMapper mapper;
 
-    public BeltController(BeltService service,
-                          BeltDtoMapper mapper,
-                          BeltSnapshotDtoMapper snapshotMapper,
-                          BeltPlatesDtoMapper platesMapper) {
+    public BeltController(BeltService service, BeltApiMapper mapper) {
         this.service = service;
         this.mapper = mapper;
-        this.snapshotMapper = snapshotMapper;
-        this.platesMapper = platesMapper;
     }
 
     @GetMapping()
@@ -135,7 +128,7 @@ public class BeltController {
     })
     public BeltSnapshotDto getBeltSnapshot(@PathVariable UUID id) {
         var rows = service.getBeltSnapshotRows(id);
-        return snapshotMapper.toDto(rows);
+        return mapper.toSnapshotDto(rows);
     }
 
     @GetMapping(path = "/{id}/seats")
@@ -170,7 +163,7 @@ public class BeltController {
             )
     })
     public List<SeatStateDto> getSeatOverview(@PathVariable UUID id) {
-        return platesMapper.toSeatStateDtos(service.getSeatStates(id));
+        return mapper.toSeatStateDtos(service.getSeatStates(id));
     }
 
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
@@ -255,8 +248,8 @@ public class BeltController {
             @PathVariable UUID id,
             @RequestBody @Valid CreatePlateAndPlaceOnBeltRequest request
     ) {
-        return platesMapper.toResponse(
-                service.createPlatesAndPlaceOnBelt(id, platesMapper.toCommand(request))
+        return mapper.toResponse(
+                service.createPlatesAndPlaceOnBelt(id, mapper.toCommand(request))
         );
     }
 }

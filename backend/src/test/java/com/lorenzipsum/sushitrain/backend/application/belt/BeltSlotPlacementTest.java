@@ -1,6 +1,5 @@
 package com.lorenzipsum.sushitrain.backend.application.belt;
 
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.entity.BeltSlotEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,7 @@ class BeltSlotPlacementTest {
         var picked = BeltSlotPlacement.pickSlots(slots, 5, 3);
 
         // Expect 0, 5, 10
-        assertThat(picked).extracting(BeltSlotEntity::getPositionIndex)
+        assertThat(picked).extracting(BeltSlotAllocationCommandPort.FreeBeltSlot::positionIndex)
                 .containsExactly(0, 5, 10);
     }
 
@@ -41,7 +40,7 @@ class BeltSlotPlacementTest {
         var picked = BeltSlotPlacement.pickSlots(slots, 5, 3);
 
         // Pass 1 would pick [0, 5], then top-up adds next earliest not already picked -> [0, 5, 1]
-        assertThat(picked).extracting(BeltSlotEntity::getPositionIndex)
+        assertThat(picked).extracting(BeltSlotAllocationCommandPort.FreeBeltSlot::positionIndex)
                 .containsExactly(0, 5, 1);
     }
 
@@ -62,18 +61,18 @@ class BeltSlotPlacementTest {
 
         var picked = BeltSlotPlacement.pickSlots(slots, 5, 10);
 
-        assertThat(picked).extracting(BeltSlotEntity::getPositionIndex)
+        assertThat(picked).extracting(BeltSlotAllocationCommandPort.FreeBeltSlot::positionIndex)
                 .containsExactly(0, 1, 2, 3);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static List<BeltSlotEntity> slotsAtPositions(int startInclusive, int endExclusive) {
+    private static List<BeltSlotAllocationCommandPort.FreeBeltSlot> slotsAtPositions(int startInclusive, int endExclusive) {
         return IntStream.range(startInclusive, endExclusive)
                 .mapToObj(BeltSlotPlacementTest::slot)
                 .toList();
     }
 
-    private static BeltSlotEntity slot(int positionIndex) {
-        return new BeltSlotEntity(UUID.randomUUID(), positionIndex, null, null);
+    private static BeltSlotAllocationCommandPort.FreeBeltSlot slot(int positionIndex) {
+        return new BeltSlotAllocationCommandPort.FreeBeltSlot(UUID.randomUUID(), positionIndex);
     }
 }

@@ -1,4 +1,4 @@
-package com.lorenzipsum.sushitrain.backend.interfaces.rest.order;
+package com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto;
 
 import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.OrderSummaryDto;

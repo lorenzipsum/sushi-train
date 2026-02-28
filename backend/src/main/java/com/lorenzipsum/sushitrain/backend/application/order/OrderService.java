@@ -12,99 +12,71 @@ import com.lorenzipsum.sushitrain.backend.domain.menu.MenuItemRepository;
 import com.lorenzipsum.sushitrain.backend.domain.order.Order;
 import com.lorenzipsum.sushitrain.backend.domain.order.OrderRepository;
 import com.lorenzipsum.sushitrain.backend.domain.plate.PlateRepository;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.OrderJpaDao;
-import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.repo.SeatJpaDao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final SeatJpaDao seatRepository;
+    private final SeatQueryPort seatQueryPort;
     private final PlateRepository plateRepository;
     private final MenuItemRepository menuItemRepository;
-    private final OrderJpaDao orderJpaDao;
+    private final OrderQueryPort orderQueryPort;
 
-    public OrderService(OrderRepository orderRepository, SeatJpaDao seatRepository, PlateRepository plateRepository, MenuItemRepository menuItemRepository, OrderJpaDao orderJpaDao) {
+    public OrderService(OrderRepository orderRepository,
+                        SeatQueryPort seatQueryPort,
+                        PlateRepository plateRepository,
+                        MenuItemRepository menuItemRepository,
+                        OrderQueryPort orderQueryPort) {
         this.orderRepository = orderRepository;
-        this.seatRepository = seatRepository;
+        this.seatQueryPort = seatQueryPort;
         this.plateRepository = plateRepository;
         this.menuItemRepository = menuItemRepository;
-        this.orderJpaDao = orderJpaDao;
+        this.orderQueryPort = orderQueryPort;
     }
 
     @Transactional
     public SeatStateView occupySeat(UUID seatId) {
-        var seat = seatRepository.findById(seatId).orElseThrow(
+        var seat = seatQueryPort.findSeatById(seatId).orElseThrow(
                 () -> new ResourceNotFoundException("Seat", seatId)
         );
-        if (seatRepository.isSeatOccupied(seatId)) {
+        if (seatQueryPort.isSeatOccupied(seatId)) {
             throw new SeatAlreadyOccupiedException(seatId);
         }
         orderRepository.save(Order.open(seatId));
-        return new SeatStateView(seat.getId(), seat.getLabel(), seat.getPositionIndex(), seatRepository.isSeatOccupied(seatId));
+        return new SeatStateView(seat.seatId(), seat.label(), seat.positionIndex(), seatQueryPort.isSeatOccupied(seatId));
     }
 
     @Transactional(readOnly = true)
     public SeatOrderView getSeatState(UUID seatId) {
-        var seat = seatRepository.findById(seatId).orElseThrow(
+        var seat = seatQueryPort.findSeatById(seatId).orElseThrow(
                 () -> new ResourceNotFoundException("Seat", seatId)
         );
 
         Optional<Order> optional = orderRepository.findBySeatId(seatId);
 
         return new SeatOrderView(
-                seat.getId(),
-                seat.getLabel(),
-                seat.getPositionIndex(),
-                seatRepository.isSeatOccupied(seatId),
+                seat.seatId(),
+                seat.label(),
+                seat.positionIndex(),
+                seatQueryPort.isSeatOccupied(seatId),
                 optional.map(this::toOrderSummaryView).orElse(null)
         );
     }
 
     @Transactional(readOnly = true)
     public Page<OrderSummaryView> getAllOrders(Pageable pageable) {
-        var headerPage = orderJpaDao.findOrderHeaders(pageable);
-        var orderIds = headerPage.getContent().stream()
-                .map(OrderJpaDao.OrderHeaderView::getOrderId)
-                .toList();
-
-        Map<UUID, java.util.List<OrderLineView>> linesByOrderId = orderIds.isEmpty()
-                ? java.util.Map.of()
-                : orderJpaDao.findOrderLinesByOrderIds(orderIds).stream()
-                .collect(Collectors.groupingBy(
-                        OrderJpaDao.OrderLineView::getOrderId,
-                        Collectors.mapping(
-                                line -> new OrderLineView(line.getMenuItemName(), line.getPlateTier(), line.getPrice()),
-                                Collectors.toList()
-                        )
-                ));
-
-        return headerPage.map(header -> {
-            var lines = linesByOrderId.getOrDefault(header.getOrderId(), java.util.List.of());
-            int totalPrice = lines.stream().mapToInt(OrderLineView::price).sum();
-            return new OrderSummaryView(
-                    header.getOrderId(),
-                    header.getSeatId(),
-                    header.getStatus(),
-                    header.getCreatedAt(),
-                    header.getClosedAt(),
-                    lines,
-                    totalPrice
-            );
-        });
+        return orderQueryPort.findOrderSummaries(pageable);
     }
 
     @Transactional
     public SeatOrderView pickPlate(UUID seatId, UUID plateId) {
-        var seat = seatRepository.findById(seatId).orElseThrow(
+        var seat = seatQueryPort.findSeatById(seatId).orElseThrow(
                 () -> new ResourceNotFoundException("Seat", seatId)
         );
         var plate = plateRepository.findByIdForUpdate(plateId).orElseThrow(
@@ -133,9 +105,9 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         return new SeatOrderView(
-                seat.getId(),
-                seat.getLabel(),
-                seat.getPositionIndex(),
+                seat.seatId(),
+                seat.label(),
+                seat.positionIndex(),
                 true,
                 toOrderSummaryView(savedOrder)
         );
@@ -143,7 +115,7 @@ public class OrderService {
 
     @Transactional
     public SeatOrderView checkout(UUID seatId) {
-        var seat = seatRepository.findById(seatId).orElseThrow(
+        var seat = seatQueryPort.findSeatById(seatId).orElseThrow(
                 () -> new ResourceNotFoundException("Seat", seatId)
         );
 
@@ -155,10 +127,10 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         return new SeatOrderView(
-                seat.getId(),
-                seat.getLabel(),
-                seat.getPositionIndex(),
-                seatRepository.isSeatOccupied(seatId),
+                seat.seatId(),
+                seat.label(),
+                seat.positionIndex(),
+                seatQueryPort.isSeatOccupied(seatId),
                 toOrderSummaryView(savedOrder)
         );
     }

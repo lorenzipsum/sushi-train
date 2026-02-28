@@ -5,6 +5,7 @@ import com.lorenzipsum.sushitrain.backend.application.view.OrderLineView;
 import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
 import com.lorenzipsum.sushitrain.backend.domain.common.OrderStatus;
 import com.lorenzipsum.sushitrain.backend.domain.common.PlateTier;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.OrderSummaryDtoMapperImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
