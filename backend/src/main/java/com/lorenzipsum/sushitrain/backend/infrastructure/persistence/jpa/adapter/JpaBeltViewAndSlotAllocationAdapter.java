@@ -3,6 +3,7 @@ package com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.adapte
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltSlotAllocationCommandPort;
 import com.lorenzipsum.sushitrain.backend.application.belt.BeltQueryPort;
 import com.lorenzipsum.sushitrain.backend.application.order.BeltSlotCommandPort;
+import com.lorenzipsum.sushitrain.backend.application.plate.PlateBeltCommandPort;
 import com.lorenzipsum.sushitrain.backend.application.view.BeltSlotPlateView;
 import com.lorenzipsum.sushitrain.backend.application.view.SeatStateView;
 import com.lorenzipsum.sushitrain.backend.infrastructure.persistence.jpa.query.BeltJpaQuery;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
-public class JpaBeltViewAndSlotAllocationAdapter implements BeltQueryPort, BeltSlotAllocationCommandPort, BeltSlotCommandPort {
+public class JpaBeltViewAndSlotAllocationAdapter implements BeltQueryPort, BeltSlotAllocationCommandPort, BeltSlotCommandPort, PlateBeltCommandPort {
     private final BeltJpaQuery beltJpaQuery;
     private final BeltSlotJpaDao beltSlotJpaDao;
     private final SeatJpaDao seatJpaDao;

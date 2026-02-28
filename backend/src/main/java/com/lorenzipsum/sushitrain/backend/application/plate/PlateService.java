@@ -19,10 +19,12 @@ public class PlateService {
 
     private final PlateRepository repository;
     private final MenuItemRepository menuItemRepository;
+    private final PlateBeltCommandPort plateBeltCommandPort;
 
-    public PlateService(PlateRepository repository, MenuItemRepository menuItemRepository) {
+    public PlateService(PlateRepository repository, MenuItemRepository menuItemRepository, PlateBeltCommandPort plateBeltCommandPort) {
         this.repository = repository;
         this.menuItemRepository = menuItemRepository;
+        this.plateBeltCommandPort = plateBeltCommandPort;
     }
 
     private static Instant inTwoHours() {
@@ -53,7 +55,9 @@ public class PlateService {
     public Plate expirePlate(UUID id) {
         var plate = getPlate(id);
         plate.expire();
-        return repository.save(plate);
+        var saved = repository.save(plate);
+        plateBeltCommandPort.clearPlateAssignment(saved.getId());
+        return saved;
     }
 
     @Transactional(readOnly = true)
