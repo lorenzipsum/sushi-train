@@ -1,0 +1,1148 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "OpenAPI definition", "version": "v0" },
+  "servers": [{ "url": "http://localhost:8088", "description": "Generated server url" }],
+  "tags": [
+    { "name": "Plates", "description": "Operations for managing plates on the sushi belt" },
+    { "name": "Seats", "description": "Operations for seat occupancy and ordering" },
+    { "name": "Menu Items", "description": "Operations for managing menu items" },
+    { "name": "Belts", "description": "Operations for managing belts" },
+    { "name": "Orders", "description": "Operations for listing orders" }
+  ],
+  "paths": {
+    "/api/v1/seats/{id}/order-lines": {
+      "post": {
+        "tags": ["Seats"],
+        "summary": "Pick a plate (create an order line)",
+        "description": "Picks the given plate from the belt and adds it as an order line to the current open order of the seat. Fails if the seat is not occupied or the plate is not pickable.",
+        "operationId": "pickPlate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/PickPlateRequest" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Plate picked and order line created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeatOrderDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID) or validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Seat not found (or referenced plate not found)",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "409": {
+            "description": "Seat not occupied or plate not pickable",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/{id}/occupy": {
+      "post": {
+        "tags": ["Seats"],
+        "summary": "Occupy a seat (create an open order)",
+        "description": "Creates a new open order and assigns it to the given seat. Fails if the seat is already occupied.",
+        "operationId": "occupySeat",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Seat occupied and new order created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeatStateDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID)",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Seat not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "409": {
+            "description": "Seat already occupied",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/{id}/checkout": {
+      "post": {
+        "tags": ["Seats"],
+        "summary": "Checkout seat order",
+        "description": "Checks out the current open order for the given seat.",
+        "operationId": "checkout",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order checked out",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeatOrderDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID)",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Seat not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "409": {
+            "description": "Seat not occupied",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plates": {
+      "get": {
+        "tags": ["Plates"],
+        "summary": "Get all plates",
+        "description": "Returns a list of all plates.",
+        "operationId": "getAllPlates",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 0, "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10,
+              "maximum": 200,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of plates",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PagedModel" } }
+            }
+          },
+          "400": {
+            "description": "Invalid pagination parameters",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Plates"],
+        "summary": "Create a new plate",
+        "description": "Creates a plate and returns the created resource. Validation errors return ProblemDetail (400).",
+        "operationId": "createPlate",
+        "requestBody": {
+          "description": "Plate creation request",
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreatePlateRequest" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Plate created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlateDto" } }
+            }
+          },
+          "400": {
+            "description": "Bad request:\n- malformed JSON\n- bean validation failed\n",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plates/{id}/expire": {
+      "post": {
+        "tags": ["Plates"],
+        "summary": "Expire a plate",
+        "description": "Expires a plate immediately. If the plate does not exist, returns a ProblemDetail (404).",
+        "operationId": "expirePlate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Plate id",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "example": "11111111-1111-1111-1111-111111111111"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plate expired",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlateDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid UUID format",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Plate not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/belts/{id}/plates": {
+      "post": {
+        "tags": ["Belts"],
+        "summary": "Create plates and place them on the belt",
+        "description": "Creates the given number of plates and assigns them immediately to free belt slots. Requires enough free slots; also enforces a minimum gap of 5 slots between placed plates.",
+        "operationId": "createPlatesAndPlaceOnBelt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePlateAndPlaceOnBeltRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Plates created and placed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreatedPlatesOnBeltResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter or validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Belt not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "409": {
+            "description": "Not enough free slots available",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/belts/{id}": {
+      "get": {
+        "tags": ["Belts"],
+        "summary": "Get a belt",
+        "description": "Returns the belt including its slots and seats.",
+        "operationId": "getBelt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Belt found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FullBeltDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID)",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Belt not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Belts"],
+        "summary": "Update belt parameters",
+        "description": "Partially updates belt, for example speed parameters (at least one parameter must be provided).",
+        "operationId": "updateBeltParameters",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/BeltUpdateRequest" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Belt parameters updated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BeltParamsDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID) or validation failed",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Belt not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seats/{id}": {
+      "get": {
+        "tags": ["Seats"],
+        "summary": "Get seat state",
+        "description": "Returns the seat state including its occupancy and open order summary (if occupied).",
+        "operationId": "getSeatStateAndOrderSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Seat state returned",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeatStateDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID)",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Seat not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plates/{id}": {
+      "get": {
+        "tags": ["Plates"],
+        "summary": "Get a plate by id",
+        "description": "Returns a single plate. If the id does not exist, returns a ProblemDetail (404).",
+        "operationId": "getPlate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Plate id",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "example": "11111111-1111-1111-1111-111111111111"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plate found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlateDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid UUID format",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Plate not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get all orders",
+        "description": "Returns a paginated list of all orders (newest first).",
+        "operationId": "getAllOrders",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 0, "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20,
+              "maximum": 200,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Orders returned",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PagedModel" } }
+            }
+          },
+          "400": {
+            "description": "Invalid pagination parameters",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/menu-items": {
+      "get": {
+        "tags": ["Menu Items"],
+        "summary": "Get all menu items",
+        "description": "Returns a paginated list of all menu items (PagedModel<MenuItemDto>).",
+        "operationId": "getAllMenuItems",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 0, "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10,
+              "maximum": 200,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of menu items",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PagedModel" } }
+            }
+          },
+          "400": {
+            "description": "Invalid pagination parameters",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/menu-items/{id}": {
+      "get": {
+        "tags": ["Menu Items"],
+        "summary": "Get a menu item by id",
+        "description": "Returns a single menu item. If the id does not exist, returns a ProblemDetail (404).",
+        "operationId": "getMenuItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Menu item found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MenuItemDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid UUID format",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Menu item not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/belts": {
+      "get": {
+        "tags": ["Belts"],
+        "summary": "Get all belts",
+        "description": "Returns all belts.",
+        "operationId": "getAllBelts",
+        "responses": {
+          "200": {
+            "description": "Belts returned",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BeltDto" } }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/belts/{id}/snapshot": {
+      "get": {
+        "tags": ["Belts"],
+        "summary": "Get belt snapshot (slots with assigned plates)",
+        "description": "Returns a belt snapshot optimized for UI rendering. Includes belt parameters and all slots ordered by positionIndex. Each slot contains an optional plate block if a plate is assigned.",
+        "operationId": "getBeltSnapshot",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshot returned",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BeltSnapshotDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID)",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Belt not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/belts/{id}/seats": {
+      "get": {
+        "tags": ["Belts"],
+        "summary": "Get seat overview by belt",
+        "description": "Returns all seats of a belt with occupancy status.",
+        "operationId": "getSeatOverview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Seat overview returned",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeatStateDto" } }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter (e.g., id is not a UUID)",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Belt not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PickPlateRequest": {
+        "type": "object",
+        "properties": { "plateId": { "type": "string", "format": "uuid" } },
+        "required": ["plateId"]
+      },
+      "OrderLineDto": {
+        "type": "object",
+        "properties": {
+          "menuItemName": { "type": "string" },
+          "plateTier": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
+          "price": { "type": "integer", "format": "int32" }
+        }
+      },
+      "OrderSummaryDto": {
+        "type": "object",
+        "properties": {
+          "orderId": { "type": "string", "format": "uuid" },
+          "seatId": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "enum": ["OPEN", "CHECKED_OUT", "CANCELED"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "closedAt": { "type": "string", "format": "date-time" },
+          "lines": { "type": "array", "items": { "$ref": "#/components/schemas/OrderLineDto" } },
+          "totalPrice": { "type": "integer", "format": "int32" }
+        }
+      },
+      "SeatOrderDto": {
+        "type": "object",
+        "properties": {
+          "seatId": { "type": "string", "format": "uuid" },
+          "label": { "type": "string" },
+          "positionIndex": { "type": "integer", "format": "int32" },
+          "isOccupied": { "type": "boolean" },
+          "orderSummary": { "$ref": "#/components/schemas/OrderSummaryDto" }
+        }
+      },
+      "ProblemDetail": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "format": "uri" },
+          "title": { "type": "string" },
+          "status": { "type": "integer", "format": "int32" },
+          "detail": { "type": "string" },
+          "instance": { "type": "string", "format": "uri" },
+          "properties": { "type": "object", "additionalProperties": {} }
+        }
+      },
+      "SeatStateDto": {
+        "type": "object",
+        "properties": {
+          "seatId": { "type": "string", "format": "uuid" },
+          "label": { "type": "string" },
+          "positionIndex": { "type": "integer", "format": "int32" },
+          "isOccupied": { "type": "boolean" }
+        }
+      },
+      "CreatePlateRequest": {
+        "type": "object",
+        "properties": {
+          "menuItemId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Menu item id the plate refers to",
+            "example": "11111111-1111-1111-1111-111111111111"
+          },
+          "tierSnapshot": {
+            "type": "string",
+            "description": "Optional tier snapshot. If omitted, service can derive from menu item.",
+            "enum": ["GREEN", "RED", "GOLD", "BLACK"],
+            "example": "RED"
+          },
+          "priceAtCreation": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Optional price in Yen at creation time. If omitted, service can derive from menu item.",
+            "example": 500,
+            "minimum": 1
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Optional expiration timestamp (UTC). If omitted, service can compute default TTL.",
+            "example": "2026-01-19T15:22:08.485369100Z"
+          }
+        },
+        "required": ["menuItemId"]
+      },
+      "PlateDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "menuItemId": { "type": "string", "format": "uuid" },
+          "tierSnapshot": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
+          "priceAtCreation": { "type": "integer", "format": "int32" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "status": { "type": "string", "enum": ["CREATED", "ON_BELT", "PICKED", "EXPIRED"] }
+        },
+        "required": [
+          "createdAt",
+          "expiresAt",
+          "id",
+          "menuItemId",
+          "priceAtCreation",
+          "status",
+          "tierSnapshot"
+        ]
+      },
+      "CreatePlateAndPlaceOnBeltRequest": {
+        "type": "object",
+        "properties": {
+          "menuItemId": { "type": "string", "format": "uuid" },
+          "numOfPlates": { "type": "integer", "format": "int32", "minimum": 1 },
+          "tierSnapshot": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
+          "priceAtCreation": { "type": "integer", "format": "int32", "minimum": 0 },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["menuItemId"]
+      },
+      "CreatedPlatesOnBeltResponse": {
+        "type": "object",
+        "properties": {
+          "beltId": { "type": "string", "format": "uuid" },
+          "createdCount": { "type": "integer", "format": "int32" },
+          "placedPlates": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PlacedPlateDto" }
+          }
+        }
+      },
+      "PlacedPlateDto": {
+        "type": "object",
+        "properties": {
+          "plateId": { "type": "string", "format": "uuid" },
+          "slotId": { "type": "string", "format": "uuid" },
+          "slotPositionIndex": { "type": "integer", "format": "int32" },
+          "menuItemId": { "type": "string", "format": "uuid" },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "BeltUpdateRequest": {
+        "type": "object",
+        "description": "Partial update for belt settings. Omit a field (null) to keep its current value. At least one field must be provided.",
+        "properties": {
+          "tickIntervalMs": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Tick interval in milliseconds. Lower = more frequent ticks (potentially higher load). Omit to keep current value.",
+            "example": 750,
+            "maximum": 5000,
+            "minimum": 100
+          },
+          "speedSlotsPerTick": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Belt speed measured as slots moved per tick. Higher = faster belt. Omit to keep current value.",
+            "example": 2,
+            "maximum": 5,
+            "minimum": 0
+          }
+        }
+      },
+      "BeltParamsDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "tickIntervalMs": { "type": "integer", "format": "int32" },
+          "speedSlotsPerTick": { "type": "integer", "format": "int32" }
+        }
+      },
+      "PageMetadata": {
+        "type": "object",
+        "properties": {
+          "size": { "type": "integer", "format": "int64" },
+          "number": { "type": "integer", "format": "int64" },
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer", "format": "int64" }
+        }
+      },
+      "PagedModel": {
+        "type": "object",
+        "properties": {
+          "content": { "type": "array", "items": {} },
+          "page": { "$ref": "#/components/schemas/PageMetadata" }
+        }
+      },
+      "MenuItemDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "defaultTier": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
+          "basePrice": { "type": "integer", "format": "int32" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["basePrice", "createdAt", "defaultTier", "id", "name"]
+      },
+      "BeltDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "slotCount": { "type": "integer", "format": "int32" },
+          "baseRotationOffset": { "type": "integer", "format": "int32" },
+          "tickIntervalMs": { "type": "integer", "format": "int32" },
+          "speedSlotsPerTick": { "type": "integer", "format": "int32" },
+          "offsetStartedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "BeltSlotDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "positionIndex": { "type": "integer", "format": "int32" },
+          "plateId": { "type": "string", "format": "uuid" }
+        }
+      },
+      "FullBeltDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "slotCount": { "type": "integer", "format": "int32" },
+          "baseRotationOffset": { "type": "integer", "format": "int32" },
+          "tickIntervalMs": { "type": "integer", "format": "int32" },
+          "speedSlotsPerTick": { "type": "integer", "format": "int32" },
+          "slots": { "type": "array", "items": { "$ref": "#/components/schemas/BeltSlotDto" } },
+          "seats": { "type": "array", "items": { "$ref": "#/components/schemas/SeatDto" } },
+          "offsetStartedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SeatDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "positionIndex": { "type": "integer", "format": "int32" },
+          "label": { "type": "string" }
+        }
+      },
+      "BeltSlotSnapshotDto": {
+        "type": "object",
+        "properties": {
+          "slotId": { "type": "string", "format": "uuid" },
+          "positionIndex": { "type": "integer", "format": "int32" },
+          "plate": { "$ref": "#/components/schemas/PlateSnapshotDto" }
+        }
+      },
+      "BeltSnapshotDto": {
+        "type": "object",
+        "properties": {
+          "beltId": { "type": "string", "format": "uuid" },
+          "beltName": { "type": "string" },
+          "beltSlotCount": { "type": "integer", "format": "int32" },
+          "beltBaseRotationOffset": { "type": "integer", "format": "int32" },
+          "beltOffsetStartedAt": { "type": "string", "format": "date-time" },
+          "beltTickIntervalMs": { "type": "integer", "format": "int32" },
+          "beltSpeedSlotsPerTick": { "type": "integer", "format": "int32" },
+          "slots": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BeltSlotSnapshotDto" }
+          }
+        }
+      },
+      "PlateSnapshotDto": {
+        "type": "object",
+        "properties": {
+          "plateId": { "type": "string", "format": "uuid" },
+          "menuItemId": { "type": "string", "format": "uuid" },
+          "menuItemName": { "type": "string" },
+          "tier": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
+          "priceAtCreation": { "$ref": "#/components/schemas/YenAmount" },
+          "status": { "type": "string", "enum": ["CREATED", "ON_BELT", "PICKED", "EXPIRED"] },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "YenAmount": {
+        "type": "object",
+        "properties": {
+          "amount": { "type": "integer", "format": "int32" },
+          "zero": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
