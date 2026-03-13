@@ -221,7 +221,7 @@ export interface paths {
         };
         /**
          * Get all menu items
-         * @description Returns a paginated list of all menu items (PagedModel<MenuItemDto>).
+         * @description Returns a paginated list of all menu items.
          */
         get: operations["getAllMenuItems"];
         put?: never;
@@ -478,8 +478,12 @@ export interface components {
             /** Format: int64 */
             totalPages?: number;
         };
-        PagedModel: {
-            content?: unknown[];
+        PagedPlateDto: {
+            content?: components["schemas"]["PlateDto"][];
+            page?: components["schemas"]["PageMetadata"];
+        };
+        PagedOrderSummaryDto: {
+            content?: components["schemas"]["OrderSummaryDto"][];
             page?: components["schemas"]["PageMetadata"];
         };
         MenuItemDto: {
@@ -492,6 +496,10 @@ export interface components {
             basePrice: number;
             /** Format: date-time */
             createdAt: string;
+        };
+        PagedMenuItemDto: {
+            content?: components["schemas"]["MenuItemDto"][];
+            page?: components["schemas"]["PageMetadata"];
         };
         BeltDto: {
             /** Format: uuid */
@@ -787,7 +795,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PagedModel"];
+                    "application/json": components["schemas"]["PagedPlateDto"];
                 };
             };
             /** @description Invalid pagination parameters */
@@ -1091,7 +1099,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SeatStateDto"];
+                    "application/json": components["schemas"]["SeatOrderDto"];
                 };
             };
             /** @description Invalid parameter (e.g., id is not a UUID) */
@@ -1194,7 +1202,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PagedModel"];
+                    "application/json": components["schemas"]["PagedOrderSummaryDto"];
                 };
             };
             /** @description Invalid pagination parameters */
@@ -1235,7 +1243,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PagedModel"];
+                    "application/json": components["schemas"]["PagedMenuItemDto"];
                 };
             };
             /** @description Invalid pagination parameters */
@@ -1322,7 +1330,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BeltDto"];
+                    "application/json": components["schemas"]["BeltDto"][];
                 };
             };
             /** @description Unexpected server error */
@@ -1402,7 +1410,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SeatStateDto"];
+                    "application/json": components["schemas"]["SeatStateDto"][];
                 };
             };
             /** @description Invalid parameter (e.g., id is not a UUID) */

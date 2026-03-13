@@ -10,8 +10,8 @@ export class SeatsApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = inject(API_BASE_URL);
 
-  getSeatState(seatId: string): Observable<SeatStateDto> {
-    return this.http.get<SeatStateDto>(`${this.baseUrl}/api/v1/seats/${seatId}`);
+  getSeatState(seatId: string): Observable<SeatOrderDto> {
+    return this.http.get<SeatOrderDto>(`${this.baseUrl}/api/v1/seats/${seatId}`);
   }
 
   occupySeat(seatId: string): Observable<SeatStateDto> {

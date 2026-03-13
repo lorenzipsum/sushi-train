@@ -214,7 +214,7 @@
           "200": {
             "description": "List of plates",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PagedModel" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/PagedPlateDto" } }
             }
           },
           "400": {
@@ -507,7 +507,7 @@
           "200": {
             "description": "Seat state returned",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SeatStateDto" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeatOrderDto" } }
             }
           },
           "400": {
@@ -617,7 +617,9 @@
           "200": {
             "description": "Orders returned",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PagedModel" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PagedOrderSummaryDto" }
+              }
             }
           },
           "400": {
@@ -643,7 +645,7 @@
       "get": {
         "tags": ["Menu Items"],
         "summary": "Get all menu items",
-        "description": "Returns a paginated list of all menu items (PagedModel<MenuItemDto>).",
+        "description": "Returns a paginated list of all menu items.",
         "operationId": "getAllMenuItems",
         "parameters": [
           {
@@ -669,7 +671,7 @@
           "200": {
             "description": "Paginated list of menu items",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PagedModel" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/PagedMenuItemDto" } }
             }
           },
           "400": {
@@ -749,7 +751,9 @@
           "200": {
             "description": "Belts returned",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/BeltDto" } }
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/BeltDto" } }
+              }
             }
           },
           "500": {
@@ -829,7 +833,12 @@
           "200": {
             "description": "Seat overview returned",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SeatStateDto" } }
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/SeatStateDto" }
+                }
+              }
             }
           },
           "400": {
@@ -1040,10 +1049,20 @@
           "totalPages": { "type": "integer", "format": "int64" }
         }
       },
-      "PagedModel": {
+      "PagedPlateDto": {
         "type": "object",
         "properties": {
-          "content": { "type": "array", "items": {} },
+          "content": { "type": "array", "items": { "$ref": "#/components/schemas/PlateDto" } },
+          "page": { "$ref": "#/components/schemas/PageMetadata" }
+        }
+      },
+      "PagedOrderSummaryDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OrderSummaryDto" }
+          },
           "page": { "$ref": "#/components/schemas/PageMetadata" }
         }
       },
@@ -1057,6 +1076,13 @@
           "createdAt": { "type": "string", "format": "date-time" }
         },
         "required": ["basePrice", "createdAt", "defaultTier", "id", "name"]
+      },
+      "PagedMenuItemDto": {
+        "type": "object",
+        "properties": {
+          "content": { "type": "array", "items": { "$ref": "#/components/schemas/MenuItemDto" } },
+          "page": { "$ref": "#/components/schemas/PageMetadata" }
+        }
       },
       "BeltDto": {
         "type": "object",
