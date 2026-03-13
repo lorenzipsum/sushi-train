@@ -5,6 +5,7 @@ import com.lorenzipsum.sushitrain.backend.domain.belt.Belt;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.dto.*;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatStateDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -45,7 +46,7 @@ public class BeltController {
                     responseCode = "200",
                     description = "Belts returned",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BeltDto.class))
+                            array = @ArraySchema(schema = @Schema(implementation = BeltDto.class)))
             ),
             @ApiResponse(
                     responseCode = "500",
@@ -141,7 +142,7 @@ public class BeltController {
                     responseCode = "200",
                     description = "Seat overview returned",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SeatStateDto.class))
+                            array = @ArraySchema(schema = @Schema(implementation = SeatStateDto.class)))
             ),
             @ApiResponse(
                     responseCode = "400",

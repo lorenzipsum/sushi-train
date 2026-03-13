@@ -89,7 +89,7 @@ public class SeatController {
                     responseCode = "200",
                     description = "Seat state returned",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SeatStateDto.class))
+                            schema = @Schema(implementation = SeatOrderDto.class))
             ),
             @ApiResponse(
                     responseCode = "400",

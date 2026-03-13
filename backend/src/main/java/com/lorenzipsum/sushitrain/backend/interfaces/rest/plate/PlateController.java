@@ -3,6 +3,7 @@ package com.lorenzipsum.sushitrain.backend.interfaces.rest.plate;
 import com.lorenzipsum.sushitrain.backend.application.plate.PlateService;
 import com.lorenzipsum.sushitrain.backend.domain.common.YenAmount;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.CreatePlateRequest;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PagedPlateDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.plate.dto.PlateDtoMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +17,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
@@ -127,17 +127,17 @@ public class PlateController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "List of plates",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = PagedModel.class))),
+                            schema = @Schema(implementation = PagedPlateDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid pagination parameters",
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "500", description = "Unexpected error",
                     content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE,
                             schema = @Schema(implementation = ProblemDetail.class)))})
-    public PagedModel<PlateDto> getAllPlates(
+    public PagedPlateDto getAllPlates(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(200) int size) {
 
-        return new PagedModel<>(service.getAllPlates(PageRequest.of(page, size)).map(mapper::toDto));
+        return new PagedPlateDto(service.getAllPlates(PageRequest.of(page, size)).map(mapper::toDto));
     }
 }

@@ -1,8 +1,8 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.order;
 
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
-import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.OrderSummaryDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.OrderSummaryDtoMapper;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.order.dto.PagedOrderSummaryDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,12 +13,11 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -47,7 +46,7 @@ public class OrderController {
                     responseCode = "200",
                     description = "Orders returned",
                     content = @Content(mediaType = APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = PagedModel.class))
+                            schema = @Schema(implementation = PagedOrderSummaryDto.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -62,11 +61,11 @@ public class OrderController {
                             schema = @Schema(implementation = ProblemDetail.class))
             )
     })
-    public PagedModel<OrderSummaryDto> getAllOrders(
+    public PagedOrderSummaryDto getAllOrders(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(200) int size
     ) {
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return new PagedModel<>(service.getAllOrders(pageable).map(mapper::toDto));
+        return new PagedOrderSummaryDto(service.getAllOrders(pageable).map(mapper::toDto));
     }
 }
