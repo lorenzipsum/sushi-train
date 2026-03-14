@@ -1,7 +1,34 @@
 #!/usr/bin/env pwsh
 # Common PowerShell functions analogous to common.sh
 
+function Find-SpecifyProjectRoot {
+    param([string]$StartDir)
+
+    $current = Resolve-Path $StartDir
+    while ($true) {
+        if ((Split-Path $current -Leaf) -eq '.specify') {
+            return (Split-Path $current -Parent)
+        }
+
+        if (Test-Path (Join-Path $current '.specify')) {
+            return $current
+        }
+
+        $parent = Split-Path $current -Parent
+        if ($parent -eq $current) {
+            return $null
+        }
+
+        $current = $parent
+    }
+}
+
 function Get-RepoRoot {
+    $projectRoot = Find-SpecifyProjectRoot -StartDir $PSScriptRoot
+    if ($projectRoot) {
+        return $projectRoot
+    }
+
     try {
         $result = git rev-parse --show-toplevel 2>$null
         if ($LASTEXITCODE -eq 0) {

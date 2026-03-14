@@ -1,7 +1,7 @@
 # Implementation Plan: Sushi Belt Visualization
 
-**Branch**: `[001-belt-visualization]` | **Date**: 2026-03-14 | **Spec**: `C:\se\sushi-train\specs\001-belt-visualization\spec.md`
-**Input**: Feature specification from `C:\se\sushi-train\specs\001-belt-visualization\spec.md`
+**Branch**: `[001-belt-visualization]` | **Date**: 2026-03-14 | **Spec**: `C:\se\sushi-train\frontend\specs\001-belt-visualization\spec.md`
+**Input**: Feature specification from `C:\se\sushi-train\frontend\specs\001-belt-visualization\spec.md`
 
 ## Summary
 
@@ -44,7 +44,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-specs/001-belt-visualization/
+frontend/specs/001-belt-visualization/
 ├── plan.md
 ├── research.md
 ├── data-model.md
@@ -94,7 +94,7 @@ frontend/
 ## Phase 0 Research Summary
 
 - Treat the backend response as a single-belt source for this feature and always track the first returned belt rather than modeling belt selection in the UI state.
-- Poll belt snapshot and seat overview every 3 seconds, with a manual `refreshNow()` path reserved for future successful write actions.
+- Poll belt snapshot and seat overview every 3 seconds, with a feature-local `refreshAfterWrite()` path reserved for future successful write actions.
 - Expose a store-level refresh-after-write hook so future mutation flows can trigger an immediate authoritative reread without changing the read-only page structure.
 - Derive visual rotation from `beltBaseRotationOffset`, `beltOffsetStartedAt`, `beltTickIntervalMs`, and `beltSpeedSlotsPerTick`, while preserving stable slot identities and allowing authoritative jumps on refresh.
 - Route browser requests through a proxy layer so the frontend can use relative `/api/...` calls across local Spring and Docker-backed development.

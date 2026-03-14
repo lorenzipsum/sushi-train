@@ -8,9 +8,9 @@
   - Hardcode a belt ID: rejected because it would couple the UI to seeded data and fail across environments.
   - Add a route parameter or belt picker now: rejected because multi-belt navigation is outside this slice and would add surface area without user value for MVP.
 
-## Decision 2: Use a 3 second polling cadence with a manual refresh hook
+## Decision 2: Use a 3 second polling cadence with a manual refresh-after-write hook
 
-- **Decision**: Poll both `getBeltSnapshot(beltId)` and `getSeatOverview(beltId)` every 3 seconds after the first successful belt selection, and expose a feature-local `refreshNow()` trigger for future write success flows.
+- **Decision**: Poll both `getBeltSnapshot(beltId)` and `getSeatOverview(beltId)` every 3 seconds after the first successful belt selection, and expose a feature-local `refreshAfterWrite()` trigger for future write success flows.
 - **Rationale**: Three seconds sits safely inside the spec's 2 to 5 second requirement, reduces backend load compared with a 2 second loop, and still keeps freshness comfortably inside the 5 second success criterion.
 - **Alternatives considered**:
   - 2 second polling: rejected because it adds unnecessary request volume for the first read-only slice.
@@ -75,6 +75,6 @@ The rendered angle for a slot becomes `(slot.positionIndex - derivedOffsetSlots)
 ## Open Questions Resolved In Planning
 
 - **How should the page pick a belt without new routing?** Select the first available belt.
-- **How should future write flows trigger refresh without being in scope now?** Expose a store-level `refreshNow()` entry point for later reuse.
+- **How should future write flows trigger refresh without being in scope now?** Expose a store-level `refreshAfterWrite()` entry point for later reuse.
 - **How should reduced motion change behavior?** Keep authoritative rendering and freshness cues, but disable continuous interpolation.
 - **How should seat stability be preserved?** Render seat angles from `SeatStateDto.positionIndex` only; never couple them to belt rotation state.

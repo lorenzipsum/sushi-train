@@ -95,22 +95,27 @@ Pure frontend-derived state used to place stable slots on screen.
 
 User-visible page state for loading and freshness.
 
-| Field              | Type                                         | Meaning                                                                              |
-| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `selectedBeltId`   | `string \| null`                             | `null` until the first belt list response resolves with a usable belt.               |
-| `initialLoadState` | `'loading' \| 'ready' \| 'empty' \| 'error'` | Controls the first page experience before a successful snapshot/seat pair exists.    |
-| `freshnessState`   | `'current' \| 'degraded'`                    | Indicates whether the latest visible data reflects the most recent refresh attempts. |
-| `beltDataAgeMs`    | `number \| null`                             | Age of last successful belt snapshot, used for stale messaging.                      |
-| `seatDataAgeMs`    | `number \| null`                             | Age of last successful seat overview, used for stale messaging.                      |
-| `lastErrorMessage` | `string \| null`                             | Human-readable recovery hint for degraded or empty states.                           |
+| Field              | Type                                         | Meaning                                                                                    |
+| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `selectedBeltId`   | `string \| null`                             | `null` until the first belt list response resolves with a usable belt.                     |
+| `initialLoadState` | `'loading' \| 'ready' \| 'empty' \| 'error'` | Controls the first page experience before a successful authoritative belt snapshot exists. |
+| `freshnessState`   | `'current' \| 'degraded'`                    | Indicates whether the latest visible data reflects the most recent refresh attempts.       |
+| `beltDataAgeMs`    | `number \| null`                             | Age of last successful belt snapshot, used for stale messaging.                            |
+| `seatDataAgeMs`    | `number \| null`                             | Age of last successful seat overview, used for stale messaging.                            |
+| `lastErrorMessage` | `string \| null`                             | Human-readable recovery hint for degraded or empty states.                                 |
 
 ### State Transitions
 
-- `loading -> ready`: first successful belt selection plus snapshot and seat data available.
+- `loading -> ready`: first successful belt selection plus authoritative belt snapshot available.
 - `loading -> empty`: belt list is empty.
 - `loading -> error`: belt discovery fails before any successful data is shown.
 - `ready/current -> ready/degraded`: a refresh fails after prior success.
 - `ready/degraded -> ready/current`: a later refresh succeeds.
+
+### Independent freshness note
+
+- Seat data may arrive later than the first belt snapshot and may degrade independently.
+- The page preserves the last valid seat response while still allowing the overall page to render from the authoritative belt snapshot.
 
 ## Relationships
 
