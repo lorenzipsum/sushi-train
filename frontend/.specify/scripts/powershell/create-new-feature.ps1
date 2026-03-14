@@ -65,6 +65,28 @@ function Find-RepositoryRoot {
     }
 }
 
+function Find-SpecifyProjectRoot {
+    param([string]$StartDir)
+
+    $current = Resolve-Path $StartDir
+    while ($true) {
+        if ((Split-Path $current -Leaf) -eq '.specify') {
+            return (Split-Path $current -Parent)
+        }
+
+        if (Test-Path (Join-Path $current '.specify')) {
+            return $current
+        }
+
+        $parent = Split-Path $current -Parent
+        if ($parent -eq $current) {
+            return $null
+        }
+
+        $current = $parent
+    }
+}
+
 function Get-HighestNumberFromSpecs {
     param([string]$SpecsDir)
     
@@ -135,7 +157,12 @@ function ConvertTo-CleanBranchName {
     
     return $Name.ToLower() -replace '[^a-z0-9]', '-' -replace '-{2,}', '-' -replace '^-', '' -replace '-$', ''
 }
-$fallbackRoot = (Find-RepositoryRoot -StartDir $PSScriptRoot)
+$projectRoot = Find-SpecifyProjectRoot -StartDir $PSScriptRoot
+$fallbackRoot = if ($projectRoot) {
+    $projectRoot
+} else {
+    Find-RepositoryRoot -StartDir $PSScriptRoot
+}
 if (-not $fallbackRoot) {
     Write-Error "Error: Could not determine repository root. Please run this script from within the repository."
     exit 1
@@ -145,16 +172,13 @@ if (-not $fallbackRoot) {
 . "$PSScriptRoot/common.ps1"
 
 try {
-    $repoRoot = git rev-parse --show-toplevel 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        $hasGit = $true
-    } else {
-        throw "Git not available"
-    }
+    git rev-parse --show-toplevel 2>$null | Out-Null
+    $hasGit = ($LASTEXITCODE -eq 0)
 } catch {
-    $repoRoot = $fallbackRoot
     $hasGit = $false
 }
+
+$repoRoot = $fallbackRoot
 
 Set-Location $repoRoot
 

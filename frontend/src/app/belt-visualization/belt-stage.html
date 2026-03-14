@@ -1,0 +1,53 @@
+<section
+  class="belt-stage"
+  [class.belt-stage--paused]="paused()"
+  [class.belt-stage--reduced]="reducedMotion()"
+  [style.--belt-rotation]="beltRotation()"
+  [style.--plate-size.px]="stage().plateSizePx"
+  [style.--slot-size.px]="stage().slotMarkerSizePx"
+  [style.--seat-size.px]="stage().seatSizePx"
+  [attr.aria-label]="stage().beltName"
+>
+  <div class="belt-stage__canvas">
+    <div class="belt-stage__seat-ring" aria-hidden="true">
+      @for (seat of stage().seats; track seat.id) {
+        <div
+          class="seat"
+          [class.seat--occupied]="seat.isOccupied"
+          [style.left.%]="seat.xPercent"
+          [style.top.%]="seat.yPercent"
+          [attr.aria-label]="seat.ariaLabel"
+          [attr.title]="seat.ariaLabel"
+        >
+          <span class="seat__label">{{ seat.label }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="belt-stage__track" aria-hidden="true">
+      <div class="belt-stage__belt belt-stage__belt--outer"></div>
+      <div class="belt-stage__belt belt-stage__belt--inner"></div>
+
+      @for (slot of stage().slots; track slot.id) {
+        <div
+          class="slot"
+          [class.slot--occupied]="!!slot.plate"
+          [class.slot--reduced]="reducedMotion()"
+          [style.left.%]="slot.xPercent"
+          [style.top.%]="slot.yPercent"
+          [attr.aria-label]="slot.ariaLabel"
+          [attr.title]="slot.ariaLabel"
+        >
+          <span class="slot__marker"></span>
+
+          @if (slot.plate; as plate) {
+            <span class="plate" [class]="'plate ' + slot.tierClass">
+              <span class="plate__shine"></span>
+              <span class="plate__core"></span>
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</section>

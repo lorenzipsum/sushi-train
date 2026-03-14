@@ -12,6 +12,8 @@ TypeScript strictness is mandatory. `any` should be avoided, templates should st
 
 Contract-derived code should remain explicit about ownership: OpenAPI contracts are maintained in `contracts/openapi.json`, generated type output is not hand-edited, and handwritten Angular services should provide the narrow application-facing API surface.
 
+Backend-authoritative state should remain distinct from frontend-derived animation. When backend APIs provide stable entities plus timing metadata, the frontend should render motion from that metadata instead of mutating application state to simulate movement.
+
 ### III. Testable Changes Are Required
 
 Changes that alter behavior must remain testable and should add or update automated tests when the affected behavior is meaningful to users or developers. Unit testing in this workspace is Vitest through Angular's unit-test builder, and new tests must follow that stack. Work is not complete if it cannot reasonably pass `npm test` and `npm run build`.
@@ -31,6 +33,7 @@ This repository currently contains a single small Angular application with no fe
 - Routes are defined in `src/app/app.routes.ts`.
 - REST API configuration lives in `src/app/api/http/api-config.ts` and app-wide HTTP support is registered in `src/app/app.config.ts`.
 - The OpenAPI contract lives in `contracts/openapi.json`; generated types live in `src/app/api/generated/` and should be regenerated, not manually maintained.
+- For sushi belt views, physical slot data is authoritative from the backend and visual belt motion is derived on the frontend from timing fields such as rotation offset, start time, tick interval, and speed.
 - The selector prefix for generated UI pieces is `app`.
 - Built-in Angular control flow such as `@if` and `@for` is preferred over legacy structural directives for new code.
 - Formatting follows the existing repository style: 2-space indentation, single quotes, and short readable lines compatible with the current Prettier setup.
