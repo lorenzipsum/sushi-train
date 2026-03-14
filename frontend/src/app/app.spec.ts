@@ -49,12 +49,15 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the belt overview heading', () => {
+  it('renders the simplified title-led stage shell', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Main Belt');
-    expect(compiled.textContent).toContain('Live state');
-    expect(compiled.textContent).toContain('Occupied seats');
+
+    expect(compiled.querySelector('h1')?.textContent).toContain('Kaitenzushi');
+    expect(compiled.querySelector('.counter-stage')).toBeTruthy();
+    expect(compiled.querySelector('.support-panels')).toBeFalsy();
+    expect(compiled.textContent).toContain('Service pace');
+    expect(compiled.textContent).not.toContain('Guest seats');
   });
 });

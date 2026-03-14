@@ -5,7 +5,7 @@ import { BeltsApi } from '../api/belts.api';
 import { getProblemDetail } from '../api/http/problem-detail';
 import type { BeltDto, BeltSnapshotDto, SeatStateListDto } from '../api/types';
 import { buildBeltStageViewModel } from './belt-view-model';
-import { getRotationDegrees } from './motion';
+import { getRenderOffset } from './motion';
 
 const POLL_INTERVAL_MS = 3000;
 
@@ -50,14 +50,12 @@ export class BeltVisualizationStore {
       return null;
     }
 
-    return buildBeltStageViewModel(snapshot, this.seats());
+    return buildBeltStageViewModel(
+      snapshot,
+      this.seats(),
+      getRenderOffset(snapshot, this.now(), this.reducedMotion()),
+    );
   });
-  readonly rotationDegrees = computed(() =>
-    getRotationDegrees(this.snapshot(), this.now(), this.reducedMotion()),
-  );
-  readonly rotationDirection = computed(() =>
-    Math.sign(this.snapshot()?.beltSpeedSlotsPerTick ?? 0),
-  );
   readonly isPaused = computed(() => (this.snapshot()?.beltSpeedSlotsPerTick ?? 0) === 0);
   readonly beltName = computed(
     () => this.snapshot()?.beltName ?? this.primaryBelt()?.name ?? 'Sushi belt overview',
@@ -107,7 +105,7 @@ export class BeltVisualizationStore {
       return 'Reduced motion view';
     }
 
-    return this.isPaused() ? 'Paused at the belt' : 'Gliding around the belt';
+    return this.isPaused() ? 'Paused at the counter' : 'Gliding around the counter';
   });
   readonly speedLabel = computed(() => {
     const snapshot = this.snapshot();
