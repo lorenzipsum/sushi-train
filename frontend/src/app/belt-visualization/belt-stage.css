@@ -1,0 +1,155 @@
+:host {
+  display: block;
+}
+
+.belt-stage {
+  --belt-rotation: 0deg;
+  --plate-size: 14px;
+  --slot-size: 6px;
+  --seat-size: 28px;
+  position: relative;
+  width: min(100%, 38rem);
+  margin-inline: auto;
+}
+
+.belt-stage__canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.belt-stage__seat-ring,
+.belt-stage__track {
+  position: absolute;
+  inset: 0;
+}
+
+.belt-stage__track {
+  transform: rotate(var(--belt-rotation));
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.belt-stage__belt {
+  position: absolute;
+  inset: 50%;
+  translate: -50% -50%;
+  border-radius: 999px;
+}
+
+.belt-stage__belt--outer {
+  width: 74%;
+  height: 74%;
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.48), transparent 34%),
+    linear-gradient(180deg, #e3bf9d 0%, #c98e69 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    0 24px 40px rgba(123, 90, 69, 0.14);
+}
+
+.belt-stage__belt--inner {
+  width: 49%;
+  height: 49%;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.75), transparent 60%),
+    linear-gradient(180deg, #f7e7d4 0%, #f2dcc4 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(123, 90, 69, 0.1),
+    0 16px 28px rgba(123, 90, 69, 0.08);
+}
+
+.slot,
+.seat {
+  position: absolute;
+  translate: -50% -50%;
+}
+
+.slot__marker {
+  display: block;
+  width: var(--slot-size);
+  height: var(--slot-size);
+  border-radius: 999px;
+  background: rgba(123, 90, 69, 0.28);
+}
+
+.plate {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: var(--plate-size);
+  height: var(--plate-size);
+  translate: -50% -50%;
+  border-radius: 999px;
+  box-shadow:
+    0 6px 14px rgba(78, 52, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.plate__core,
+.plate__shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.plate__core {
+  inset: 18%;
+  background: rgba(255, 253, 249, 0.92);
+}
+
+.plate__shine {
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.72), transparent 46%);
+}
+
+.tier-green {
+  background: linear-gradient(180deg, #acd98c 0%, #8bc06f 100%);
+}
+
+.tier-red {
+  background: linear-gradient(180deg, #ff9c8a 0%, #f56f5a 100%);
+}
+
+.tier-gold {
+  background: linear-gradient(180deg, #f0d37b 0%, #d8bb5b 100%);
+}
+
+.tier-black {
+  background: linear-gradient(180deg, #66656c 0%, #414147 100%);
+}
+
+.seat {
+  min-width: var(--seat-size);
+  min-height: var(--seat-size);
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fce6d3 0%, #f7d8bf 100%);
+  border: 1px solid rgba(123, 90, 69, 0.15);
+  box-shadow:
+    0 10px 18px rgba(123, 90, 69, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  text-align: center;
+}
+
+.seat--occupied {
+  background: linear-gradient(180deg, #e0f0c8 0%, #cfe7bf 100%);
+}
+
+.seat__label {
+  display: inline-block;
+  color: #33403b;
+  font:
+    600 0.72rem/1.1 'Nunito Sans',
+    'Inter',
+    sans-serif;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .belt-stage {
+    width: min(100%, 30rem);
+  }
+
+  .seat__label {
+    font-size: 0.65rem;
+  }
+}
