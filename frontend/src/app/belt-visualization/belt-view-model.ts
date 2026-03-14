@@ -5,25 +5,52 @@ import type {
   SeatStateDto,
   SeatStateListDto,
 } from '../api/types';
+import {
+  getCounterSeatPoint,
+  getSlotLayoutPoint,
+  getStageSizing,
+  type BeltTrackSegment,
+} from './belt-layout';
+import { resolveMenuItemVisual, type MenuItemVisual } from './menu-item-visuals';
+
+export interface BeltStagePlateViewModel {
+  id: string;
+  menuItemName: string;
+  tierClass: string;
+  className: string;
+  foodClassName: string;
+  visual: MenuItemVisual;
+  ariaLabel: string;
+}
 
 export interface BeltStageSlotViewModel {
   id: string;
-  angleDeg: number;
+  positionIndex: number;
+  pathProgress: number;
   xPercent: number;
   yPercent: number;
-  plate: PlateSnapshotDto | null;
-  tierClass: string;
+  tangentDeg: number;
+  segment: BeltTrackSegment;
+  plate: BeltStagePlateViewModel | null;
   ariaLabel: string;
 }
 
 export interface BeltStageSeatViewModel {
   id: string;
   label: string;
-  angleDeg: number;
+  positionIndex: number;
   xPercent: number;
   yPercent: number;
+  facingDeg: number;
   isOccupied: boolean;
+  presenceCue: 'available' | 'occupied';
   ariaLabel: string;
+}
+
+export interface BeltStageKitchenViewModel {
+  showChef: boolean;
+  chefLabel: string;
+  accentLabels: [string, string, string];
 }
 
 export interface BeltStageViewModel {
@@ -32,24 +59,41 @@ export interface BeltStageViewModel {
   occupiedPlateCount: number;
   slots: BeltStageSlotViewModel[];
   seats: BeltStageSeatViewModel[];
+  kitchen: BeltStageKitchenViewModel;
   plateSizePx: number;
   slotMarkerSizePx: number;
   seatSizePx: number;
 }
 
-function toPolarPosition(
-  index: number,
+function getOccupiedPlateSizePx(
+  basePlateSizePx: number,
   slotCount: number,
-  radiusPercent: number,
-): { xPercent: number; yPercent: number; angleDeg: number } {
-  const angleDeg = (index / slotCount) * 360 - 90;
-  const angleRad = (angleDeg * Math.PI) / 180;
+  slots: BeltSlotSnapshotDto[],
+): number {
+  const occupiedPositions = slots
+    .filter((slot) => !!slot.plate)
+    .map((slot, index) => slot.positionIndex ?? index)
+    .sort((left, right) => left - right);
 
-  return {
-    angleDeg,
-    xPercent: 50 + Math.cos(angleRad) * radiusPercent,
-    yPercent: 50 + Math.sin(angleRad) * radiusPercent,
-  };
+  if (occupiedPositions.length <= 1 || slotCount <= 1) {
+    return basePlateSizePx;
+  }
+
+  let minimumGap = slotCount;
+  for (let index = 0; index < occupiedPositions.length; index += 1) {
+    const current = occupiedPositions[index];
+    const next = occupiedPositions[(index + 1) % occupiedPositions.length];
+    const gap =
+      index === occupiedPositions.length - 1 ? next + slotCount - current : next - current;
+    minimumGap = Math.min(minimumGap, gap);
+  }
+
+  const occupiedRatio = occupiedPositions.length / slotCount;
+  const gapScale = minimumGap <= 1 ? 0.62 : minimumGap <= 2 ? 0.74 : minimumGap <= 3 ? 0.86 : 1;
+  const ratioScale = occupiedRatio >= 0.5 ? 0.82 : occupiedRatio >= 0.35 ? 0.9 : 1;
+  const densityScale = Math.min(gapScale, ratioScale);
+
+  return Math.max(24, Math.round(basePlateSizePx * densityScale));
 }
 
 function getSlotId(slot: BeltSlotSnapshotDto, fallbackIndex: number): string {
@@ -85,48 +129,82 @@ function getPlateLabel(plate: PlateSnapshotDto | null): string {
   return `${plate.menuItemName ?? 'Plate'} on ${plate.tier?.toLowerCase() ?? 'unknown'} tier, ${price}`;
 }
 
+function buildPlateViewModel(plate: PlateSnapshotDto, index: number): BeltStagePlateViewModel {
+  const visual = resolveMenuItemVisual(plate.menuItemName);
+  const tierClass = getTierClass(plate);
+
+  return {
+    id: plate.plateId ?? `plate-${index}`,
+    menuItemName: plate.menuItemName ?? 'Chef special',
+    tierClass,
+    className: `${tierClass} plate--${visual.family} plate--${visual.vesselType}`,
+    foodClassName: `food--${visual.family} visual--${visual.visualKey} ${visual.accentClass}`,
+    visual,
+    ariaLabel: getPlateLabel(plate),
+  };
+}
+
 export function buildBeltStageViewModel(
   snapshot: BeltSnapshotDto,
   seats: SeatStateListDto,
+  renderOffset = 0,
 ): BeltStageViewModel {
   const slotCount = Math.max(1, snapshot.beltSlotCount ?? snapshot.slots?.length ?? 1);
   const occupiedPlateCount = snapshot.slots?.filter((slot) => !!slot.plate).length ?? 0;
-  const plateSizePx = Math.max(10, Math.min(18, Math.round(156 / Math.sqrt(slotCount))));
-  const slotMarkerSizePx = Math.max(4, Math.min(8, Math.round(72 / Math.sqrt(slotCount))));
-  const seatSizePx = Math.max(22, Math.min(34, Math.round(18 + seats.length / 2)));
-
+  const sizing = getStageSizing(slotCount, seats.length);
+  const sortedSlots = [...(snapshot.slots ?? [])].sort(
+    (left, right) => (left.positionIndex ?? 0) - (right.positionIndex ?? 0),
+  );
+  const sortedSeats = [...seats].sort(
+    (left, right) => (left.positionIndex ?? 0) - (right.positionIndex ?? 0),
+  );
   return {
     beltName: snapshot.beltName ?? 'Sushi belt',
     slotCount,
     occupiedPlateCount,
-    plateSizePx,
-    slotMarkerSizePx,
-    seatSizePx,
-    slots: (snapshot.slots ?? []).map((slot, index) => {
+    kitchen: {
+      showChef: true,
+      chefLabel: 'Chef preparing dishes inside the counter',
+      accentLabels: ['Prep board', 'Tea lamp', 'Serving trays'],
+    },
+    plateSizePx: getOccupiedPlateSizePx(sizing.plateSizePx, slotCount, sortedSlots),
+    slotMarkerSizePx: sizing.slotMarkerSizePx,
+    seatSizePx: sizing.seatSizePx,
+    slots: sortedSlots.map((slot, index) => {
       const positionIndex = slot.positionIndex ?? index;
-      const { angleDeg, xPercent, yPercent } = toPolarPosition(positionIndex, slotCount, 39);
+      const { tangentDeg, xPercent, yPercent, segment } = getSlotLayoutPoint(
+        positionIndex,
+        slotCount,
+        renderOffset,
+      );
+      const plate = slot.plate ? buildPlateViewModel(slot.plate, index) : null;
 
       return {
         id: getSlotId(slot, index),
-        angleDeg,
+        positionIndex,
+        pathProgress:
+          ((((positionIndex + renderOffset) % slotCount) + slotCount) % slotCount) / slotCount,
         xPercent,
         yPercent,
-        plate: slot.plate ?? null,
-        tierClass: getTierClass(slot.plate ?? null),
-        ariaLabel: `Slot ${positionIndex + 1}. ${getPlateLabel(slot.plate ?? null)}`,
+        tangentDeg,
+        segment,
+        plate,
+        ariaLabel: `Slot ${positionIndex + 1}. ${plate?.ariaLabel ?? 'Empty slot'}`,
       };
     }),
-    seats: seats.map((seat, index) => {
+    seats: sortedSeats.map((seat, index) => {
       const positionIndex = seat.positionIndex ?? index;
-      const { angleDeg, xPercent, yPercent } = toPolarPosition(positionIndex, slotCount, 49);
+      const { xPercent, yPercent, facingDeg } = getCounterSeatPoint(index, sortedSeats.length);
 
       return {
         id: getSeatId(seat, index),
         label: seat.label ?? `Seat ${index + 1}`,
-        angleDeg,
+        positionIndex,
         xPercent,
         yPercent,
+        facingDeg,
         isOccupied: !!seat.isOccupied,
+        presenceCue: seat.isOccupied ? 'occupied' : 'available',
         ariaLabel: `${seat.label ?? `Seat ${index + 1}`} is ${seat.isOccupied ? 'occupied' : 'available'}`,
       };
     }),

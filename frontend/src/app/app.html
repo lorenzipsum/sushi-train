@@ -1,23 +1,6 @@
 <main class="page-shell">
   <section class="hero">
-    <div class="hero__copy">
-      <p class="hero__eyebrow">Sushi Train overview</p>
-      <h1>{{ store.beltName() }}</h1>
-      <p class="hero__lede">
-        A warm, Kawaii view of the conveyor belt that keeps the backend snapshot in charge and lets
-        the frontend glide plates around the room.
-      </p>
-    </div>
-
-    <div class="hero__chips">
-      <span class="chip" [class.chip--warning]="store.isDegraded()">{{
-        store.freshnessLabel()
-      }}</span>
-      <span class="chip" [class.chip--matcha]="!store.isPaused()">{{ store.movementLabel() }}</span>
-      @if (store.isReducedMotion()) {
-        <span class="chip chip--soy">Reduced motion</span>
-      }
-    </div>
+    <h1>Kaitenzushi</h1>
   </section>
 
   @if (store.fatalMessage(); as fatalMessage) {
@@ -36,91 +19,41 @@
       <p>Fetching the belt, its seats, and the latest movement snapshot.</p>
     </section>
   } @else if (store.stageViewModel(); as stage) {
-    <section class="overview-grid">
-      <section class="stage-panel" aria-label="Belt stage">
-        <div class="stage-panel__header">
-          <div>
-            <p class="stage-panel__eyebrow">Live belt</p>
-            <h2>{{ stage.beltName }}</h2>
-          </div>
-          <p class="stage-panel__support">
-            Stable slots and fixed seats, with motion derived from snapshot timing.
-          </p>
-        </div>
-
+    <section class="belt-deck">
+      <section class="counter-stage" aria-label="Belt stage">
         <app-belt-stage
           [stage]="stage"
-          [rotationDegrees]="store.rotationDegrees()"
-          [rotationDirection]="store.rotationDirection()"
           [reducedMotion]="store.isReducedMotion()"
           [paused]="store.isPaused()"
+          [degraded]="store.isDegraded()"
         />
 
-        <dl class="stage-panel__stats">
+        <dl class="counter-stage__stats">
           <div>
-            <dt>Slots</dt>
-            <dd>{{ stage.slotCount }}</dd>
+            <dt>Service pace</dt>
+            <dd>{{ store.speedLabel() }}</dd>
           </div>
           <div>
             <dt>Plates</dt>
             <dd>{{ store.occupiedPlateCount() }}</dd>
           </div>
           <div>
-            <dt>Occupied seats</dt>
+            <dt>Seats</dt>
             <dd>{{ store.occupiedSeatCount() }}/{{ stage.seats.length }}</dd>
           </div>
         </dl>
+
+        @if (store.isDegraded() || store.isReducedMotion()) {
+          <p class="counter-stage__notice">
+            @if (store.isDegraded()) {
+              <span>Showing the last good belt state while refresh catches up.</span>
+            }
+            @if (store.isReducedMotion()) {
+              <span>Reduced motion keeps the counter readable without continuous glide.</span>
+            }
+          </p>
+        }
       </section>
-
-      <aside class="sidebar" aria-label="Belt overview details">
-        <section class="panel panel--highlight">
-          <h2>Live state</h2>
-          <dl class="metrics">
-            <div>
-              <dt>Freshness</dt>
-              <dd class="metrics__detail">{{ store.freshnessLabel() }}</dd>
-            </div>
-            <div>
-              <dt>Motion</dt>
-              <dd class="metrics__detail">{{ store.movementLabel() }}</dd>
-            </div>
-            <div>
-              <dt>Rhythm</dt>
-              <dd class="metrics__detail">{{ store.speedLabel() }}</dd>
-            </div>
-          </dl>
-
-          @if (store.isDegraded()) {
-            <p class="panel__notice">
-              Seat or belt refresh is behind. The page is keeping the last good state until the next
-              successful refresh.
-            </p>
-          }
-        </section>
-
-        <section class="panel">
-          <h2>Seat mood</h2>
-          @if (store.visibleOccupiedSeats().length) {
-            <ul class="seat-list">
-              @for (seatLabel of store.visibleOccupiedSeats(); track seatLabel) {
-                <li>{{ seatLabel }}</li>
-              }
-            </ul>
-          } @else {
-            <p class="panel__empty">Every stool is currently free for the next guest.</p>
-          }
-        </section>
-
-        <section class="panel">
-          <h2>Rendering rules</h2>
-          <ul class="rule-list">
-            <li>Physical slot order stays stable.</li>
-            <li>The belt glides from timing metadata, not DOM reordering.</li>
-            <li>Seats stay fixed while the belt rotates underneath.</li>
-            <li>Write flows can trigger an immediate refresh through the shared store hook.</li>
-          </ul>
-        </section>
-      </aside>
     </section>
   }
 </main>

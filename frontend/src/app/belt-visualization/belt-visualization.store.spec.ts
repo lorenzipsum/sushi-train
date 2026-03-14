@@ -128,7 +128,7 @@ describe('BeltVisualizationStore', () => {
     const store = TestBed.inject(BeltVisualizationStore);
 
     expect(store.isPaused()).toBe(true);
-    expect(store.movementLabel()).toBe('Paused at the belt');
+    expect(store.movementLabel()).toBe('Paused at the counter');
     expect(store.speedLabel()).toBe('Paused');
   });
 
