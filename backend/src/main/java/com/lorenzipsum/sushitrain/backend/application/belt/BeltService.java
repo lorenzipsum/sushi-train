@@ -87,7 +87,7 @@ public class BeltService {
         if (request.menuItemId() == null) throw new IllegalArgumentException("menuItemId cannot be null");
 
         // Distinguish 404 vs 409 explicitly
-        repository.findParamsById(beltId).orElseThrow(() -> new ResourceNotFoundException("Belt", beltId));
+        Belt belt = repository.findParamsById(beltId).orElseThrow(() -> new ResourceNotFoundException("Belt", beltId));
 
         int num = (request.numOfPlates() == null) ? 1 : request.numOfPlates();
 
@@ -96,7 +96,12 @@ public class BeltService {
             throw new NotEnoughFreeSlotsException(beltId, num, freeSlots.size());
         }
 
-        var pickedSlots = BeltSlotPlacement.pickSlots(freeSlots, beltPlacementRules.minEmptySlotsBetweenNewPlates(), num);
+        var pickedSlots = BeltSlotPlacement.pickSlots(
+                freeSlots,
+                belt.getSlotCount(),
+                beltPlacementRules.minEmptySlotsBetweenNewPlates(),
+                num
+        );
         if (pickedSlots.size() < num) {
             throw new NotEnoughFreeSlotsException(beltId, num, pickedSlots.size());
         }
