@@ -20,7 +20,7 @@ Rotation is virtual and time-based.
 
 Relevant source:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
+- [Belt domain model](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
 
 ## 2. Rotation Formula
 
@@ -50,7 +50,7 @@ Important implications:
 
 Backend implementation:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
+- [Belt domain model](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
 
 ## 3. Belt Speed Semantics
 
@@ -72,11 +72,11 @@ Backend implementation:
 
 Limits are defined in:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
+- [Belt domain model](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
 
 Request validation is defined in:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltUpdateRequest.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltUpdateRequest.java)
+- [Belt update request DTO](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltUpdateRequest.java)
 
 ## 4. Important Behavior: Rotation Is Metadata, Not Slot Mutation
 
@@ -86,9 +86,9 @@ It also returns belt timing parameters alongside the slot and plate data.
 
 Relevant query and mapping:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/persistence/jpa/query/BeltJpaQuery.java](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/persistence/jpa/query/BeltJpaQuery.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/persistence/jpa/adapter/JpaBeltViewAndSlotAllocationAdapter.java](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/persistence/jpa/adapter/JpaBeltViewAndSlotAllocationAdapter.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltApiMapper.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltApiMapper.java)
+- [Belt snapshot query](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/persistence/jpa/query/BeltJpaQuery.java)
+- [Belt view and slot allocation adapter](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/persistence/jpa/adapter/JpaBeltViewAndSlotAllocationAdapter.java)
+- [Belt API mapper](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltApiMapper.java)
 
 This is the key frontend rule:
 
@@ -113,8 +113,8 @@ Returns all belts with metadata including:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltDto.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltDto.java)
+- [Belt controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
+- [Belt DTO](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltDto.java)
 
 ### 5.2 Read Full Belt
 
@@ -128,8 +128,8 @@ Returns:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/FullBeltDto.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/FullBeltDto.java)
+- [Belt controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
+- [Full belt DTO](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/FullBeltDto.java)
 
 ### 5.3 Read Belt Snapshot For Rendering
 
@@ -151,9 +151,9 @@ It returns:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltSnapshotDto.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltSnapshotDto.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltSlotSnapshotDto.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltSlotSnapshotDto.java)
+- [Belt controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
+- [Belt snapshot DTO](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltSnapshotDto.java)
+- [Belt slot snapshot DTO](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltSlotSnapshotDto.java)
 
 ### 5.4 Read Seat Occupancy For A Belt
 
@@ -168,7 +168,7 @@ Returns:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
+- [Belt controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
 
 ### 5.5 Update Belt Speed / Timing
 
@@ -191,9 +191,9 @@ Validation rules:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltUpdateRequest.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltUpdateRequest.java)
+- [Belt controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
+- [Belt service](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java)
+- [Belt update request DTO](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/dto/BeltUpdateRequest.java)
 
 ### 5.6 Create Plates On Belt
 
@@ -213,8 +213,8 @@ Body example:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java)
+- [Belt controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/belt/BeltController.java)
+- [Belt service](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java)
 
 ### 5.7 Seat Interaction Endpoints
 
@@ -244,9 +244,9 @@ Checkout:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/seat/SeatController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/seat/SeatController.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/application/order/OrderService.java](../src/main/java/com/lorenzipsum/sushitrain/backend/application/order/OrderService.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/seat/dto/PickPlateRequest.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/seat/dto/PickPlateRequest.java)
+- [Seat controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/seat/SeatController.java)
+- [Order service](../src/main/java/com/lorenzipsum/sushitrain/backend/application/order/OrderService.java)
+- [Pick plate request DTO](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/seat/dto/PickPlateRequest.java)
 
 ### 5.8 Expire Plate
 
@@ -259,8 +259,8 @@ This:
 
 Relevant files:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/plate/PlateController.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/plate/PlateController.java)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/application/plate/PlateService.java](../src/main/java/com/lorenzipsum/sushitrain/backend/application/plate/PlateService.java)
+- [Plate controller](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/plate/PlateController.java)
+- [Plate service](../src/main/java/com/lorenzipsum/sushitrain/backend/application/plate/PlateService.java)
 
 ## 6. How Plate Placement Works
 
@@ -276,7 +276,7 @@ When creating plates on the belt, the backend:
 
 Relevant service:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java)
+- [Belt service](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltService.java)
 
 ### 6.1 Spacing Rule
 
@@ -290,8 +290,8 @@ Default:
 
 Relevant config:
 
-- [src/main/resources/application.yaml](../src/main/resources/application.yaml)
-- [src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/config/BeltPlacementProperties.java](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/config/BeltPlacementProperties.java)
+- [Application configuration](../src/main/resources/application.yaml)
+- [Belt placement properties](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/config/BeltPlacementProperties.java)
 
 Placement algorithm:
 
@@ -301,7 +301,7 @@ Placement algorithm:
 
 Relevant file:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltSlotPlacement.java](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltSlotPlacement.java)
+- [Belt slot placement logic](../src/main/java/com/lorenzipsum/sushitrain/backend/application/belt/BeltSlotPlacement.java)
 
 Frontend implication:
 
@@ -322,7 +322,7 @@ When a seat picks a plate, the backend:
 
 Relevant file:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/application/order/OrderService.java](../src/main/java/com/lorenzipsum/sushitrain/backend/application/order/OrderService.java)
+- [Order service](../src/main/java/com/lorenzipsum/sushitrain/backend/application/order/OrderService.java)
 
 Important limitation:
 
@@ -337,7 +337,7 @@ Frontend implication:
 
 Relevant domain file:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/domain/plate/Plate.java](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/plate/Plate.java)
+- [Plate domain model](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/plate/Plate.java)
 
 Behavior:
 
@@ -362,7 +362,7 @@ It:
 
 Relevant file:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/demo/DemoBeltConsoleAnimator.java](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/demo/DemoBeltConsoleAnimator.java)
+- [Demo belt console animator](../src/main/java/com/lorenzipsum/sushitrain/backend/infrastructure/demo/DemoBeltConsoleAnimator.java)
 
 This should be treated as the reference frontend rendering model.
 
@@ -469,7 +469,7 @@ Reason:
 
 Global errors are mapped in:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/common/ControllerAdvice.java](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/common/ControllerAdvice.java)
+- [Controller advice](../src/main/java/com/lorenzipsum/sushitrain/backend/interfaces/rest/common/ControllerAdvice.java)
 
 Main cases:
 
@@ -499,7 +499,7 @@ Seeded local belt:
 
 Relevant migration:
 
-- [src/main/resources/db/migration/V3__seed_belt.sql](../src/main/resources/db/migration/V3__seed_belt.sql)
+- [Belt seed migration](../src/main/resources/db/migration/V3__seed_belt.sql)
 
 ## 16. Known Caveats In Current Backend
 
@@ -511,7 +511,7 @@ That likely means a speed or tick change can cause a visible jump instead of con
 
 Relevant code:
 
-- [src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
+- [Belt domain model](../src/main/java/com/lorenzipsum/sushitrain/backend/domain/belt/Belt.java)
 
 Frontend expectation:
 
