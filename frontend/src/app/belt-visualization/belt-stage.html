@@ -77,25 +77,46 @@
 
     <div class="belt-stage__seat-row">
       @for (seat of stage().seats; track seat.id) {
-        <div
-          class="seat"
-          [class.seat--occupied]="seat.isOccupied"
-          [style.left.%]="seat.xPercent"
-          [style.top.%]="seat.yPercent"
-          [style.transform]="'translate(-50%, -50%) rotate(' + seat.facingDeg + 'deg)'"
-          [attr.aria-label]="seat.ariaLabel"
-          [attr.title]="seat.ariaLabel"
-        >
-          <span class="seat__frame" aria-hidden="true"></span>
-          <span class="seat__cushion" aria-hidden="true"></span>
-          @if (seat.isOccupied) {
-            <span class="seat__guest" aria-hidden="true">
-              <span class="seat__guest-knot"></span>
-              <span class="seat__guest-head"></span>
-              <span class="seat__guest-body"></span>
-            </span>
-          }
-        </div>
+        @if (seat.isActionable) {
+          <button
+            type="button"
+            class="seat seat--actionable"
+            [class.seat--occupied]="seat.isOccupied"
+            [class.seat--pending]="seat.isPending"
+            [style.left.%]="seat.xPercent"
+            [style.top.%]="seat.yPercent"
+            [style.transform]="'translate(-50%, -50%) rotate(' + seat.facingDeg + 'deg)'"
+            [attr.aria-label]="seat.ariaLabel"
+            [attr.title]="seat.ariaLabel"
+            (click)="handleSeatClick(seat)"
+          >
+            <span class="seat__frame" aria-hidden="true"></span>
+            <span class="seat__cushion" aria-hidden="true"></span>
+            <span class="seat__label" aria-hidden="true">{{ seat.label }}</span>
+          </button>
+        } @else {
+          <div
+            class="seat"
+            [class.seat--occupied]="seat.isOccupied"
+            [class.seat--pending]="seat.isPending"
+            [style.left.%]="seat.xPercent"
+            [style.top.%]="seat.yPercent"
+            [style.transform]="'translate(-50%, -50%) rotate(' + seat.facingDeg + 'deg)'"
+            [attr.aria-label]="seat.ariaLabel"
+            [attr.title]="seat.ariaLabel"
+          >
+            <span class="seat__frame" aria-hidden="true"></span>
+            <span class="seat__cushion" aria-hidden="true"></span>
+            <span class="seat__label" aria-hidden="true">{{ seat.label }}</span>
+            @if (seat.isOccupied) {
+              <span class="seat__guest" aria-hidden="true">
+                <span class="seat__guest-knot"></span>
+                <span class="seat__guest-head"></span>
+                <span class="seat__guest-body"></span>
+              </span>
+            }
+          </div>
+        }
       }
     </div>
   </div>

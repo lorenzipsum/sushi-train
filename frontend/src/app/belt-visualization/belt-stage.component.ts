@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import type { BeltStageViewModel } from './belt-view-model';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import type { BeltStageSeatViewModel, BeltStageViewModel } from './belt-view-model';
 
 @Component({
   selector: 'app-belt-stage',
@@ -12,4 +12,13 @@ export class BeltStageComponent {
   readonly reducedMotion = input(false);
   readonly paused = input(false);
   readonly degraded = input(false);
+  readonly occupySeat = output<string>();
+
+  handleSeatClick(seat: BeltStageSeatViewModel): void {
+    if (!seat.isActionable) {
+      return;
+    }
+
+    this.occupySeat.emit(seat.id);
+  }
 }

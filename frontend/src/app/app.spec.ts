@@ -1,45 +1,67 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './app';
-import { BeltsApi } from './api/belts.api';
+import { BeltVisualizationStore } from './belt-visualization/belt-visualization.store';
+import type { BeltStageViewModel } from './belt-visualization/belt-view-model';
 
-const beltsApiMock = {
-  getAllBelts: () =>
-    of([
+function createStageViewModel(): BeltStageViewModel {
+  return {
+    beltName: 'Main Belt',
+    slotCount: 8,
+    occupiedPlateCount: 1,
+    slots: [],
+    seats: [
       {
-        id: 'belt-1',
-        name: 'Main Belt',
-      },
-    ]),
-  getBeltSnapshot: () =>
-    of({
-      beltId: 'belt-1',
-      beltName: 'Main Belt',
-      beltSlotCount: 8,
-      beltBaseRotationOffset: 0,
-      beltOffsetStartedAt: '2026-03-14T10:00:00.000Z',
-      beltTickIntervalMs: 500,
-      beltSpeedSlotsPerTick: 1,
-      slots: [{ slotId: 'slot-1', positionIndex: 0 }],
-    }),
-  getSeatOverview: () =>
-    of([
-      {
-        seatId: 'seat-1',
+        id: 'seat-1',
         label: 'Seat 1',
         positionIndex: 0,
-        isOccupied: true,
+        xPercent: 25,
+        yPercent: 70,
+        facingDeg: 0,
+        isOccupied: false,
+        isActionable: true,
+        isPending: false,
+        orderId: null,
+        occupiedSince: null,
+        presenceCue: 'available',
+        ariaLabel: 'Seat 1 is available. Activate to occupy this seat.',
       },
-    ]),
-};
+    ],
+    kitchen: {
+      showChef: true,
+      chefLabel: 'Chef preparing dishes',
+      accentLabels: ['Prep board', 'Tea lamp', 'Serving trays'],
+    },
+    plateSizePx: 28,
+    slotMarkerSizePx: 10,
+    seatSizePx: 34,
+  };
+}
 
 describe('App', () => {
+  let storeMock: BeltVisualizationStore;
+
   beforeEach(async () => {
+    storeMock = {
+      fatalMessage: () => null,
+      hasNoBelts: () => false,
+      isLoading: () => false,
+      stageViewModel: () => createStageViewModel(),
+      isReducedMotion: () => false,
+      isPaused: () => false,
+      isDegraded: () => false,
+      speedLabel: () => '1 slot every 500ms',
+      occupiedPlateCount: () => 1,
+      occupiedSeatCount: () => 0,
+      occupyFeedback: () => null,
+      occupyPendingLabel: () => null,
+      occupySeat: vi.fn(),
+    } as unknown as BeltVisualizationStore;
+
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltsApi, useValue: beltsApiMock }],
+      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
     }).compileComponents();
   });
 
@@ -59,5 +81,47 @@ describe('App', () => {
     expect(compiled.querySelector('.support-panels')).toBeFalsy();
     expect(compiled.textContent).toContain('Service pace');
     expect(compiled.textContent).not.toContain('Guest seats');
+  });
+
+  it('routes a free-seat click from the stage to the occupy action', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.seat--actionable');
+    button.click();
+
+    expect(storeMock.occupySeat).toHaveBeenCalledWith('seat-1');
+  });
+
+  it('renders occupy feedback when the store exposes a conflict or success notice', () => {
+    storeMock = {
+      ...storeMock,
+      occupyFeedback: () => ({
+        tone: 'error',
+        title: 'Seat 1 was already taken',
+        detail: 'Another guest occupied this seat first.',
+        seatId: 'seat-1',
+        seatLabel: 'Seat 1',
+        orderId: 'order-1',
+        createdAtLabel: 'Mar 15, 3:00 AM',
+      }),
+    } as unknown as BeltVisualizationStore;
+
+    TestBed.resetTestingModule();
+
+    return TestBed.configureTestingModule({
+      imports: [App],
+      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+    })
+      .compileComponents()
+      .then(() => {
+        const fixture = TestBed.createComponent(App);
+        fixture.detectChanges();
+        const compiled = fixture.nativeElement as HTMLElement;
+
+        expect(compiled.querySelector('.counter-stage__feedback--error')).toBeTruthy();
+        expect(compiled.textContent).toContain('Seat 1 was already taken');
+        expect(compiled.textContent).toContain('Open order order-1');
+      });
   });
 });

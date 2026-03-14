@@ -3,15 +3,35 @@ import { take } from 'rxjs';
 
 import { BeltsApi } from '../api/belts.api';
 import { getProblemDetail } from '../api/http/problem-detail';
-import type { BeltDto, BeltSnapshotDto, SeatStateListDto } from '../api/types';
+import { SeatsApi } from '../api/seats.api';
+import type {
+  BeltDto,
+  BeltSnapshotDto,
+  OrderSummaryDto,
+  ProblemDetail,
+  SeatOrderDto,
+  SeatStateDto,
+  SeatStateListDto,
+} from '../api/types';
 import { buildBeltStageViewModel } from './belt-view-model';
 import { getRenderOffset } from './motion';
 
 const POLL_INTERVAL_MS = 3000;
 
+export interface OccupyFeedback {
+  tone: 'success' | 'error';
+  title: string;
+  detail: string;
+  seatId: string;
+  seatLabel: string;
+  orderId: string | null;
+  createdAtLabel: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BeltVisualizationStore {
   private readonly beltsApi = inject(BeltsApi);
+  private readonly seatsApi = inject(SeatsApi);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly primaryBelt = signal<BeltDto | null>(null);
@@ -27,6 +47,9 @@ export class BeltVisualizationStore {
   private readonly lastSeatsSuccessAt = signal<number | null>(null);
   private readonly now = signal(Date.now());
   private readonly reducedMotion = signal(false);
+  private readonly occupyPendingSeatIdState = signal<string | null>(null);
+  private readonly occupyFeedbackState = signal<OccupyFeedback | null>(null);
+  private readonly activeOrdersBySeatId = signal<Record<string, OrderSummaryDto>>({});
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   private animationFrameId: number | null = null;
@@ -54,7 +77,21 @@ export class BeltVisualizationStore {
       snapshot,
       this.seats(),
       getRenderOffset(snapshot, this.now(), this.reducedMotion()),
+      {
+        pendingSeatId: this.occupyPendingSeatIdState(),
+        activeOrdersBySeatId: this.activeOrdersBySeatId(),
+      },
     );
+  });
+  readonly occupyPendingSeatId = computed(() => this.occupyPendingSeatIdState());
+  readonly occupyFeedback = computed(() => this.occupyFeedbackState());
+  readonly occupyPendingLabel = computed(() => {
+    const seatId = this.occupyPendingSeatIdState();
+    if (!seatId) {
+      return null;
+    }
+
+    return this.getSeatLabel(seatId);
   });
   readonly isPaused = computed(() => (this.snapshot()?.beltSpeedSlotsPerTick ?? 0) === 0);
   readonly beltName = computed(
@@ -155,6 +192,33 @@ export class BeltVisualizationStore {
     this.refreshNow();
   }
 
+  occupySeat(seatId: string): void {
+    const seat = this.findSeat(seatId);
+    if (!seat || seat.isOccupied || this.occupyPendingSeatIdState()) {
+      return;
+    }
+
+    this.occupyPendingSeatIdState.set(seatId);
+    this.occupyFeedbackState.set(null);
+
+    this.seatsApi
+      .occupySeat(seatId)
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          this.applySeatState(result);
+          this.reconcileSeatDetail(
+            seatId,
+            (seatOrder) => this.buildSuccessFeedback(seatOrder),
+            () => this.buildMissingContextFeedback(result),
+          );
+        },
+        error: (error: unknown) => {
+          this.handleOccupyError(seatId, error);
+        },
+      });
+  }
+
   private loadBelts(): void {
     this.beltsLoading.set(true);
     this.beltsError.set(null);
@@ -220,6 +284,7 @@ export class BeltVisualizationStore {
       .subscribe({
         next: (seats) => {
           this.seats.set(seats);
+          this.pruneActiveOrders(seats);
           this.seatsError.set(null);
           this.seatsLoading.set(false);
           this.lastSeatsSuccessAt.set(Date.now());
@@ -257,5 +322,224 @@ export class BeltVisualizationStore {
   private formatError(error: unknown, fallback: string): string {
     const problemDetail = getProblemDetail(error);
     return problemDetail?.detail ?? problemDetail?.title ?? fallback;
+  }
+
+  private handleOccupyError(seatId: string, error: unknown): void {
+    const seatLabel = this.getSeatLabel(seatId);
+    const problemDetail = getProblemDetail(error);
+    const status = problemDetail?.status ?? null;
+
+    if (status === 409) {
+      this.reconcileSeatDetail(
+        seatId,
+        (seatOrder) => this.buildConflictFeedback(seatLabel, seatOrder, problemDetail),
+        () => this.buildConflictFallbackFeedback(seatId, seatLabel, problemDetail),
+      );
+      return;
+    }
+
+    this.occupyPendingSeatIdState.set(null);
+    this.occupyFeedbackState.set(
+      status === 404
+        ? {
+            tone: 'error',
+            title: `${seatLabel} could not be found`,
+            detail: problemDetail?.detail ?? 'That seat is no longer available on this belt.',
+            seatId,
+            seatLabel,
+            orderId: null,
+            createdAtLabel: null,
+          }
+        : {
+            tone: 'error',
+            title: `We could not occupy ${seatLabel}`,
+            detail: this.formatError(error, 'Please try again once the belt service catches up.'),
+            seatId,
+            seatLabel,
+            orderId: null,
+            createdAtLabel: null,
+          },
+    );
+    this.refreshAfterWrite();
+  }
+
+  private reconcileSeatDetail(
+    seatId: string,
+    buildFeedback: (seatOrder: SeatOrderDto) => OccupyFeedback,
+    buildFallbackFeedback: () => OccupyFeedback,
+  ): void {
+    this.seatsApi
+      .getSeatState(seatId)
+      .pipe(take(1))
+      .subscribe({
+        next: (seatOrder) => {
+          this.storeSeatOrderSummary(seatOrder);
+          this.applySeatState(seatOrder);
+          this.occupyPendingSeatIdState.set(null);
+          this.occupyFeedbackState.set(buildFeedback(seatOrder));
+          this.refreshAfterWrite();
+        },
+        error: () => {
+          this.occupyPendingSeatIdState.set(null);
+          this.occupyFeedbackState.set(buildFallbackFeedback());
+          this.refreshAfterWrite();
+        },
+      });
+  }
+
+  private buildSuccessFeedback(seatState: SeatStateDto | SeatOrderDto): OccupyFeedback {
+    const seatId = seatState.seatId ?? this.occupyPendingSeatIdState() ?? 'unknown-seat';
+    const seatLabel = seatState.label ?? this.getSeatLabel(seatId);
+    const orderSummary = 'orderSummary' in seatState ? seatState.orderSummary : undefined;
+
+    return {
+      tone: 'success',
+      title: `${seatLabel} is yours`,
+      detail: orderSummary?.orderId
+        ? 'The seat now has an open dining record ready for later checkout and plate actions.'
+        : 'The seat is now occupied and will stay synchronized with the backend state.',
+      seatId,
+      seatLabel,
+      orderId: orderSummary?.orderId ?? null,
+      createdAtLabel: this.formatTimestamp(orderSummary?.createdAt),
+    };
+  }
+
+  private buildMissingContextFeedback(seatState: SeatStateDto): OccupyFeedback {
+    const seatId = seatState.seatId ?? this.occupyPendingSeatIdState() ?? 'unknown-seat';
+    const seatLabel = seatState.label ?? this.getSeatLabel(seatId);
+
+    return {
+      tone: 'error',
+      title: `${seatLabel} is occupied, but the dining record is still syncing`,
+      detail:
+        'The seat was taken successfully, but the order details could not be confirmed yet. Refresh and retry before starting follow-up seat actions.',
+      seatId,
+      seatLabel,
+      orderId: null,
+      createdAtLabel: null,
+    };
+  }
+
+  private buildConflictFeedback(
+    seatLabel: string,
+    seatOrder: SeatOrderDto,
+    problemDetail: ProblemDetail | null,
+  ): OccupyFeedback {
+    return {
+      tone: 'error',
+      title: `${seatLabel} was already taken`,
+      detail:
+        problemDetail?.detail ??
+        'Another guest occupied this seat first. The stage now reflects the current backend state.',
+      seatId: seatOrder.seatId ?? this.occupyPendingSeatIdState() ?? 'unknown-seat',
+      seatLabel,
+      orderId: seatOrder.orderSummary?.orderId ?? null,
+      createdAtLabel: this.formatTimestamp(seatOrder.orderSummary?.createdAt),
+    };
+  }
+
+  private buildConflictFallbackFeedback(
+    seatId: string,
+    seatLabel: string,
+    problemDetail: ProblemDetail | null,
+  ): OccupyFeedback {
+    return {
+      tone: 'error',
+      title: `${seatLabel} was already taken`,
+      detail:
+        problemDetail?.detail ??
+        'Another guest occupied this seat first. Refreshing the seat state keeps the layout trustworthy.',
+      seatId,
+      seatLabel,
+      orderId: null,
+      createdAtLabel: null,
+    };
+  }
+
+  private applySeatState(
+    seatState: Pick<SeatStateDto, 'seatId' | 'label' | 'positionIndex' | 'isOccupied'>,
+  ): void {
+    if (!seatState.seatId) {
+      return;
+    }
+
+    this.seats.update((currentSeats) => {
+      const index = currentSeats.findIndex((seat) => seat.seatId === seatState.seatId);
+      if (index === -1) {
+        return currentSeats;
+      }
+
+      const nextSeats = [...currentSeats];
+      nextSeats[index] = {
+        ...nextSeats[index],
+        ...seatState,
+      };
+      return nextSeats;
+    });
+  }
+
+  private storeSeatOrderSummary(seatOrder: SeatOrderDto): void {
+    const seatId = seatOrder.seatId;
+    const orderSummary = seatOrder.orderSummary;
+    if (!seatId) {
+      return;
+    }
+
+    this.activeOrdersBySeatId.update((current) => {
+      if (!seatOrder.isOccupied || !orderSummary?.orderId) {
+        if (!(seatId in current)) {
+          return current;
+        }
+
+        const next = { ...current };
+        delete next[seatId];
+        return next;
+      }
+
+      return {
+        ...current,
+        [seatId]: orderSummary,
+      };
+    });
+  }
+
+  private pruneActiveOrders(seats: SeatStateListDto): void {
+    const occupiedSeatIds = new Set(
+      seats.filter((seat) => seat.isOccupied && seat.seatId).map((seat) => seat.seatId as string),
+    );
+
+    this.activeOrdersBySeatId.update((current) => {
+      const nextEntries = Object.entries(current).filter(([seatId]) => occupiedSeatIds.has(seatId));
+      return nextEntries.length === Object.keys(current).length
+        ? current
+        : Object.fromEntries(nextEntries);
+    });
+  }
+
+  private getSeatLabel(seatId: string): string {
+    return this.findSeat(seatId)?.label ?? 'That seat';
+  }
+
+  private findSeat(seatId: string): SeatStateDto | undefined {
+    return this.seats().find((seat) => seat.seatId === seatId);
+  }
+
+  private formatTimestamp(timestamp: string | undefined): string | null {
+    if (!timestamp) {
+      return null;
+    }
+
+    const parsed = new Date(timestamp);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat('en', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(parsed);
   }
 }

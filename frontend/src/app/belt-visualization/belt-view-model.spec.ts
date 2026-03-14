@@ -38,6 +38,8 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[1].xPercent).toBeLessThanOrEqual(95);
     expect([0, -90, 90, 180]).toContain(result.seats[1].facingDeg);
     expect(result.seats[1].presenceCue).toBe('occupied');
+    expect(result.seats[0].isActionable).toBe(true);
+    expect(result.seats[1].isActionable).toBe(false);
     expect(result.kitchen.showChef).toBe(true);
   });
 
@@ -113,5 +115,36 @@ describe('buildBeltStageViewModel', () => {
 
     expect(crowded.plateSizePx).toBeLessThan(sparse.plateSizePx);
     expect(crowded.plateSizePx).toBeGreaterThanOrEqual(24);
+  });
+
+  it('marks pending seats as non-actionable and exposes durable occupancy context for occupied seats', () => {
+    const snapshot: BeltSnapshotDto = {
+      beltName: 'Main Belt',
+      beltSlotCount: 8,
+      slots: [{ slotId: 'slot-1', positionIndex: 0 }],
+    };
+    const seats: SeatStateListDto = [
+      { seatId: 'seat-1', label: 'A1', positionIndex: 0, isOccupied: false },
+      { seatId: 'seat-2', label: 'A2', positionIndex: 1, isOccupied: true },
+    ];
+
+    const result = buildBeltStageViewModel(snapshot, seats, 0, {
+      pendingSeatId: 'seat-1',
+      activeOrdersBySeatId: {
+        'seat-2': {
+          orderId: 'order-2',
+          createdAt: '2026-03-15T03:00:00Z',
+          seatId: 'seat-2',
+          status: 'OPEN',
+        },
+      },
+    });
+
+    expect(result.seats[0].isPending).toBe(true);
+    expect(result.seats[0].presenceCue).toBe('pending');
+    expect(result.seats[0].isActionable).toBe(false);
+    expect(result.seats[1].orderId).toBe('order-2');
+    expect(result.seats[1].occupiedSince).toBe('2026-03-15T03:00:00Z');
+    expect(result.seats[1].ariaLabel).toContain('Active order order-2');
   });
 });

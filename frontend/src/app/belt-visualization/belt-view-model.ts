@@ -1,6 +1,7 @@
 import type {
   BeltSnapshotDto,
   BeltSlotSnapshotDto,
+  OrderSummaryDto,
   PlateSnapshotDto,
   SeatStateDto,
   SeatStateListDto,
@@ -43,7 +44,11 @@ export interface BeltStageSeatViewModel {
   yPercent: number;
   facingDeg: number;
   isOccupied: boolean;
-  presenceCue: 'available' | 'occupied';
+  isActionable: boolean;
+  isPending: boolean;
+  orderId: string | null;
+  occupiedSince: string | null;
+  presenceCue: 'available' | 'occupied' | 'pending';
   ariaLabel: string;
 }
 
@@ -63,6 +68,11 @@ export interface BeltStageViewModel {
   plateSizePx: number;
   slotMarkerSizePx: number;
   seatSizePx: number;
+}
+
+export interface BuildBeltStageViewModelOptions {
+  pendingSeatId?: string | null;
+  activeOrdersBySeatId?: Record<string, OrderSummaryDto | undefined>;
 }
 
 function getOccupiedPlateSizePx(
@@ -148,6 +158,7 @@ export function buildBeltStageViewModel(
   snapshot: BeltSnapshotDto,
   seats: SeatStateListDto,
   renderOffset = 0,
+  options: BuildBeltStageViewModelOptions = {},
 ): BeltStageViewModel {
   const slotCount = Math.max(1, snapshot.beltSlotCount ?? snapshot.slots?.length ?? 1);
   const occupiedPlateCount = snapshot.slots?.filter((slot) => !!slot.plate).length ?? 0;
@@ -158,6 +169,9 @@ export function buildBeltStageViewModel(
   const sortedSeats = [...seats].sort(
     (left, right) => (left.positionIndex ?? 0) - (right.positionIndex ?? 0),
   );
+  const pendingSeatId = options.pendingSeatId ?? null;
+  const activeOrdersBySeatId = options.activeOrdersBySeatId ?? {};
+
   return {
     beltName: snapshot.beltName ?? 'Sushi belt',
     slotCount,
@@ -195,17 +209,39 @@ export function buildBeltStageViewModel(
     seats: sortedSeats.map((seat, index) => {
       const positionIndex = seat.positionIndex ?? index;
       const { xPercent, yPercent, facingDeg } = getCounterSeatPoint(index, sortedSeats.length);
+      const seatId = getSeatId(seat, index);
+      const activeOrder = seat.seatId ? activeOrdersBySeatId[seat.seatId] : undefined;
+      const isPending = seat.seatId === pendingSeatId;
+      const isOccupied = !!seat.isOccupied;
+      const isActionable = !isOccupied && !isPending;
+      const presenceCue = isPending ? 'pending' : isOccupied ? 'occupied' : 'available';
+      const ariaParts = [seat.label ?? `Seat ${index + 1}`];
+
+      if (isPending) {
+        ariaParts.push('is being occupied right now.');
+      } else if (isOccupied) {
+        ariaParts.push('is occupied.');
+        if (activeOrder?.orderId) {
+          ariaParts.push(`Active order ${activeOrder.orderId}.`);
+        }
+      } else {
+        ariaParts.push('is available. Activate to occupy this seat.');
+      }
 
       return {
-        id: getSeatId(seat, index),
+        id: seatId,
         label: seat.label ?? `Seat ${index + 1}`,
         positionIndex,
         xPercent,
         yPercent,
         facingDeg,
-        isOccupied: !!seat.isOccupied,
-        presenceCue: seat.isOccupied ? 'occupied' : 'available',
-        ariaLabel: `${seat.label ?? `Seat ${index + 1}`} is ${seat.isOccupied ? 'occupied' : 'available'}`,
+        isOccupied,
+        isActionable,
+        isPending,
+        orderId: activeOrder?.orderId ?? null,
+        occupiedSince: activeOrder?.createdAt ?? null,
+        presenceCue,
+        ariaLabel: ariaParts.join(' '),
       };
     }),
   };

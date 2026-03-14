@@ -11,7 +11,7 @@
 
 | Order | Feature                     | Status   | Depends on                 | Notes                         |
 | ----- | --------------------------- | -------- | -------------------------- | ----------------------------- |
-| 3     | `003-occupy-seat`           | Proposed | `002-belt-layout-redesign` | Start seat lifecycle          |
+| 3     | `003-occupy-seat`           | Active   | `002-belt-layout-redesign` | Start seat lifecycle          |
 | 4     | `004-checkout-seat`         | Proposed | `003-occupy-seat`          | Close seat lifecycle          |
 | 5     | `005-pick-plates`           | Proposed | `003-occupy-seat`          | Guest plate action            |
 | 6     | `006-add-plates-to-belt`    | Proposed | `005-pick-plates`          | Kitchen or staff plate action |

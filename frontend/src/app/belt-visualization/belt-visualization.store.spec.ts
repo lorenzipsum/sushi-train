@@ -3,13 +3,33 @@ import { Subject, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BeltsApi } from '../api/belts.api';
-import type { BeltDto, BeltSnapshotDto, SeatStateListDto } from '../api/types';
+import { SeatsApi } from '../api/seats.api';
+import type { BeltDto, BeltSnapshotDto, SeatOrderDto, SeatStateListDto } from '../api/types';
 import { BeltVisualizationStore } from './belt-visualization.store';
 
 function createBelt(overrides: Partial<BeltDto> = {}): BeltDto {
   return {
     id: 'belt-1',
     name: 'Main Belt',
+    ...overrides,
+  };
+}
+
+function createSeatOrder(overrides: Partial<SeatOrderDto> = {}): SeatOrderDto {
+  return {
+    seatId: 'seat-1',
+    label: 'Seat 1',
+    positionIndex: 0,
+    isOccupied: true,
+    orderSummary: {
+      orderId: 'order-1',
+      seatId: 'seat-1',
+      status: 'OPEN',
+      createdAt: '2026-03-15T03:00:00Z',
+      closedAt: undefined,
+      lines: [],
+      totalPrice: 0,
+    },
     ...overrides,
   };
 }
@@ -80,9 +100,17 @@ describe('BeltVisualizationStore', () => {
       getBeltSnapshot: vi.fn(() => snapshot$.asObservable()),
       getSeatOverview: vi.fn(() => seats$.asObservable()),
     };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
-      providers: [BeltVisualizationStore, { provide: BeltsApi, useValue: beltsApiMock }],
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -104,9 +132,17 @@ describe('BeltVisualizationStore', () => {
       getBeltSnapshot: vi.fn(),
       getSeatOverview: vi.fn(),
     };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
-      providers: [BeltVisualizationStore, { provide: BeltsApi, useValue: beltsApiMock }],
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -121,9 +157,17 @@ describe('BeltVisualizationStore', () => {
       getBeltSnapshot: vi.fn(() => of(createSnapshot({ beltSpeedSlotsPerTick: 0 }))),
       getSeatOverview: vi.fn(() => of([])),
     };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
-      providers: [BeltVisualizationStore, { provide: BeltsApi, useValue: beltsApiMock }],
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -140,9 +184,17 @@ describe('BeltVisualizationStore', () => {
       getBeltSnapshot: vi.fn(() => of(createSnapshot())),
       getSeatOverview: vi.fn(() => of([])),
     };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
-      providers: [BeltVisualizationStore, { provide: BeltsApi, useValue: beltsApiMock }],
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -164,9 +216,17 @@ describe('BeltVisualizationStore', () => {
         )
         .mockReturnValueOnce(throwError(() => new Error('Seat refresh failed'))),
     };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
-      providers: [BeltVisualizationStore, { provide: BeltsApi, useValue: beltsApiMock }],
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -182,5 +242,178 @@ describe('BeltVisualizationStore', () => {
     expect(store.occupiedSeatCount()).toBe(1);
     expect(store.isDegraded()).toBe(true);
     expect(store.freshnessLabel()).toContain('Showing last good update');
+  });
+
+  it('occupies a free seat, reconciles seat detail, and exposes durable order context', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi
+        .fn()
+        .mockReturnValueOnce(of(createSnapshot()))
+        .mockReturnValueOnce(of(createSnapshot())),
+      getSeatOverview: vi
+        .fn()
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: false }]),
+        )
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }]),
+        ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(() =>
+        of({ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }),
+      ),
+      getSeatState: vi.fn(() => of(createSeatOrder())),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.occupySeat('seat-1');
+
+    expect(seatsApiMock.occupySeat).toHaveBeenCalledWith('seat-1');
+    expect(seatsApiMock.getSeatState).toHaveBeenCalledWith('seat-1');
+    expect(store.occupyPendingSeatId()).toBeNull();
+    expect(store.occupyFeedback()?.tone).toBe('success');
+    expect(store.occupyFeedback()?.orderId).toBe('order-1');
+    expect(store.stageViewModel()?.seats[0].isOccupied).toBe(true);
+    expect(store.stageViewModel()?.seats[0].orderId).toBe('order-1');
+  });
+
+  it('does not report full occupy success when seat-detail reconciliation fails', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi
+        .fn()
+        .mockReturnValueOnce(of(createSnapshot()))
+        .mockReturnValueOnce(of(createSnapshot())),
+      getSeatOverview: vi
+        .fn()
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: false }]),
+        )
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }]),
+        ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(() =>
+        of({ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }),
+      ),
+      getSeatState: vi.fn(() => throwError(() => new Error('Seat detail unavailable'))),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.occupySeat('seat-1');
+
+    expect(store.occupyPendingSeatId()).toBeNull();
+    expect(store.occupyFeedback()?.tone).toBe('error');
+    expect(store.occupyFeedback()?.title).toContain('still syncing');
+    expect(store.occupyFeedback()?.orderId).toBeNull();
+    expect(store.stageViewModel()?.seats[0].isOccupied).toBe(true);
+    expect(store.stageViewModel()?.seats[0].orderId).toBeNull();
+  });
+
+  it('reports a seat-already-occupied conflict and reconciles the occupied seat state', () => {
+    const conflict = {
+      error: {
+        status: 409,
+        detail: 'Seat seat-1 already has an open order.',
+        title: 'Seat already occupied',
+      },
+    };
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi
+        .fn()
+        .mockReturnValueOnce(of(createSnapshot()))
+        .mockReturnValueOnce(of(createSnapshot())),
+      getSeatOverview: vi
+        .fn()
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: false }]),
+        )
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }]),
+        ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(() => throwError(() => conflict)),
+      getSeatState: vi.fn(() => of(createSeatOrder())),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.occupySeat('seat-1');
+
+    expect(store.occupyFeedback()?.tone).toBe('error');
+    expect(store.occupyFeedback()?.title).toContain('already taken');
+    expect(store.stageViewModel()?.seats[0].isOccupied).toBe(true);
+    expect(store.stageViewModel()?.seats[0].orderId).toBe('order-1');
+  });
+
+  it('reports when a requested seat no longer exists and refreshes backend state', () => {
+    const notFound = {
+      error: {
+        status: 404,
+        detail: 'Seat not found: seat-404',
+        title: 'Resource not found',
+      },
+    };
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi
+        .fn()
+        .mockReturnValueOnce(of(createSnapshot()))
+        .mockReturnValueOnce(of(createSnapshot())),
+      getSeatOverview: vi
+        .fn()
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-404', label: 'Seat 404', positionIndex: 0, isOccupied: false }]),
+        )
+        .mockReturnValueOnce(of([])),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(() => throwError(() => notFound)),
+      getSeatState: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.occupySeat('seat-404');
+
+    expect(store.occupyFeedback()?.tone).toBe('error');
+    expect(store.occupyFeedback()?.title).toContain('could not be found');
+    expect(seatsApiMock.getSeatState).not.toHaveBeenCalled();
+    expect(beltsApiMock.getSeatOverview).toHaveBeenCalledTimes(2);
   });
 });

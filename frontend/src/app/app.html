@@ -26,6 +26,7 @@
           [reducedMotion]="store.isReducedMotion()"
           [paused]="store.isPaused()"
           [degraded]="store.isDegraded()"
+          (occupySeat)="store.occupySeat($event)"
         />
 
         <dl class="counter-stage__stats">
@@ -42,6 +43,34 @@
             <dd>{{ store.occupiedSeatCount() }}/{{ stage.seats.length }}</dd>
           </div>
         </dl>
+
+        @if (store.occupyFeedback(); as feedback) {
+          <section
+            class="counter-stage__feedback"
+            [class.counter-stage__feedback--error]="feedback.tone === 'error'"
+            [class.counter-stage__feedback--success]="feedback.tone === 'success'"
+            aria-live="polite"
+          >
+            <h2>{{ feedback.title }}</h2>
+            <p>{{ feedback.detail }}</p>
+            @if (feedback.orderId) {
+              <p class="counter-stage__feedback-meta">
+                Open order {{ feedback.orderId }}
+                @if (feedback.createdAtLabel) {
+                  <span>Started {{ feedback.createdAtLabel }}</span>
+                }
+              </p>
+            }
+          </section>
+        } @else if (store.occupyPendingLabel(); as pendingLabel) {
+          <section
+            class="counter-stage__feedback counter-stage__feedback--pending"
+            aria-live="polite"
+          >
+            <h2>Holding {{ pendingLabel }}</h2>
+            <p>Waiting for backend confirmation before the seat is treated as occupied.</p>
+          </section>
+        }
 
         @if (store.isDegraded() || store.isReducedMotion()) {
           <p class="counter-stage__notice">

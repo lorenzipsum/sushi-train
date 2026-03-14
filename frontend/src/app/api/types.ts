@@ -10,6 +10,7 @@ export type PageMetadata = components['schemas']['PageMetadata'];
 export type PagedMenuItemDto = components['schemas']['PagedMenuItemDto'];
 export type PagedOrderSummaryDto = components['schemas']['PagedOrderSummaryDto'];
 export type PagedPlateDto = components['schemas']['PagedPlateDto'];
+export type OrderSummaryDto = components['schemas']['OrderSummaryDto'];
 export type PickPlateRequest = components['schemas']['PickPlateRequest'];
 export type PlateSnapshotDto = components['schemas']['PlateSnapshotDto'];
 export type PlateDto = components['schemas']['PlateDto'];
