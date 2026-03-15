@@ -6,14 +6,15 @@
 | -------------------------- | ------ | ------------------------ |
 | `001-belt-visualization`   | Done   | Read-only belt baseline  |
 | `002-belt-layout-redesign` | Done   | Manual review still open |
+| `004-checkout-seat`        | Done   | Checkout flow shipped    |
 
 ## Next Features
 
 | Order | Feature                     | Status   | Depends on                 | Notes                         |
 | ----- | --------------------------- | -------- | -------------------------- | ----------------------------- |
-| 3     | `003-occupy-seat`           | Active   | `002-belt-layout-redesign` | Start seat lifecycle          |
-| 4     | `004-checkout-seat`         | Proposed | `003-occupy-seat`          | Close seat lifecycle          |
-| 5     | `005-pick-plates`           | Proposed | `003-occupy-seat`          | Guest plate action            |
+| 3     | `003-occupy-seat`           | Done     | `002-belt-layout-redesign` | Start seat lifecycle          |
+| 4     | `004-checkout-seat`         | Done     | `003-occupy-seat`          | Close seat lifecycle          |
+| 5     | `005-pick-plates`           | Active   | `003-occupy-seat`          | Guest plate action            |
 | 6     | `006-add-plates-to-belt`    | Proposed | `005-pick-plates`          | Kitchen or staff plate action |
 | 7     | `007-realtime-belt-updates` | Proposed | `003`-`006`                | Replace or reduce polling     |
 | 8     | `008-design-polish`         | Proposed | `003`-`007`                | Final UI pass                 |

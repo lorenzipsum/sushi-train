@@ -46,6 +46,7 @@ export interface BeltStageSeatViewModel {
   isOccupied: boolean;
   isActionable: boolean;
   isPending: boolean;
+  seatAction: 'occupy' | 'checkout' | null;
   orderId: string | null;
   occupiedSince: string | null;
   presenceCue: 'available' | 'occupied' | 'pending';
@@ -72,6 +73,7 @@ export interface BeltStageViewModel {
 
 export interface BuildBeltStageViewModelOptions {
   pendingSeatId?: string | null;
+  pendingAction?: 'occupy' | 'checkout' | null;
   activeOrdersBySeatId?: Record<string, OrderSummaryDto | undefined>;
 }
 
@@ -170,6 +172,7 @@ export function buildBeltStageViewModel(
     (left, right) => (left.positionIndex ?? 0) - (right.positionIndex ?? 0),
   );
   const pendingSeatId = options.pendingSeatId ?? null;
+  const pendingAction = options.pendingAction ?? null;
   const activeOrdersBySeatId = options.activeOrdersBySeatId ?? {};
 
   return {
@@ -213,17 +216,23 @@ export function buildBeltStageViewModel(
       const activeOrder = seat.seatId ? activeOrdersBySeatId[seat.seatId] : undefined;
       const isPending = seat.seatId === pendingSeatId;
       const isOccupied = !!seat.isOccupied;
-      const isActionable = !isOccupied && !isPending;
+      const seatAction = isPending ? null : isOccupied ? 'checkout' : 'occupy';
+      const isActionable = seatAction !== null;
       const presenceCue = isPending ? 'pending' : isOccupied ? 'occupied' : 'available';
       const ariaParts = [seat.label ?? `Seat ${index + 1}`];
 
       if (isPending) {
-        ariaParts.push('is being occupied right now.');
+        ariaParts.push(
+          pendingAction === 'checkout'
+            ? 'is checking out right now.'
+            : 'is being occupied right now.',
+        );
       } else if (isOccupied) {
         ariaParts.push('is occupied.');
         if (activeOrder?.orderId) {
           ariaParts.push(`Active order ${activeOrder.orderId}.`);
         }
+        ariaParts.push('Activate to check out this seat.');
       } else {
         ariaParts.push('is available. Activate to occupy this seat.');
       }
@@ -238,6 +247,7 @@ export function buildBeltStageViewModel(
         isOccupied,
         isActionable,
         isPending,
+        seatAction,
         orderId: activeOrder?.orderId ?? null,
         occupiedSince: activeOrder?.createdAt ?? null,
         presenceCue,

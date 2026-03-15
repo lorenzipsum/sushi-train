@@ -39,7 +39,9 @@ describe('buildBeltStageViewModel', () => {
     expect([0, -90, 90, 180]).toContain(result.seats[1].facingDeg);
     expect(result.seats[1].presenceCue).toBe('occupied');
     expect(result.seats[0].isActionable).toBe(true);
-    expect(result.seats[1].isActionable).toBe(false);
+    expect(result.seats[0].seatAction).toBe('occupy');
+    expect(result.seats[1].isActionable).toBe(true);
+    expect(result.seats[1].seatAction).toBe('checkout');
     expect(result.kitchen.showChef).toBe(true);
   });
 
@@ -130,6 +132,7 @@ describe('buildBeltStageViewModel', () => {
 
     const result = buildBeltStageViewModel(snapshot, seats, 0, {
       pendingSeatId: 'seat-1',
+      pendingAction: 'occupy',
       activeOrdersBySeatId: {
         'seat-2': {
           orderId: 'order-2',
@@ -143,8 +146,11 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[0].isPending).toBe(true);
     expect(result.seats[0].presenceCue).toBe('pending');
     expect(result.seats[0].isActionable).toBe(false);
+    expect(result.seats[0].seatAction).toBeNull();
     expect(result.seats[1].orderId).toBe('order-2');
     expect(result.seats[1].occupiedSince).toBe('2026-03-15T03:00:00Z');
+    expect(result.seats[1].seatAction).toBe('checkout');
     expect(result.seats[1].ariaLabel).toContain('Active order order-2');
+    expect(result.seats[1].ariaLabel).toContain('Activate to check out this seat.');
   });
 });

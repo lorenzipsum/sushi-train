@@ -13,9 +13,15 @@ export class BeltStageComponent {
   readonly paused = input(false);
   readonly degraded = input(false);
   readonly occupySeat = output<string>();
+  readonly checkoutSeat = output<string>();
 
   handleSeatClick(seat: BeltStageSeatViewModel): void {
     if (!seat.isActionable) {
+      return;
+    }
+
+    if (seat.seatAction === 'checkout') {
+      this.checkoutSeat.emit(seat.id);
       return;
     }
 
