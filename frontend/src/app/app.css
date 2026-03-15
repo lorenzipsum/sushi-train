@@ -210,6 +210,37 @@
   gap: 0.65rem;
 }
 
+.counter-stage__feedback-lines {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.counter-stage__feedback-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.66);
+  color: rgba(31, 42, 38, 0.88);
+  font:
+    700 0.83rem/1.4 'Nunito Sans',
+    'Inter',
+    sans-serif;
+}
+
+.counter-stage__feedback-total {
+  margin-top: 0.7rem;
+  color: var(--color-seaweed-ink-900);
+  font:
+    800 0.92rem/1.35 'Nunito Sans',
+    'Inter',
+    sans-serif;
+}
+
 .counter-stage__feedback-meta span::before {
   content: '•';
   margin-right: 0.4rem;

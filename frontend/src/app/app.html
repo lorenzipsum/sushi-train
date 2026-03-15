@@ -27,6 +27,7 @@
           [paused]="store.isPaused()"
           [degraded]="store.isDegraded()"
           (occupySeat)="store.occupySeat($event)"
+          (checkoutSeat)="store.checkoutSeat($event)"
         />
 
         <dl class="counter-stage__stats">
@@ -44,7 +45,57 @@
           </div>
         </dl>
 
-        @if (store.occupyFeedback(); as feedback) {
+        @if (store.checkoutFeedback(); as feedback) {
+          <section
+            class="counter-stage__feedback"
+            [class.counter-stage__feedback--error]="feedback.tone === 'error'"
+            [class.counter-stage__feedback--success]="feedback.tone === 'success'"
+            aria-live="polite"
+          >
+            <h2>{{ feedback.title }}</h2>
+            <p>{{ feedback.detail }}</p>
+            @if (feedback.finalSummary?.orderSummary; as summary) {
+              <p class="counter-stage__feedback-meta">
+                Checked out order {{ summary.orderId }}
+                @if (feedback.statusLabel) {
+                  <span>Status {{ feedback.statusLabel }}</span>
+                }
+                @if (feedback.createdAtLabel) {
+                  <span>Opened {{ feedback.createdAtLabel }}</span>
+                }
+                @if (feedback.closedAtLabel) {
+                  <span>Closed {{ feedback.closedAtLabel }}</span>
+                }
+              </p>
+              <ul class="counter-stage__feedback-lines">
+                @if (summary.lines?.length) {
+                  @for (line of summary.lines; track $index) {
+                    <li>
+                      <span>{{ line.menuItemName ?? 'Menu item' }}</span>
+                      <span>{{ line.price ?? 0 }} Yen</span>
+                    </li>
+                  }
+                } @else {
+                  <li>
+                    <span>No plates were recorded for this order.</span>
+                    <span>0 Yen</span>
+                  </li>
+                }
+              </ul>
+              @if (feedback.totalPriceLabel) {
+                <p class="counter-stage__feedback-total">Total {{ feedback.totalPriceLabel }}</p>
+              }
+            }
+          </section>
+        } @else if (store.checkoutPendingLabel(); as pendingLabel) {
+          <section
+            class="counter-stage__feedback counter-stage__feedback--pending"
+            aria-live="polite"
+          >
+            <h2>Checking out {{ pendingLabel }}</h2>
+            <p>Waiting for backend confirmation before the seat is treated as free.</p>
+          </section>
+        } @else if (store.occupyFeedback(); as feedback) {
           <section
             class="counter-stage__feedback"
             [class.counter-stage__feedback--error]="feedback.tone === 'error'"

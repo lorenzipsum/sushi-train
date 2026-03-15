@@ -1,1 +1,830 @@
-/* You can add global styles to this file, and also import other style files */
+.belt-stage {
+  --plate-size: 14px;
+  --slot-size: 6px;
+  --seat-size: 28px;
+  position: relative;
+  width: min(100%, 74rem);
+  margin-inline: auto;
+}
+
+.belt-stage__counter {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: clamp(2rem, 4vw, 3rem);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.42), transparent 25%),
+    radial-gradient(circle at 50% 100%, rgba(110, 70, 46, 0.18), transparent 42%),
+    linear-gradient(180deg, #f1d6bb 0%, #d8ab81 32%, #b87953 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -18px 36px rgba(92, 61, 47, 0.12),
+    0 24px 48px rgba(92, 61, 47, 0.18);
+}
+
+.belt-stage__pass {
+  position: absolute;
+  inset: 15.5% 23.5% auto;
+  height: 5.5%;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.92) 0%, rgba(222, 186, 147, 0.78) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  box-shadow:
+    0 0 0 1px rgba(121, 82, 61, 0.12),
+    0 10px 18px rgba(92, 61, 47, 0.14);
+  z-index: 1;
+}
+
+.belt-stage__track,
+.belt-stage__seat-row {
+  position: absolute;
+  inset: 0;
+}
+
+.belt-stage__kitchen {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.belt-stage__kitchen-island {
+  position: absolute;
+  inset: 9% 10% 12%;
+  border-radius: clamp(1rem, 2vw, 1.6rem);
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.6), transparent 34%),
+    radial-gradient(circle at 50% 72%, rgba(181, 125, 81, 0.16), transparent 38%),
+    linear-gradient(180deg, #fcf2e3 0%, #efd6b5 60%, #ddb58d 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(121, 82, 61, 0.14),
+    inset 0 -10px 16px rgba(121, 82, 61, 0.08),
+    0 14px 26px rgba(92, 61, 47, 0.1);
+}
+
+.belt-stage__chef {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 16%;
+  height: 46%;
+  translate: -50% -50%;
+  z-index: 2;
+}
+
+.belt-stage__chef-hat,
+.belt-stage__chef-head,
+.belt-stage__chef-eyes,
+.belt-stage__chef-smile,
+.belt-stage__chef-body,
+.belt-stage__chef-scarf,
+.belt-stage__chef-arms,
+.belt-stage__chef-knife,
+.belt-stage__prep {
+  position: absolute;
+  display: block;
+}
+
+.belt-stage__chef-hat {
+  inset: 0 16% auto;
+  height: 22%;
+  border-radius: 999px 999px 0.9rem 0.9rem;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.96) 0 35%, transparent 36%),
+    linear-gradient(180deg, #fffdf8 0%, #eee2d0 100%);
+  box-shadow:
+    0 2px 0 rgba(92, 61, 47, 0.08),
+    0 10px 16px rgba(92, 61, 47, 0.08);
+}
+
+.belt-stage__chef-head {
+  inset: 16% 31% auto;
+  height: 18%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f6d3b8 0%, #e7b18b 100%);
+  box-shadow: inset 0 -2px 0 rgba(155, 99, 67, 0.16);
+}
+
+.belt-stage__chef-eyes {
+  inset: 36% 23% auto;
+  height: 12%;
+  background:
+    radial-gradient(circle at 22% 50%, #4a352b 0 18%, transparent 19%),
+    radial-gradient(circle at 78% 50%, #4a352b 0 18%, transparent 19%);
+}
+
+.belt-stage__chef-smile {
+  left: 34%;
+  right: 34%;
+  bottom: 20%;
+  height: 14%;
+  border-bottom: 0.12rem solid rgba(92, 61, 47, 0.75);
+  border-radius: 0 0 999px 999px;
+}
+
+.belt-stage__chef-body {
+  inset: 32% 16% 10%;
+  border-radius: 1.2rem 1.2rem 1rem 1rem;
+  background:
+    linear-gradient(180deg, #fffdf8 0%, #e9ddd0 100%),
+    linear-gradient(90deg, rgba(202, 51, 40, 0.18), transparent 30%);
+  box-shadow:
+    inset 0 -2px 0 rgba(92, 61, 47, 0.08),
+    inset 0 0 0 1px rgba(92, 61, 47, 0.08);
+}
+
+.belt-stage__chef-scarf {
+  inset: 11% 24% auto;
+  height: 11%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d75f4f 0%, #b83b32 100%);
+  box-shadow: 0 2px 0 rgba(92, 61, 47, 0.08);
+}
+
+.belt-stage__chef-arms {
+  inset: 42% 0 28%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 18% 50%, #f6d3b8 0 12%, transparent 13%),
+    radial-gradient(circle at 82% 50%, #f6d3b8 0 12%, transparent 13%),
+    linear-gradient(180deg, rgba(92, 61, 47, 0.16) 0%, rgba(92, 61, 47, 0.05) 100%);
+}
+
+.belt-stage__chef-knife {
+  right: 6%;
+  top: 54%;
+  width: 26%;
+  height: 6%;
+  rotate: -18deg;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7b5845 0 34%, #ece9e2 34% 100%);
+  box-shadow: 0 4px 8px rgba(92, 61, 47, 0.12);
+}
+
+.belt-stage__prep--board {
+  left: 18%;
+  bottom: 18%;
+  width: 16%;
+  height: 7%;
+  border-radius: 0.8rem;
+  background: linear-gradient(180deg, #d2a176 0%, #ba8052 100%);
+  box-shadow: 0 6px 12px rgba(92, 61, 47, 0.1);
+}
+
+.belt-stage__prep--lamp {
+  right: 16%;
+  top: 10%;
+  width: 8%;
+  height: 19%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 246, 191, 0.94) 0 18%, transparent 19%),
+    linear-gradient(180deg, #6f5645 0%, #4c372e 100%);
+}
+
+.belt-stage__prep--tray {
+  right: 15%;
+  bottom: 18%;
+  width: 18%;
+  height: 7.5%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 28% 50%, rgba(139, 187, 116, 0.92) 0 11%, transparent 12%),
+    radial-gradient(circle at 50% 50%, rgba(245, 132, 112, 0.92) 0 11%, transparent 12%),
+    radial-gradient(circle at 72% 50%, rgba(240, 211, 123, 0.92) 0 11%, transparent 12%),
+    linear-gradient(180deg, #5f4638 0%, #443026 100%);
+}
+
+.belt-stage__prep--mat {
+  left: 40%;
+  right: 40%;
+  bottom: 15%;
+  height: 9%;
+  border-radius: 0.5rem;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(186, 147, 98, 0.7) 0 8%,
+    rgba(242, 220, 184, 0.75) 8% 16%
+  );
+  box-shadow: inset 0 0 0 1px rgba(121, 82, 61, 0.14);
+}
+
+.belt-stage__prep--nigiri {
+  left: 30%;
+  top: 22%;
+  width: 12%;
+  height: 8%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 24% 54%, rgba(255, 248, 242, 0.95) 0 16%, transparent 17%),
+    radial-gradient(circle at 74% 54%, rgba(255, 248, 242, 0.95) 0 16%, transparent 17%),
+    radial-gradient(circle at 24% 36%, rgba(245, 119, 97, 0.95) 0 15%, transparent 16%),
+    radial-gradient(circle at 74% 36%, rgba(139, 187, 116, 0.95) 0 15%, transparent 16%);
+  opacity: 0.92;
+}
+
+.belt-stage__track {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.belt-stage__lane {
+  position: absolute;
+  left: 4.5%;
+  right: 4.5%;
+  border-radius: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+.belt-stage__lane--shadow {
+  top: 9.5%;
+  bottom: 9.5%;
+  background: rgba(69, 46, 33, 0.18);
+  filter: blur(20px);
+}
+
+.belt-stage__lane--belt {
+  top: 11.5%;
+  bottom: 11.5%;
+  background:
+    linear-gradient(180deg, rgba(77, 61, 53, 0.96) 0%, rgba(44, 36, 33, 0.98) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 3%, rgba(255, 255, 255, 0) 3% 6%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -10px 14px rgba(0, 0, 0, 0.2);
+}
+
+.belt-stage__lane--inner {
+  top: 23.5%;
+  bottom: 23.5%;
+  left: 16.5%;
+  right: 16.5%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.24), transparent 58%),
+    linear-gradient(180deg, rgba(246, 231, 212, 0.74) 0%, rgba(237, 211, 180, 0.8) 100%);
+  box-shadow: inset 0 0 0 1px rgba(121, 82, 61, 0.12);
+}
+
+.slot,
+.seat {
+  position: absolute;
+}
+
+.slot__marker {
+  display: block;
+  width: var(--slot-size);
+  height: calc(var(--slot-size) * 0.82);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.plate {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: var(--plate-size);
+  height: var(--plate-size);
+  translate: -50% -50%;
+  border-radius: 999px;
+  box-shadow:
+    0 10px 18px rgba(78, 52, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.plate::after,
+.plate__center::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.plate::after {
+  inset: 8%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+}
+
+.plate::before {
+  content: '';
+  position: absolute;
+  inset: 18% 18% 52%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 100%);
+  opacity: 0.75;
+}
+
+.plate__rim,
+.plate__center,
+.food,
+.food__base,
+.food__topping,
+.food__accent,
+.seat__cushion,
+.seat__frame,
+.seat__guest,
+.seat__guest-knot,
+.seat__guest-head,
+.seat__guest-body {
+  position: absolute;
+  display: block;
+}
+
+.plate__rim,
+.plate__center {
+  inset: 0;
+  border-radius: inherit;
+}
+
+.plate__rim {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.72), transparent 46%),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.1) 0 6%,
+      rgba(255, 255, 255, 0) 6% 12%
+    );
+}
+
+.plate__center {
+  inset: 18%;
+  background: rgba(255, 253, 249, 0.96);
+}
+
+.plate__center::before {
+  inset: 18%;
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 94, 72, 0.08),
+    inset 0 -3px 5px rgba(121, 82, 61, 0.06);
+}
+
+.food {
+  inset: 18%;
+}
+
+.food__base,
+.food__topping,
+.food__accent {
+  inset: 0;
+  border-radius: 999px;
+}
+
+.tier-green {
+  background: linear-gradient(180deg, #acd98c 0%, #8bc06f 100%);
+}
+
+.tier-red {
+  background: linear-gradient(180deg, #ff9c8a 0%, #f56f5a 100%);
+}
+
+.tier-gold {
+  background: linear-gradient(180deg, #f0d37b 0%, #d8bb5b 100%);
+}
+
+.tier-black {
+  background: linear-gradient(180deg, #66656c 0%, #414147 100%);
+}
+
+.tier-green .plate__rim,
+.tier-red .plate__rim,
+.tier-gold .plate__rim,
+.tier-black .plate__rim {
+  box-shadow: inset 0 0 0 0.18rem rgba(255, 255, 255, 0.2);
+}
+
+.food--nigiri .food__base {
+  inset: 42% 14% 8%;
+  background: linear-gradient(180deg, #fffef9 0%, #f1ece3 100%);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.food--nigiri .food__topping {
+  inset: 14% 18% 34%;
+}
+
+.food--nigiri .food__accent {
+  inset: 20% 44% 14%;
+  border-radius: 0.25rem;
+  opacity: 0;
+  background: linear-gradient(180deg, #24362f 0%, #101916 100%);
+}
+
+.visual--salmon-nigiri .food__topping,
+.visual--salmon-sashimi .food__topping {
+  background: linear-gradient(180deg, #ff9c85 0%, #f77761 100%);
+}
+
+.visual--tuna-nigiri .food__topping,
+.visual--tuna-sashimi .food__topping,
+.visual--spicy-tuna-roll .food__accent,
+.visual--tekka-maki .food__accent,
+.visual--negitoro-gunkan .food__topping {
+  background: linear-gradient(180deg, #c94158 0%, #9c1f39 100%);
+}
+
+.visual--tamago-nigiri .food__topping {
+  background: linear-gradient(180deg, #f6de6a 0%, #efc848 100%);
+}
+
+.visual--tamago-nigiri .food__accent,
+.visual--unagi-nigiri .food__accent {
+  opacity: 1;
+}
+
+.visual--ebi-nigiri .food__topping {
+  background: linear-gradient(180deg, #ffc2ab 0%, #f6927e 100%);
+}
+
+.visual--unagi-nigiri .food__topping {
+  background: linear-gradient(180deg, #7d523e 0%, #5b3728 100%);
+}
+
+.visual--yellowtail-nigiri .food__topping,
+.visual--hotate-nigiri .food__topping,
+.visual--kani-nigiri .food__topping {
+  background: linear-gradient(180deg, #f6ccb3 0%, #eea780 100%);
+}
+
+.visual--saba-nigiri .food__topping,
+.visual--ika-nigiri .food__topping,
+.visual--mineral-water .food__topping {
+  background: linear-gradient(180deg, #edf4f8 0%, #cad7df 100%);
+}
+
+.food--sashimi .food__base {
+  inset: 50% 12% 8%;
+  border-radius: 0.55rem;
+  background: linear-gradient(180deg, #f4d7ba 0%, #e7c59d 100%);
+}
+
+.food--sashimi .food__topping {
+  inset: 18% 12% 34% 16%;
+  border-radius: 0.55rem;
+  box-shadow:
+    0.5rem 0.3rem 0 0 rgba(247, 119, 97, 0.95),
+    1rem 0 0 0 rgba(247, 119, 97, 0.9);
+}
+
+.visual--tuna-sashimi .food__topping {
+  box-shadow:
+    0.5rem 0.3rem 0 0 rgba(156, 31, 57, 0.95),
+    1rem 0 0 0 rgba(156, 31, 57, 0.9);
+}
+
+.food--roll .food__base {
+  inset: 28% 14% 22%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 20% 50%, #fffdf6 0 16%, transparent 17%),
+    radial-gradient(circle at 50% 50%, #fffdf6 0 16%, transparent 17%),
+    radial-gradient(circle at 80% 50%, #fffdf6 0 16%, transparent 17%),
+    linear-gradient(180deg, #1a231f 0%, #101714 100%);
+}
+
+.food--roll .food__topping {
+  inset: 41% 18% 34%;
+  background:
+    radial-gradient(circle at 20% 50%, #ffb193 0 12%, transparent 13%),
+    radial-gradient(circle at 50% 50%, #ffb193 0 12%, transparent 13%),
+    radial-gradient(circle at 80% 50%, #ffb193 0 12%, transparent 13%);
+}
+
+.visual--kappa-maki .food__topping,
+.visual--edamame .food__accent,
+.visual--green-tea .food__topping,
+.visual--matcha-latte .food__topping {
+  background:
+    radial-gradient(circle at 20% 50%, #8bbb74 0 12%, transparent 13%),
+    radial-gradient(circle at 50% 50%, #8bbb74 0 12%, transparent 13%),
+    radial-gradient(circle at 80% 50%, #8bbb74 0 12%, transparent 13%);
+}
+
+.visual--futomaki .food__topping {
+  background:
+    radial-gradient(circle at 20% 50%, #f6de6a 0 12%, transparent 13%),
+    radial-gradient(circle at 50% 50%, #c94158 0 12%, transparent 13%),
+    radial-gradient(circle at 80% 50%, #8bbb74 0 12%, transparent 13%);
+}
+
+.food--gunkan .food__base {
+  inset: 22% 18% 12%;
+  border-radius: 55% 55% 48% 48%;
+  background: linear-gradient(180deg, #202d28 0%, #101714 100%);
+}
+
+.food--gunkan .food__topping {
+  inset: 12% 25% 38%;
+}
+
+.visual--ikura-gunkan .food__topping {
+  background:
+    radial-gradient(circle at 18% 40%, #ff8a5f 0 13%, transparent 14%),
+    radial-gradient(circle at 50% 28%, #ff7f52 0 13%, transparent 14%),
+    radial-gradient(circle at 78% 44%, #ff8a5f 0 13%, transparent 14%),
+    radial-gradient(circle at 34% 68%, #ff7f52 0 13%, transparent 14%),
+    radial-gradient(circle at 66% 70%, #ff8a5f 0 13%, transparent 14%);
+}
+
+.visual--corn-mayo-gunkan .food__topping {
+  background:
+    radial-gradient(circle at 24% 44%, #f6de6a 0 14%, transparent 15%),
+    radial-gradient(circle at 54% 28%, #f6de6a 0 14%, transparent 15%),
+    radial-gradient(circle at 76% 52%, #f6de6a 0 14%, transparent 15%), rgba(255, 246, 212, 0.6);
+}
+
+.food--side .food__base,
+.food--drink .food__base,
+.food--dessert .food__base,
+.food--fallback .food__base {
+  inset: 18% 18% 14%;
+}
+
+.food--side .food__base,
+.food--drink .food__base {
+  border-radius: 40% 40% 48% 48%;
+}
+
+.visual--miso-soup .food__base,
+.visual--agedashi-tofu .food__base {
+  background: linear-gradient(180deg, #6e4b38 0%, #3d2a22 100%);
+}
+
+.visual--miso-soup .food__topping,
+.visual--agedashi-tofu .food__topping {
+  inset: 28% 26% 30%;
+  background: linear-gradient(180deg, #f3d7a6 0%, #d1af7a 100%);
+}
+
+.visual--gyoza .food__base,
+.visual--karaage .food__base {
+  border-radius: 0.7rem;
+  background: linear-gradient(180deg, #f3d1a5 0%, #dca26a 100%);
+}
+
+.visual--gyoza .food__topping,
+.visual--karaage .food__topping {
+  inset: 28% 18% 22%;
+  background:
+    radial-gradient(circle at 28% 50%, rgba(255, 248, 234, 0.55) 0 18%, transparent 19%),
+    radial-gradient(circle at 72% 50%, rgba(255, 248, 234, 0.55) 0 18%, transparent 19%);
+}
+
+.visual--edamame .food__base {
+  background: linear-gradient(180deg, #c9e39d 0%, #8bbb74 100%);
+}
+
+.visual--edamame .food__accent {
+  inset: 22% 20% 20%;
+}
+
+.food--dessert .food__base {
+  background: linear-gradient(180deg, #fff0f4 0%, #f8d8e1 100%);
+}
+
+.visual--mochi-ice-cream .food__topping {
+  inset: 20% 16% 24%;
+  background:
+    radial-gradient(circle at 26% 58%, #f8a2bc 0 16%, transparent 17%),
+    radial-gradient(circle at 50% 38%, #f4df85 0 16%, transparent 17%),
+    radial-gradient(circle at 74% 58%, #8bc06f 0 16%, transparent 17%);
+}
+
+.visual--purin .food__base {
+  background: linear-gradient(180deg, #f8df8c 0%, #f2c962 100%);
+}
+
+.visual--purin .food__topping {
+  inset: 18% 18% 52%;
+  background: linear-gradient(180deg, #9a5d33 0%, #714022 100%);
+}
+
+.visual--cheesecake-slice .food__base {
+  border-radius: 0.4rem;
+  background: linear-gradient(180deg, #fff4cf 0%, #f4ddb5 100%);
+}
+
+.visual--cheesecake-slice .food__accent {
+  inset: 18% 18% 54%;
+  border-radius: 0.4rem 0.4rem 0 0;
+  background: linear-gradient(180deg, #f0b56e 0%, #dfa256 100%);
+}
+
+.food--drink .food__base {
+  inset: 18% 26% 14%;
+  border-radius: 0.55rem 0.55rem 0.8rem 0.8rem;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(51, 64, 59, 0.14);
+}
+
+.food--drink .food__topping {
+  inset: 34% 30% 18%;
+  border-radius: 0.45rem 0.45rem 0.65rem 0.65rem;
+}
+
+.visual--cola .food__topping {
+  background: linear-gradient(180deg, #53372c 0%, #2d1d17 100%);
+}
+
+.visual--asahi-beer .food__topping {
+  background: linear-gradient(180deg, #f2d05c 0%, #ddb341 100%);
+}
+
+.visual--asahi-beer .food__accent,
+.visual--green-tea .food__accent,
+.visual--matcha-latte .food__accent {
+  inset: 22% 34% 62%;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.visual--green-tea .food__topping,
+.visual--matcha-latte .food__topping {
+  background: linear-gradient(180deg, #8bbb74 0%, #5c8b49 100%);
+}
+
+.visual--mineral-water .food__topping {
+  background: linear-gradient(180deg, rgba(219, 240, 255, 0.9) 0%, rgba(173, 214, 244, 0.9) 100%);
+}
+
+.food--fallback .food__base {
+  background: linear-gradient(180deg, #f9dfb2 0%, #e7b16f 100%);
+}
+
+.food--fallback .food__topping {
+  inset: 26% 22% 28%;
+  border: 0.16rem dashed rgba(91, 55, 32, 0.52);
+  background: rgba(255, 248, 232, 0.65);
+}
+
+.seat {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  width: calc(var(--seat-size) + 14px);
+  height: calc(var(--seat-size) + 12px);
+  text-align: center;
+  z-index: 3;
+}
+
+.seat--actionable {
+  cursor: pointer;
+}
+
+.seat--actionable:hover,
+.seat--actionable:focus-visible {
+  filter: brightness(1.04);
+}
+
+.seat--actionable:focus-visible {
+  outline: 0.18rem solid rgba(163, 41, 34, 0.78);
+  outline-offset: 0.2rem;
+}
+
+.seat::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -1.2rem;
+  width: 0.55rem;
+  height: 1.55rem;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #6e4c3a 0%, #c69363 100%);
+  box-shadow: 0 0 0 1px rgba(121, 82, 61, 0.1);
+}
+
+.seat__cushion {
+  inset: auto 0 0;
+  border-radius: 1rem;
+}
+
+.seat__frame {
+  inset: 22% 22% auto;
+  height: 52%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #85593e 0%, #633f30 100%);
+  box-shadow: 0 8px 12px rgba(92, 61, 47, 0.12);
+}
+
+.seat__cushion {
+  left: 18%;
+  right: 18%;
+  top: 30%;
+  bottom: 18%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff1e1 0%, #f0c99f 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.44);
+}
+
+.seat__guest {
+  inset: 6% 22% 26%;
+}
+
+.seat__label {
+  left: 50%;
+  bottom: -0.95rem;
+  translate: -50% 0;
+  min-width: 2.3rem;
+  padding: 0.12rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(255, 250, 244, 0.92);
+  box-shadow: 0 4px 8px rgba(92, 61, 47, 0.08);
+  color: #5c3d2f;
+  font:
+    800 0.55rem/1 'Nunito Sans',
+    'Inter',
+    sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.seat--occupied .seat__cushion {
+  background: linear-gradient(180deg, #f8f0d9 0%, #e4ce9a 100%);
+}
+
+.seat--checkout .seat__label {
+  background: rgba(255, 241, 225, 0.96);
+  color: #8f2b22;
+}
+
+.seat--checkout .seat__frame {
+  box-shadow:
+    0 8px 12px rgba(92, 61, 47, 0.12),
+    0 0 0 1px rgba(163, 41, 34, 0.14);
+}
+
+.seat--pending {
+  filter: saturate(0.82);
+}
+
+.seat--pending .seat__label {
+  background: rgba(255, 237, 208, 0.98);
+}
+
+.seat__guest-knot {
+  inset: 0 36% auto;
+  height: 18%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #42312a 0%, #2d201b 100%);
+}
+
+.seat__guest-head {
+  inset: 12% 28% auto;
+  height: 28%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f2cfb3 0%, #dbaf8d 100%);
+}
+
+.seat__guest-body {
+  inset: 38% 16% 0;
+  border-radius: 1rem 1rem 0.8rem 0.8rem;
+  background:
+    linear-gradient(180deg, #d24a3e 0%, #9f241f 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 60%);
+  box-shadow: inset 0 -2px 0 rgba(92, 61, 47, 0.12);
+}
+
+.belt-stage--reduced .slot,
+.belt-stage--reduced .seat {
+  transition: none;
+}
+
+.belt-stage--paused .belt-stage__lane--belt {
+  background:
+    linear-gradient(180deg, rgba(90, 77, 69, 0.96) 0%, rgba(57, 49, 46, 0.98) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 3%, rgba(255, 255, 255, 0) 3% 6%);
+}
+
+.belt-stage--degraded .belt-stage__counter {
+  box-shadow:
+    inset 0 0 0 2px rgba(201, 65, 88, 0.24),
+    inset 0 -18px 36px rgba(92, 61, 47, 0.12),
+    0 24px 48px rgba(92, 61, 47, 0.18);
+}
+
+.belt-stage--degraded .belt-stage__lane--belt {
+  filter: saturate(0.82);
+}
+
+.belt-stage--degraded .belt-stage__kitchen-island {
+  box-shadow:
+    inset 0 0 0 1px rgba(201, 65, 88, 0.22),
+    0 14px 26px rgba(92, 61, 47, 0.1);
+}
+
+@media (max-width: 720px) {
+  .belt-stage {
+    width: 100%;
+  }
+
+  .belt-stage__kitchen-island {
+    inset: 30% 28% 34%;
+  }
+
+  .belt-stage__chef {
+    width: 18%;
+    height: 26%;
+  }
+}

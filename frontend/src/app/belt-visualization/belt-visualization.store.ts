@@ -7,8 +7,9 @@ import { SeatsApi } from '../api/seats.api';
 import type {
   BeltDto,
   BeltSnapshotDto,
+  OrderLineDto,
   OrderSummaryDto,
-  ProblemDetail,
+  SeatActionProblemDetail,
   SeatOrderDto,
   SeatStateDto,
   SeatStateListDto,
@@ -26,6 +27,19 @@ export interface OccupyFeedback {
   seatLabel: string;
   orderId: string | null;
   createdAtLabel: string | null;
+}
+
+export interface CheckoutFeedback {
+  tone: 'success' | 'error';
+  title: string;
+  detail: string;
+  seatId: string;
+  seatLabel: string;
+  finalSummary: SeatOrderDto | null;
+  statusLabel: string | null;
+  createdAtLabel: string | null;
+  closedAtLabel: string | null;
+  totalPriceLabel: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -49,7 +63,10 @@ export class BeltVisualizationStore {
   private readonly reducedMotion = signal(false);
   private readonly occupyPendingSeatIdState = signal<string | null>(null);
   private readonly occupyFeedbackState = signal<OccupyFeedback | null>(null);
+  private readonly checkoutPendingSeatIdState = signal<string | null>(null);
+  private readonly checkoutFeedbackState = signal<CheckoutFeedback | null>(null);
   private readonly activeOrdersBySeatId = signal<Record<string, OrderSummaryDto>>({});
+  private readonly checkedOutOrdersBySeatId = signal<Record<string, SeatOrderDto>>({});
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   private animationFrameId: number | null = null;
@@ -78,15 +95,26 @@ export class BeltVisualizationStore {
       this.seats(),
       getRenderOffset(snapshot, this.now(), this.reducedMotion()),
       {
-        pendingSeatId: this.occupyPendingSeatIdState(),
+        pendingSeatId: this.checkoutPendingSeatIdState() ?? this.occupyPendingSeatIdState(),
+        pendingAction: this.checkoutPendingSeatIdState() ? 'checkout' : 'occupy',
         activeOrdersBySeatId: this.activeOrdersBySeatId(),
       },
     );
   });
   readonly occupyPendingSeatId = computed(() => this.occupyPendingSeatIdState());
   readonly occupyFeedback = computed(() => this.occupyFeedbackState());
+  readonly checkoutPendingSeatId = computed(() => this.checkoutPendingSeatIdState());
+  readonly checkoutFeedback = computed(() => this.checkoutFeedbackState());
   readonly occupyPendingLabel = computed(() => {
     const seatId = this.occupyPendingSeatIdState();
+    if (!seatId) {
+      return null;
+    }
+
+    return this.getSeatLabel(seatId);
+  });
+  readonly checkoutPendingLabel = computed(() => {
+    const seatId = this.checkoutPendingSeatIdState();
     if (!seatId) {
       return null;
     }
@@ -194,7 +222,12 @@ export class BeltVisualizationStore {
 
   occupySeat(seatId: string): void {
     const seat = this.findSeat(seatId);
-    if (!seat || seat.isOccupied || this.occupyPendingSeatIdState()) {
+    if (
+      !seat ||
+      seat.isOccupied ||
+      this.occupyPendingSeatIdState() ||
+      this.checkoutPendingSeatIdState()
+    ) {
       return;
     }
 
@@ -215,6 +248,38 @@ export class BeltVisualizationStore {
         },
         error: (error: unknown) => {
           this.handleOccupyError(seatId, error);
+        },
+      });
+  }
+
+  checkoutSeat(seatId: string): void {
+    const seat = this.findSeat(seatId);
+    if (
+      !seat ||
+      !seat.isOccupied ||
+      this.occupyPendingSeatIdState() ||
+      this.checkoutPendingSeatIdState()
+    ) {
+      return;
+    }
+
+    this.checkoutPendingSeatIdState.set(seatId);
+    this.checkoutFeedbackState.set(null);
+
+    this.seatsApi
+      .checkout(seatId)
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          this.storeSeatOrderSummary(result);
+          this.storeCheckedOutSummary(result);
+          this.applySeatState(result);
+          this.checkoutPendingSeatIdState.set(null);
+          this.checkoutFeedbackState.set(this.buildCheckoutSuccessFeedback(result));
+          this.refreshAfterWrite();
+        },
+        error: (error: unknown) => {
+          this.handleCheckoutError(seatId, error);
         },
       });
   }
@@ -326,7 +391,7 @@ export class BeltVisualizationStore {
 
   private handleOccupyError(seatId: string, error: unknown): void {
     const seatLabel = this.getSeatLabel(seatId);
-    const problemDetail = getProblemDetail(error);
+    const problemDetail = getProblemDetail(error) as SeatActionProblemDetail | null;
     const status = problemDetail?.status ?? null;
 
     if (status === 409) {
@@ -359,6 +424,57 @@ export class BeltVisualizationStore {
             orderId: null,
             createdAtLabel: null,
           },
+    );
+    this.refreshAfterWrite();
+  }
+
+  private handleCheckoutError(seatId: string, error: unknown): void {
+    const seatLabel = this.getSeatLabel(seatId);
+    const problemDetail = getProblemDetail(error) as SeatActionProblemDetail | null;
+    const status = problemDetail?.status ?? null;
+
+    this.checkoutPendingSeatIdState.set(null);
+    this.checkoutFeedbackState.set(
+      status === 409
+        ? {
+            tone: 'error',
+            title: `${seatLabel} is already free`,
+            detail:
+              problemDetail?.detail ??
+              'No active occupancy remains for this seat. Another checkout finished first or the seat was already free.',
+            seatId,
+            seatLabel,
+            finalSummary: this.checkedOutOrdersBySeatId()[seatId] ?? null,
+            statusLabel: null,
+            createdAtLabel: null,
+            closedAtLabel: null,
+            totalPriceLabel: null,
+          }
+        : status === 404
+          ? {
+              tone: 'error',
+              title: `${seatLabel} could not be found`,
+              detail: problemDetail?.detail ?? 'That seat is no longer available on this belt.',
+              seatId,
+              seatLabel,
+              finalSummary: null,
+              statusLabel: null,
+              createdAtLabel: null,
+              closedAtLabel: null,
+              totalPriceLabel: null,
+            }
+          : {
+              tone: 'error',
+              title: `We could not check out ${seatLabel}`,
+              detail: this.formatError(error, 'Please try again once the belt service catches up.'),
+              seatId,
+              seatLabel,
+              finalSummary: null,
+              statusLabel: null,
+              createdAtLabel: null,
+              closedAtLabel: null,
+              totalPriceLabel: null,
+            },
     );
     this.refreshAfterWrite();
   }
@@ -424,7 +540,7 @@ export class BeltVisualizationStore {
   private buildConflictFeedback(
     seatLabel: string,
     seatOrder: SeatOrderDto,
-    problemDetail: ProblemDetail | null,
+    problemDetail: SeatActionProblemDetail | null,
   ): OccupyFeedback {
     return {
       tone: 'error',
@@ -442,7 +558,7 @@ export class BeltVisualizationStore {
   private buildConflictFallbackFeedback(
     seatId: string,
     seatLabel: string,
-    problemDetail: ProblemDetail | null,
+    problemDetail: SeatActionProblemDetail | null,
   ): OccupyFeedback {
     return {
       tone: 'error',
@@ -504,6 +620,19 @@ export class BeltVisualizationStore {
     });
   }
 
+  private storeCheckedOutSummary(seatOrder: SeatOrderDto): void {
+    const seatId = seatOrder.seatId;
+    const orderSummary = seatOrder.orderSummary;
+    if (!seatId || seatOrder.isOccupied || !orderSummary?.orderId) {
+      return;
+    }
+
+    this.checkedOutOrdersBySeatId.update((current) => ({
+      ...current,
+      [seatId]: seatOrder,
+    }));
+  }
+
   private pruneActiveOrders(seats: SeatStateListDto): void {
     const occupiedSeatIds = new Set(
       seats.filter((seat) => seat.isOccupied && seat.seatId).map((seat) => seat.seatId as string),
@@ -541,5 +670,36 @@ export class BeltVisualizationStore {
       hour: 'numeric',
       minute: '2-digit',
     }).format(parsed);
+  }
+
+  private formatTotalPrice(amount: number | undefined): string | null {
+    if (amount == null) {
+      return null;
+    }
+
+    return `${amount} Yen`;
+  }
+
+  private buildCheckoutSuccessFeedback(seatOrder: SeatOrderDto): CheckoutFeedback {
+    const seatId = seatOrder.seatId ?? this.checkoutPendingSeatIdState() ?? 'unknown-seat';
+    const seatLabel = seatOrder.label ?? this.getSeatLabel(seatId);
+    const orderSummary = seatOrder.orderSummary;
+    const lines = orderSummary?.lines ?? [];
+
+    return {
+      tone: 'success',
+      title: `${seatLabel} is checked out`,
+      detail:
+        lines.length > 0
+          ? 'Checkout is complete. The seat is free again, and this final summary comes directly from the backend.'
+          : 'Checkout is complete. No plates were recorded for this order, and the seat is free again.',
+      seatId,
+      seatLabel,
+      finalSummary: seatOrder,
+      statusLabel: orderSummary?.status ?? null,
+      createdAtLabel: this.formatTimestamp(orderSummary?.createdAt),
+      closedAtLabel: this.formatTimestamp(orderSummary?.closedAt),
+      totalPriceLabel: this.formatTotalPrice(orderSummary?.totalPrice),
+    };
   }
 }
