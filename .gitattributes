@@ -45,7 +45,8 @@ mvnw.cmd   text eol=crlf
 *.otf      -text
 *.woff     -text
 *.woff2    -text
-*.svg      text eol=lf  # keep as text to allow diffs/changes
+# Keep SVG as text to allow diffs and source edits.
+*.svg      text eol=lf
 
 # --- IDE project files (if committed) ---
 *.iml      text eol=lf
