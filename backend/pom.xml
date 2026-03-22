@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.lorenzipsum.sushitrain</groupId>
     <artifactId>sushi-train-backend</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0</version>
     <name>Sushi Train Backend</name>
     <description>A kawaii, event-driven sushi conveyor-belt simulator built with Spring Boot, PostgreSQL, and
         WebSocket.
