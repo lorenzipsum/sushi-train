@@ -139,6 +139,13 @@ public class OrderService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public UUID getBeltIdForSeat(UUID seatId) {
+        return seatQueryPort.findSeatById(seatId)
+                .map(SeatQueryPort.SeatInfo::beltId)
+                .orElseThrow(() -> new ResourceNotFoundException("Seat", seatId));
+    }
+
     private OrderSummaryView toOrderSummaryView(Order order) {
         var lines = order.getLines().stream()
                 .map(line -> new OrderLineView(

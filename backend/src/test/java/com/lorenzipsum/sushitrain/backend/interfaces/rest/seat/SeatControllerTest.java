@@ -5,6 +5,7 @@ import com.lorenzipsum.sushitrain.backend.application.common.PlateNotPickableExc
 import com.lorenzipsum.sushitrain.backend.application.common.SeatAlreadyOccupiedException;
 import com.lorenzipsum.sushitrain.backend.application.common.SeatNotOccupiedException;
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.BeltEventStreamBroker;
 import com.lorenzipsum.sushitrain.backend.application.view.OrderLineView;
 import com.lorenzipsum.sushitrain.backend.application.view.OrderSummaryView;
 import com.lorenzipsum.sushitrain.backend.application.view.SeatOrderView;
@@ -43,6 +44,8 @@ class SeatControllerTest {
 
     @MockitoBean
     private OrderService orderService;
+    @MockitoBean
+    private BeltEventStreamBroker beltEventStreamBroker;
 
     ///
     /// POST /api/v1/seats/{id}/occupy

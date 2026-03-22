@@ -13,8 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,10 +32,12 @@ public class BeltController {
 
     private final BeltService service;
     private final BeltApiMapper mapper;
+    private final BeltEventStreamBroker beltEventStreamBroker;
 
-    public BeltController(BeltService service, BeltApiMapper mapper) {
+    public BeltController(BeltService service, BeltApiMapper mapper, BeltEventStreamBroker beltEventStreamBroker) {
         this.service = service;
         this.mapper = mapper;
+        this.beltEventStreamBroker = beltEventStreamBroker;
     }
 
     @GetMapping()
@@ -167,6 +171,12 @@ public class BeltController {
         return mapper.toSeatStateDtos(service.getSeatStates(id));
     }
 
+    @GetMapping(path = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamBeltEvents(@PathVariable UUID id) {
+        service.getBelt(id);
+        return beltEventStreamBroker.subscribe(id);
+    }
+
     @PatchMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Update belt parameters",
@@ -203,6 +213,7 @@ public class BeltController {
             @RequestBody @Valid BeltUpdateRequest request
     ) {
         Belt belt = service.updateBeltParameters(id, request.tickIntervalMs(), request.speedSlotsPerTick());
+        beltEventStreamBroker.publish(id, "belt-state-changed");
         return mapper.toParamsDto(belt);
     }
 
@@ -249,8 +260,10 @@ public class BeltController {
             @PathVariable UUID id,
             @RequestBody @Valid CreatePlateAndPlaceOnBeltRequest request
     ) {
-        return mapper.toResponse(
+        CreatedPlatesOnBeltResponse response = mapper.toResponse(
                 service.createPlatesAndPlaceOnBelt(id, mapper.toCommand(request))
         );
+        beltEventStreamBroker.publish(id, "belt-state-changed");
+        return response;
     }
 }

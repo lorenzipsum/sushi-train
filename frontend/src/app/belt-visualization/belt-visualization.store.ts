@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { take } from 'rxjs';
 
+import { BeltEventsApi } from '../api/belt-events.api';
 import { BeltsApi } from '../api/belts.api';
 import { getProblemDetail } from '../api/http/problem-detail';
 import { MenuItemsApi } from '../api/menu-items.api';
@@ -29,6 +30,7 @@ import { buildBeltStageViewModel } from './belt-view-model';
 import { getRenderOffset } from './motion';
 
 const POLL_INTERVAL_MS = 3000;
+const SSE_RECONNECT_DELAY_MS = 3000;
 const RESTORATION_RETRY_DELAY_MS = 1500;
 const OPERATOR_PANEL_BREAKPOINT = '(max-width: 900px)';
 const OPERATOR_DEFAULT_EXPIRES_IN_MINUTES = 120;
@@ -97,6 +99,7 @@ export interface CheckoutFeedback {
 
 @Injectable({ providedIn: 'root' })
 export class BeltVisualizationStore {
+  private readonly beltEventsApi = inject(BeltEventsApi);
   private readonly beltsApi = inject(BeltsApi);
   private readonly menuItemsApi = inject(MenuItemsApi);
   private readonly seatsApi = inject(SeatsApi);
@@ -141,6 +144,8 @@ export class BeltVisualizationStore {
   private readonly operatorPendingSubmissionState = signal(false);
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
+  private beltEventsSource: EventSource | null = null;
+  private beltEventsReconnectTimerId: ReturnType<typeof setTimeout> | null = null;
   private animationFrameId: number | null = null;
   private rejectAnimationTimerId: ReturnType<typeof setTimeout> | null = null;
   private readonly restorationRetryTimerIds = new Map<string, ReturnType<typeof setTimeout>>();
@@ -453,6 +458,9 @@ export class BeltVisualizationStore {
     this.loadOperatorMenuItems();
 
     this.destroyRef.onDestroy(() => {
+      this.disconnectBeltEvents();
+      this.clearBeltEventsReconnectTimer();
+
       if (this.pollTimerId) {
         clearInterval(this.pollTimerId);
       }
@@ -870,12 +878,87 @@ export class BeltVisualizationStore {
   }
 
   private startTrackingPrimaryBelt(beltId: string): void {
-    if (this.pollTimerId) {
-      clearInterval(this.pollTimerId);
+    this.stopPollingFallback();
+    this.disconnectBeltEvents();
+    this.clearBeltEventsReconnectTimer();
+    this.refreshNow();
+    this.connectBeltEvents(beltId);
+  }
+
+  private connectBeltEvents(beltId: string): void {
+    if (typeof EventSource === 'undefined') {
+      this.startPollingFallback();
+      return;
     }
 
-    this.refreshNow();
+    try {
+      const source = this.beltEventsApi.openBeltEvents(beltId);
+      this.beltEventsSource = source;
+
+      source.onopen = () => {
+        this.clearBeltEventsReconnectTimer();
+        this.stopPollingFallback();
+      };
+
+      source.onmessage = () => {
+        this.refreshNow();
+      };
+
+      source.onerror = () => {
+        this.disconnectBeltEvents();
+        this.startPollingFallback();
+        this.scheduleBeltEventsReconnect(beltId);
+      };
+    } catch {
+      this.startPollingFallback();
+      this.scheduleBeltEventsReconnect(beltId);
+    }
+  }
+
+  private disconnectBeltEvents(): void {
+    if (!this.beltEventsSource) {
+      return;
+    }
+
+    this.beltEventsSource.close();
+    this.beltEventsSource = null;
+  }
+
+  private scheduleBeltEventsReconnect(beltId: string): void {
+    if (this.beltEventsReconnectTimerId) {
+      return;
+    }
+
+    this.beltEventsReconnectTimerId = setTimeout(() => {
+      this.beltEventsReconnectTimerId = null;
+      this.connectBeltEvents(beltId);
+    }, SSE_RECONNECT_DELAY_MS);
+  }
+
+  private clearBeltEventsReconnectTimer(): void {
+    if (!this.beltEventsReconnectTimerId) {
+      return;
+    }
+
+    clearTimeout(this.beltEventsReconnectTimerId);
+    this.beltEventsReconnectTimerId = null;
+  }
+
+  private startPollingFallback(): void {
+    if (this.pollTimerId) {
+      return;
+    }
+
     this.pollTimerId = setInterval(() => this.refreshNow(), POLL_INTERVAL_MS);
+  }
+
+  private stopPollingFallback(): void {
+    if (!this.pollTimerId) {
+      return;
+    }
+
+    clearInterval(this.pollTimerId);
+    this.pollTimerId = null;
   }
 
   private refreshSnapshot(beltId: string): void {

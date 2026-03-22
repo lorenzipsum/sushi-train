@@ -12,6 +12,7 @@ public interface SeatQueryPort {
 
     record SeatInfo(
             UUID seatId,
+            UUID beltId,
             String label,
             int positionIndex
     ) {

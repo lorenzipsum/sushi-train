@@ -18,13 +18,13 @@ public class JpaSeatQueryAdapter implements SeatQueryPort {
     @Override
     public Optional<SeatInfo> findSeatById(UUID seatId) {
         return seatJpaDao.findById(seatId)
-                .map(seat -> new SeatInfo(seat.getId(), seat.getLabel(), seat.getPositionIndex()));
+                .map(seat -> new SeatInfo(seat.getId(), seat.getBelt().getId(), seat.getLabel(), seat.getPositionIndex()));
     }
 
     @Override
     public Optional<SeatInfo> findSeatByIdForUpdate(UUID seatId) {
         return seatJpaDao.findByIdForUpdate(seatId)
-                .map(seat -> new SeatInfo(seat.getId(), seat.getLabel(), seat.getPositionIndex()));
+                .map(seat -> new SeatInfo(seat.getId(), seat.getBelt().getId(), seat.getLabel(), seat.getPositionIndex()));
     }
 
     @Override

@@ -43,7 +43,8 @@ class OrderServiceTest {
     @Test
     void occupySeat_usesSeatLockAndReturnsOccupiedTrue() {
         UUID seatId = UUID.randomUUID();
-        var seatInfo = new SeatQueryPort.SeatInfo(seatId, "A1", 0);
+        var beltId = UUID.randomUUID();
+        var seatInfo = new SeatQueryPort.SeatInfo(seatId, beltId, "A1", 0);
 
         when(seatQueryPort.findSeatByIdForUpdate(seatId)).thenReturn(Optional.of(seatInfo));
         when(seatQueryPort.isSeatOccupied(seatId)).thenReturn(false);
@@ -71,8 +72,9 @@ class OrderServiceTest {
         UUID seatId = UUID.randomUUID();
         UUID plateId = UUID.randomUUID();
         UUID menuItemId = UUID.randomUUID();
+        UUID beltId = UUID.randomUUID();
 
-        var seatInfo = new SeatQueryPort.SeatInfo(seatId, "A1", 0);
+        var seatInfo = new SeatQueryPort.SeatInfo(seatId, beltId, "A1", 0);
         var plate = Plate.rehydrate(
                 plateId,
                 menuItemId,

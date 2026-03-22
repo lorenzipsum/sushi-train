@@ -54,6 +54,8 @@ class BeltControllerTest {
     RestTestClient client;
     @MockitoBean
     BeltService beltService;
+    @MockitoBean
+    BeltEventStreamBroker beltEventStreamBroker;
     @Autowired
     BeltPlacementProperties props;
 

@@ -1,6 +1,7 @@
 package com.lorenzipsum.sushitrain.backend.interfaces.rest.seat;
 
 import com.lorenzipsum.sushitrain.backend.application.order.OrderService;
+import com.lorenzipsum.sushitrain.backend.interfaces.rest.belt.BeltEventStreamBroker;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.PickPlateRequest;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatOrderDto;
 import com.lorenzipsum.sushitrain.backend.interfaces.rest.seat.dto.SeatOrderDtoMapper;
@@ -30,10 +31,12 @@ public class SeatController {
 
     private final OrderService service;
     private final SeatOrderDtoMapper mapper;
+    private final BeltEventStreamBroker beltEventStreamBroker;
 
-    public SeatController(OrderService service, SeatOrderDtoMapper mapper) {
+    public SeatController(OrderService service, SeatOrderDtoMapper mapper, BeltEventStreamBroker beltEventStreamBroker) {
         this.service = service;
         this.mapper = mapper;
+        this.beltEventStreamBroker = beltEventStreamBroker;
     }
 
     @PostMapping(path = "/{id}/occupy")
@@ -76,7 +79,9 @@ public class SeatController {
             )
     })
     public SeatStateDto occupySeat(@PathVariable UUID id) {
-        return mapper.toSeatStateDto(service.occupySeat(id));
+        SeatStateDto response = mapper.toSeatStateDto(service.occupySeat(id));
+        beltEventStreamBroker.publish(service.getBeltIdForSeat(id), "belt-state-changed");
+        return response;
     }
 
     @GetMapping(path = "/{id}")
@@ -157,7 +162,9 @@ public class SeatController {
             @PathVariable UUID id,
             @org.springframework.web.bind.annotation.RequestBody @Valid PickPlateRequest request
     ) {
-        return mapper.toSeatOrderDto(service.pickPlate(id, request.plateId()));
+        SeatOrderDto response = mapper.toSeatOrderDto(service.pickPlate(id, request.plateId()));
+        beltEventStreamBroker.publish(service.getBeltIdForSeat(id), "belt-state-changed");
+        return response;
     }
 
     @PostMapping(path = "/{id}/checkout")
@@ -198,6 +205,8 @@ public class SeatController {
             )
     })
     public SeatOrderDto checkout(@PathVariable UUID id) {
-        return mapper.toSeatOrderDto(service.checkout(id));
+        SeatOrderDto response = mapper.toSeatOrderDto(service.checkout(id));
+        beltEventStreamBroker.publish(service.getBeltIdForSeat(id), "belt-state-changed");
+        return response;
     }
 }
