@@ -13,4 +13,5 @@ import { SelectedSeatDetailComponent } from './belt-visualization/selected-seat-
 })
 export class App {
   protected readonly store = inject(BeltVisualizationStore);
+  protected readonly selectedSeatDetail = this.store.selectedSeatDetail;
 }

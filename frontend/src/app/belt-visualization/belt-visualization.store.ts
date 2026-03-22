@@ -14,6 +14,7 @@ import type {
   SeatPendingAction,
   SeatActionProblemDetail,
   SeatOrderDto,
+  SeatRestorationState,
   SeatStateDto,
   SeatStateListDto,
 } from '../api/types';
@@ -21,6 +22,8 @@ import { buildBeltStageViewModel } from './belt-view-model';
 import { getRenderOffset } from './motion';
 
 const POLL_INTERVAL_MS = 3000;
+const RESTORATION_RETRY_DELAY_MS = 1500;
+const SELECTED_SEAT_STORAGE_KEY = 'sushi-train:selected-seat-id';
 
 export interface OccupyFeedback {
   tone: 'success' | 'error';
@@ -75,10 +78,13 @@ export class BeltVisualizationStore {
   private readonly rejectedPlateIdState = signal<string | null>(null);
   private readonly activeOrdersBySeatId = signal<Record<string, OrderSummaryDto>>({});
   private readonly checkedOutOrdersBySeatId = signal<Record<string, SeatOrderDto>>({});
+  private readonly seatRestorationBySeatId = signal<Record<string, SeatRestorationState>>({});
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   private animationFrameId: number | null = null;
   private rejectAnimationTimerId: ReturnType<typeof setTimeout> | null = null;
+  private readonly restorationRetryTimerIds = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly restorationInFlightSeatIds = new Set<string>();
   private mediaQuery: MediaQueryList | null = null;
   private readonly handleReducedMotionChange = (event: MediaQueryListEvent): void => {
     this.reducedMotion.set(event.matches);
@@ -133,6 +139,7 @@ export class BeltVisualizationStore {
         pendingPlateId: this.pickPlatePendingPlateIdState(),
         rejectedPlateId: this.rejectedPlateIdState(),
         activeOrdersBySeatId: this.activeOrdersBySeatId(),
+        restorationBySeatId: this.seatRestorationBySeatId(),
         selectedSeatId: this.selectedSeatIdState(),
       },
     );
@@ -152,11 +159,25 @@ export class BeltVisualizationStore {
       return null;
     }
 
-    const orderSummary = this.activeOrdersBySeatId()[selectedSeatId] ?? null;
+    const activeOrderSummary = this.activeOrdersBySeatId()[selectedSeatId] ?? null;
+    const checkedOutSummary = this.checkedOutOrdersBySeatId()[selectedSeatId] ?? null;
+    const orderSummary = activeOrderSummary ?? checkedOutSummary?.orderSummary ?? null;
+    const restoration = this.seatRestorationBySeatId()[selectedSeatId] ?? null;
     const pendingAction = this.pendingSeatId() === selectedSeatId ? this.pendingAction() : null;
     const occupyFeedback = this.occupyFeedbackState();
     const checkoutFeedback = this.checkoutFeedbackState();
     const pickPlateFeedback = this.pickPlateFeedbackState();
+    const isCheckoutSummary = !selectedSeat.isOccupied && !!checkedOutSummary?.orderSummary;
+    const restorationStatus = isCheckoutSummary
+      ? 'checked-out'
+      : !selectedSeat.isOccupied
+        ? 'available'
+        : restoration?.restorationStatus === 'unresolved-retrying'
+          ? 'unresolved'
+          : restoration?.restorationStatus === 'confirmed-open-order' ||
+              !!activeOrderSummary?.orderId
+            ? 'occupied'
+            : 'syncing';
 
     const matchingFeedback =
       (pickPlateFeedback?.seatId === selectedSeatId
@@ -183,19 +204,53 @@ export class BeltVisualizationStore {
 
     const canStartDining = !selectedSeat.isOccupied;
     const canCheckout = !!selectedSeat.isOccupied;
-    const canPickPlates = !!selectedSeat.isOccupied && !!orderSummary?.orderId;
+    const canPickPlates =
+      !!selectedSeat.isOccupied &&
+      !!activeOrderSummary?.orderId &&
+      restorationStatus === 'occupied';
+    const blockedReason =
+      selectedSeat.isOccupied && !canPickPlates
+        ? restorationStatus === 'syncing' || restorationStatus === 'unresolved'
+          ? 'syncing'
+          : 'no-open-order'
+        : null;
+
+    const statusLabel = isCheckoutSummary
+      ? 'Checked out'
+      : restorationStatus === 'unresolved'
+        ? 'Retrying dining sync'
+        : restorationStatus === 'syncing'
+          ? 'Syncing dining state'
+          : selectedSeat.isOccupied
+            ? 'Occupied'
+            : 'Available';
+
+    const helperLabel = isCheckoutSummary
+      ? 'This final backend summary remains visible for the seat that just checked out.'
+      : restorationStatus === 'unresolved'
+        ? (restoration?.resolutionMessage ??
+          'We could not confirm this dining state yet. Automatic retry is still running in the background.')
+        : restorationStatus === 'syncing'
+          ? (restoration?.resolutionMessage ??
+            'Dining state is loading from the backend. Reach cues may stay visible, but picks remain blocked until sync completes.')
+          : selectedSeat.isOccupied
+            ? orderSummary?.lines?.length
+              ? 'Pick plates from the highlighted reach area, or check out when the order is complete.'
+              : 'Dining is active. Pick the next reachable plate to start building the running order here.'
+            : 'Seat clicks only change selection. Start dining here when you are ready.';
 
     return {
       seatId: selectedSeatId,
       seatLabel: selectedSeat.label ?? 'Selected seat',
-      statusLabel: selectedSeat.isOccupied ? 'Occupied' : 'Available',
-      helperLabel: selectedSeat.isOccupied
-        ? 'Pick plates from the highlighted reach area, or check out when the order is complete.'
-        : 'Seat clicks only change selection. Start dining here when you are ready.',
+      restorationStatus,
+      statusLabel,
+      helperLabel,
       isOccupied: !!selectedSeat.isOccupied,
       canStartDining,
       canCheckout,
       canPickPlates,
+      blockedReason,
+      isCheckoutSummary,
       pendingAction,
       orderSummary,
       feedbackTone: matchingFeedback?.tone ?? null,
@@ -304,6 +359,9 @@ export class BeltVisualizationStore {
         clearTimeout(this.rejectAnimationTimerId);
       }
 
+      this.restorationRetryTimerIds.forEach((timerId) => clearTimeout(timerId));
+      this.restorationRetryTimerIds.clear();
+
       this.mediaQuery?.removeEventListener('change', this.handleReducedMotionChange);
     });
   }
@@ -327,7 +385,7 @@ export class BeltVisualizationStore {
       return;
     }
 
-    this.selectedSeatIdState.set(seatId);
+    this.setSelectedSeatId(seatId);
   }
 
   startDiningForSelectedSeat(): void {
@@ -360,7 +418,7 @@ export class BeltVisualizationStore {
       return;
     }
 
-    this.selectedSeatIdState.set(seatId);
+    this.setSelectedSeatId(seatId);
     this.occupyPendingSeatIdState.set(seatId);
     this.occupyFeedbackState.set(null);
 
@@ -394,7 +452,7 @@ export class BeltVisualizationStore {
       return;
     }
 
-    this.selectedSeatIdState.set(seatId);
+    this.setSelectedSeatId(seatId);
     this.checkoutPendingSeatIdState.set(seatId);
     this.checkoutFeedbackState.set(null);
 
@@ -404,8 +462,10 @@ export class BeltVisualizationStore {
       .subscribe({
         next: (result) => {
           this.storeSeatOrderSummary(result);
+          this.applyRestorationFromSeatOrder(result);
           this.storeCheckedOutSummary(result);
           this.applySeatState(result);
+          this.clearSeatRestoration(seatId);
           this.checkoutPendingSeatIdState.set(null);
           this.checkoutFeedbackState.set(this.buildCheckoutSuccessFeedback(result));
           this.refreshAfterWrite();
@@ -423,15 +483,40 @@ export class BeltVisualizationStore {
     }
 
     const selectedSeat = this.findSeat(selectedSeatId);
+    const restoration = this.seatRestorationBySeatId()[selectedSeatId] ?? null;
     const stage = this.stageViewModel();
     const selectedPlate = stage?.slots.find((slot) => slot.plate?.id === plateId)?.plate ?? null;
     const seatLabel = selectedSeat?.label ?? 'Selected seat';
+    const hasActiveOrder = !!this.activeOrdersBySeatId()[selectedSeatId]?.orderId;
+    const isSyncingSeat =
+      !!selectedSeat?.isOccupied &&
+      (!hasActiveOrder ||
+        restoration?.restorationStatus === 'syncing' ||
+        restoration?.restorationStatus === 'unresolved-retrying');
 
-    if (!selectedSeat?.isOccupied || !this.activeOrdersBySeatId()[selectedSeatId]?.orderId) {
+    if (isSyncingSeat) {
       this.pickPlateFeedbackState.set({
         tone: 'error',
-        title: `${seatLabel} must start dining first`,
-        detail: 'Select an occupied seat or start dining for this seat before adding plates.',
+        title: `${seatLabel} is still syncing`,
+        detail:
+          restoration?.resolutionMessage ??
+          'Dining state is still loading from the backend. Reach cues may stay visible, but picks remain blocked until sync finishes.',
+        seatId: selectedSeatId,
+        seatLabel,
+        plateId,
+        outcomeType: 'syncing',
+        orderSummary: restoration?.lastKnownOrderSummary ?? null,
+        rejectAnimationShown: false,
+      });
+      return;
+    }
+
+    if (!selectedSeat?.isOccupied || !hasActiveOrder) {
+      this.pickPlateFeedbackState.set({
+        tone: 'error',
+        title: `${seatLabel} has no open order`,
+        detail:
+          'Start dining for this seat before adding plates, or wait for the next seat refresh if the backend state just changed.',
         seatId: selectedSeatId,
         seatLabel,
         plateId,
@@ -470,6 +555,7 @@ export class BeltVisualizationStore {
       .subscribe({
         next: (result) => {
           this.storeSeatOrderSummary(result);
+          this.applyRestorationFromSeatOrder(result);
           this.applySeatState(result);
           this.pickPlatePendingSeatIdState.set(null);
           this.pickPlatePendingPlateIdState.set(null);
@@ -558,6 +644,8 @@ export class BeltVisualizationStore {
         next: (seats) => {
           this.seats.set(seats);
           this.pruneActiveOrders(seats);
+          this.pruneCheckedOutSummaries(seats);
+          this.syncRestorationStates(seats);
           this.ensureSelectedSeat(seats);
           this.seatsError.set(null);
           this.seatsLoading.set(false);
@@ -774,6 +862,7 @@ export class BeltVisualizationStore {
       .subscribe({
         next: (seatOrder) => {
           this.storeSeatOrderSummary(seatOrder);
+          this.applyRestorationFromSeatOrder(seatOrder);
           this.applySeatState(seatOrder);
           this.occupyPendingSeatIdState.set(null);
           this.occupyFeedbackState.set(buildFeedback(seatOrder));
@@ -781,6 +870,11 @@ export class BeltVisualizationStore {
         },
         error: () => {
           this.occupyPendingSeatIdState.set(null);
+          this.markSeatRestorationUnresolved(
+            seatId,
+            'The dining record is still syncing after the seat was occupied. Automatic retry is running.',
+          );
+          this.scheduleRestorationRetry(seatId);
           this.occupyFeedbackState.set(buildFallbackFeedback());
           this.refreshAfterWrite();
         },
@@ -902,6 +996,18 @@ export class BeltVisualizationStore {
         [seatId]: orderSummary,
       };
     });
+
+    if (seatOrder.isOccupied && orderSummary?.orderId) {
+      this.checkedOutOrdersBySeatId.update((current) => {
+        if (!(seatId in current)) {
+          return current;
+        }
+
+        const next = { ...current };
+        delete next[seatId];
+        return next;
+      });
+    }
   }
 
   private storeCheckedOutSummary(seatOrder: SeatOrderDto): void {
@@ -930,14 +1036,242 @@ export class BeltVisualizationStore {
     });
   }
 
+  private pruneCheckedOutSummaries(seats: SeatStateListDto): void {
+    const visibleSeatIds = new Set(seats.map((seat) => seat.seatId).filter(Boolean) as string[]);
+
+    this.checkedOutOrdersBySeatId.update((current) => {
+      const nextEntries = Object.entries(current).filter(([seatId]) => visibleSeatIds.has(seatId));
+      return nextEntries.length === Object.keys(current).length
+        ? current
+        : Object.fromEntries(nextEntries);
+    });
+  }
+
   private ensureSelectedSeat(seats: SeatStateListDto): void {
     const currentSelectedSeatId = this.selectedSeatIdState();
 
     if (currentSelectedSeatId && seats.some((seat) => seat.seatId === currentSelectedSeatId)) {
+      this.persistSelectedSeatId(currentSelectedSeatId);
       return;
     }
 
-    this.selectedSeatIdState.set(seats[0]?.seatId ?? null);
+    const storedSeatId = this.getStoredSelectedSeatId();
+    if (storedSeatId && seats.some((seat) => seat.seatId === storedSeatId)) {
+      this.setSelectedSeatId(storedSeatId);
+      return;
+    }
+
+    this.setSelectedSeatId(seats[0]?.seatId ?? null);
+  }
+
+  private syncRestorationStates(seats: SeatStateListDto): void {
+    const occupiedSeatIds = new Set(
+      seats.filter((seat) => seat.isOccupied && seat.seatId).map((seat) => seat.seatId as string),
+    );
+
+    this.seatRestorationBySeatId.update((current) => {
+      const nextEntries = Object.entries(current).filter(([seatId]) => occupiedSeatIds.has(seatId));
+      return nextEntries.length === Object.keys(current).length
+        ? current
+        : Object.fromEntries(nextEntries);
+    });
+
+    Array.from(this.restorationRetryTimerIds.keys()).forEach((seatId) => {
+      if (!occupiedSeatIds.has(seatId)) {
+        this.clearRestorationRetry(seatId);
+      }
+    });
+
+    seats.forEach((seat) => {
+      const seatId = seat.seatId;
+      if (!seatId || !seat.isOccupied) {
+        return;
+      }
+
+      const current = this.seatRestorationBySeatId()[seatId] ?? null;
+      const activeOrder = this.activeOrdersBySeatId()[seatId] ?? null;
+
+      if (activeOrder?.orderId) {
+        this.seatRestorationBySeatId.update((currentState) => ({
+          ...currentState,
+          [seatId]: {
+            seatId,
+            restorationStatus: 'confirmed-open-order',
+            hasRetryInFlight: false,
+            lastKnownOrderSummary: activeOrder,
+            resolutionMessage: 'Dining state restored from the backend.',
+          },
+        }));
+        return;
+      }
+
+      if (this.restorationInFlightSeatIds.has(seatId) || current?.hasRetryInFlight) {
+        return;
+      }
+
+      this.hydrateSeatContext(seatId, current?.restorationStatus === 'unresolved-retrying');
+    });
+  }
+
+  private hydrateSeatContext(seatId: string, retryTriggered = false): void {
+    if (this.restorationInFlightSeatIds.has(seatId)) {
+      return;
+    }
+
+    const seat = this.findSeat(seatId);
+    if (!seat?.isOccupied) {
+      this.clearSeatRestoration(seatId);
+      return;
+    }
+
+    this.clearRestorationRetry(seatId);
+    this.restorationInFlightSeatIds.add(seatId);
+    this.seatRestorationBySeatId.update((current) => ({
+      ...current,
+      [seatId]: {
+        seatId,
+        restorationStatus: retryTriggered ? 'unresolved-retrying' : 'syncing',
+        hasRetryInFlight: false,
+        lastKnownOrderSummary:
+          current[seatId]?.lastKnownOrderSummary ?? this.activeOrdersBySeatId()[seatId] ?? null,
+        resolutionMessage: retryTriggered
+          ? 'Retrying dining state automatically.'
+          : 'Syncing dining state from the backend.',
+      },
+    }));
+
+    const seatStateRequest = this.seatsApi.getSeatState(seatId);
+    if (!seatStateRequest) {
+      this.restorationInFlightSeatIds.delete(seatId);
+      return;
+    }
+
+    seatStateRequest.pipe(take(1)).subscribe({
+      next: (seatOrder) => {
+        this.restorationInFlightSeatIds.delete(seatId);
+        this.storeSeatOrderSummary(seatOrder);
+        this.applyRestorationFromSeatOrder(seatOrder);
+        this.applySeatState(seatOrder);
+      },
+      error: (error: unknown) => {
+        this.restorationInFlightSeatIds.delete(seatId);
+        this.markSeatRestorationUnresolved(
+          seatId,
+          this.formatError(
+            error,
+            'Dining state could not be confirmed yet. Automatic retry is still running.',
+          ),
+        );
+        this.scheduleRestorationRetry(seatId);
+      },
+    });
+  }
+
+  private applyRestorationFromSeatOrder(seatOrder: SeatOrderDto): void {
+    const seatId = seatOrder.seatId;
+    if (!seatId) {
+      return;
+    }
+
+    const orderSummary = seatOrder.orderSummary ?? null;
+    this.seatRestorationBySeatId.update((current) => ({
+      ...current,
+      [seatId]: {
+        seatId,
+        restorationStatus:
+          seatOrder.isOccupied && orderSummary?.orderId
+            ? 'confirmed-open-order'
+            : 'confirmed-no-order',
+        hasRetryInFlight: false,
+        lastKnownOrderSummary: orderSummary,
+        resolutionMessage:
+          seatOrder.isOccupied && orderSummary?.orderId
+            ? 'Dining state restored from the backend.'
+            : 'No active dining record remains for this seat.',
+      },
+    }));
+  }
+
+  private markSeatRestorationUnresolved(seatId: string, resolutionMessage: string): void {
+    this.seatRestorationBySeatId.update((current) => ({
+      ...current,
+      [seatId]: {
+        seatId,
+        restorationStatus: 'unresolved-retrying',
+        hasRetryInFlight: true,
+        lastKnownOrderSummary:
+          current[seatId]?.lastKnownOrderSummary ?? this.activeOrdersBySeatId()[seatId] ?? null,
+        resolutionMessage,
+      },
+    }));
+  }
+
+  private scheduleRestorationRetry(seatId: string): void {
+    this.clearRestorationRetry(seatId);
+    this.restorationRetryTimerIds.set(
+      seatId,
+      setTimeout(() => {
+        this.restorationRetryTimerIds.delete(seatId);
+        this.hydrateSeatContext(seatId, true);
+      }, RESTORATION_RETRY_DELAY_MS),
+    );
+  }
+
+  private clearRestorationRetry(seatId: string): void {
+    const timerId = this.restorationRetryTimerIds.get(seatId);
+    if (!timerId) {
+      return;
+    }
+
+    clearTimeout(timerId);
+    this.restorationRetryTimerIds.delete(seatId);
+  }
+
+  private clearSeatRestoration(seatId: string): void {
+    this.clearRestorationRetry(seatId);
+    this.restorationInFlightSeatIds.delete(seatId);
+    this.seatRestorationBySeatId.update((current) => {
+      if (!(seatId in current)) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[seatId];
+      return next;
+    });
+  }
+
+  private setSelectedSeatId(seatId: string | null): void {
+    this.selectedSeatIdState.set(seatId);
+    this.persistSelectedSeatId(seatId);
+  }
+
+  private persistSelectedSeatId(seatId: string | null): void {
+    if (typeof sessionStorage === 'undefined') {
+      return;
+    }
+
+    try {
+      if (seatId) {
+        sessionStorage.setItem(SELECTED_SEAT_STORAGE_KEY, seatId);
+      } else {
+        sessionStorage.removeItem(SELECTED_SEAT_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore storage failures and fall back to in-memory selection only.
+    }
+  }
+
+  private getStoredSelectedSeatId(): string | null {
+    if (typeof sessionStorage === 'undefined') {
+      return null;
+    }
+
+    try {
+      return sessionStorage.getItem(SELECTED_SEAT_STORAGE_KEY);
+    } catch {
+      return null;
+    }
   }
 
   private triggerPlateReject(plateId: string): void {

@@ -170,4 +170,74 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[1].ariaLabel).toContain('Active order order-2');
     expect(result.seats[1].ariaLabel).toContain('Activate to select this seat.');
   });
+
+  it('keeps reach cues visible but blocks pickability while the selected occupied seat is still syncing', () => {
+    const snapshot: BeltSnapshotDto = {
+      beltName: 'Main Belt',
+      beltSlotCount: 8,
+      slots: [
+        {
+          slotId: 'slot-1',
+          positionIndex: 0,
+          plate: { plateId: 'plate-1', menuItemName: 'Salmon Nigiri', tier: 'RED' },
+        },
+      ],
+    };
+    const seats: SeatStateListDto = [
+      { seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true },
+    ];
+
+    const result = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-1',
+      restorationBySeatId: {
+        'seat-1': {
+          seatId: 'seat-1',
+          restorationStatus: 'syncing',
+          hasRetryInFlight: false,
+          lastKnownOrderSummary: null,
+          resolutionMessage: 'Syncing dining state from the backend.',
+        },
+      },
+    });
+
+    expect(result.reachArea?.seatId).toBe('seat-1');
+    expect(result.seats[0].restorationStatus).toBe('syncing');
+    expect(result.seats[0].statusLabel).toBe('Syncing');
+    expect(result.slots[0].plate?.isPickable).toBe(false);
+  });
+
+  it('keeps the reconciled selected seat available and non-pickable after no active order is confirmed', () => {
+    const snapshot: BeltSnapshotDto = {
+      beltName: 'Main Belt',
+      beltSlotCount: 8,
+      slots: [
+        {
+          slotId: 'slot-1',
+          positionIndex: 0,
+          plate: { plateId: 'plate-1', menuItemName: 'Salmon Nigiri', tier: 'RED' },
+        },
+      ],
+    };
+    const seats: SeatStateListDto = [
+      { seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: false },
+    ];
+
+    const result = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-1',
+      restorationBySeatId: {
+        'seat-1': {
+          seatId: 'seat-1',
+          restorationStatus: 'confirmed-no-order',
+          hasRetryInFlight: false,
+          lastKnownOrderSummary: null,
+          resolutionMessage: 'No active dining record remains for this seat.',
+        },
+      },
+    });
+
+    expect(result.seats[0].isOccupied).toBe(false);
+    expect(result.seats[0].restorationStatus).toBe('confirmed-no-order');
+    expect(result.seats[0].statusLabel).toBe('Available');
+    expect(result.slots[0].plate?.isPickable).toBe(false);
+  });
 });

@@ -62,6 +62,7 @@ function createStageViewModel(): BeltStageViewModel {
         isPending: false,
         isSelected: true,
         statusLabel: 'Available',
+        restorationStatus: null,
         orderId: null,
         occupiedSince: null,
         presenceCue: 'available',
@@ -78,6 +79,7 @@ function createStageViewModel(): BeltStageViewModel {
         isPending: false,
         isSelected: false,
         statusLabel: 'Occupied',
+        restorationStatus: 'confirmed-open-order',
         orderId: 'order-2',
         occupiedSince: '2026-03-15T03:00:00Z',
         presenceCue: 'occupied',
@@ -117,12 +119,15 @@ describe('App', () => {
       selectedSeatDetail: () => ({
         seatId: 'seat-1',
         seatLabel: 'Seat 1',
+        restorationStatus: 'available',
         statusLabel: 'Available',
         helperLabel: 'Seat clicks only change selection. Start dining here when you are ready.',
         isOccupied: false,
         canStartDining: true,
         canCheckout: false,
         canPickPlates: false,
+        blockedReason: null,
+        isCheckoutSummary: false,
         pendingAction: null,
         orderSummary: null,
         feedbackTone: null,
@@ -185,12 +190,15 @@ describe('App', () => {
       selectedSeatDetail: () => ({
         seatId: 'seat-1',
         seatLabel: 'Seat 1',
+        restorationStatus: 'available',
         statusLabel: 'Available',
         helperLabel: 'Seat clicks only change selection. Start dining here when you are ready.',
         isOccupied: false,
         canStartDining: true,
         canCheckout: false,
         canPickPlates: false,
+        blockedReason: null,
+        isCheckoutSummary: false,
         pendingAction: null,
         orderSummary: null,
         feedbackTone: 'error',
@@ -223,6 +231,7 @@ describe('App', () => {
       selectedSeatDetail: () => ({
         seatId: 'seat-2',
         seatLabel: 'Seat 2',
+        restorationStatus: 'occupied',
         statusLabel: 'Occupied',
         helperLabel:
           'Pick plates from the highlighted reach area, or check out when the order is complete.',
@@ -230,6 +239,8 @@ describe('App', () => {
         canStartDining: false,
         canCheckout: true,
         canPickPlates: true,
+        blockedReason: null,
+        isCheckoutSummary: false,
         pendingAction: null,
         orderSummary: {
           orderId: 'order-2',
@@ -261,5 +272,94 @@ describe('App', () => {
     expect(compiled.textContent).toContain('OPEN');
     expect(compiled.textContent).toContain('No plates picked yet.');
     expect(compiled.textContent).toContain('0 Yen');
+  });
+
+  it('renders syncing-specific selected-seat detail messaging without changing the shell layout', async () => {
+    storeMock = {
+      ...storeMock,
+      selectedSeatDetail: () => ({
+        seatId: 'seat-1',
+        seatLabel: 'Seat 1',
+        restorationStatus: 'syncing',
+        statusLabel: 'Syncing dining state',
+        helperLabel:
+          'Dining state is loading from the backend. Reach cues may stay visible, but picks remain blocked until sync completes.',
+        isOccupied: true,
+        canStartDining: false,
+        canCheckout: true,
+        canPickPlates: false,
+        blockedReason: 'syncing',
+        isCheckoutSummary: false,
+        pendingAction: null,
+        orderSummary: null,
+        feedbackTone: null,
+        feedbackTitle: null,
+        feedbackDetail: null,
+      }),
+    } as unknown as BeltVisualizationStore;
+
+    TestBed.resetTestingModule();
+
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.counter-stage')).toBeTruthy();
+    expect(compiled.querySelector('.selected-seat-detail__status--syncing')).toBeTruthy();
+    expect(compiled.textContent).toContain('Syncing dining state');
+    expect(compiled.textContent).toContain('picks remain blocked until sync completes');
+  });
+
+  it('renders the final checkout summary inside the selected-seat detail area', async () => {
+    storeMock = {
+      ...storeMock,
+      selectedSeatDetail: () => ({
+        seatId: 'seat-1',
+        seatLabel: 'Seat 1',
+        restorationStatus: 'checked-out',
+        statusLabel: 'Checked out',
+        helperLabel:
+          'This final backend summary remains visible for the seat that just checked out.',
+        isOccupied: false,
+        canStartDining: true,
+        canCheckout: false,
+        canPickPlates: false,
+        blockedReason: null,
+        isCheckoutSummary: true,
+        pendingAction: null,
+        orderSummary: {
+          orderId: 'order-1',
+          seatId: 'seat-1',
+          status: 'CHECKED_OUT',
+          createdAt: '2026-03-15T03:00:00Z',
+          closedAt: '2026-03-15T03:42:00Z',
+          lines: [],
+          totalPrice: 0,
+        },
+        feedbackTone: null,
+        feedbackTitle: null,
+        feedbackDetail: null,
+      }),
+    } as unknown as BeltVisualizationStore;
+
+    TestBed.resetTestingModule();
+
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.selected-seat-detail__status--checked-out')).toBeTruthy();
+    expect(compiled.textContent).toContain('Final summary');
+    expect(compiled.textContent).toContain('CHECKED_OUT');
   });
 });

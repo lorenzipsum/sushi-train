@@ -100,6 +100,10 @@ app-selected-seat-detail {
   display: block;
 }
 
+.counter-stage__selected-seat {
+  display: block;
+}
+
 .counter-stage__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
