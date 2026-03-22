@@ -25,3 +25,42 @@ export type SeatOrderDto = components['schemas']['SeatOrderDto'];
 export type SeatStateDto = components['schemas']['SeatStateDto'];
 export type SeatStateListDto = SeatStateDto[];
 export type YenAmount = components['schemas']['YenAmount'];
+
+export type SeatPendingAction = 'occupy' | 'checkout' | 'pick-plate' | null;
+
+export type PlatePickOutcomeType =
+  | 'success'
+  | 'seat-not-occupied'
+  | 'out-of-range'
+  | 'plate-not-pickable'
+  | 'resource-conflict'
+  | 'not-found'
+  | 'unknown-error';
+
+export interface PlatePickFeedback {
+  tone: 'success' | 'error';
+  title: string;
+  detail: string;
+  seatId: string | null;
+  seatLabel: string | null;
+  plateId: string | null;
+  outcomeType: PlatePickOutcomeType;
+  orderSummary: OrderSummaryDto | null;
+  rejectAnimationShown: boolean;
+}
+
+export interface SelectedSeatDetailViewModel {
+  seatId: string;
+  seatLabel: string;
+  statusLabel: string;
+  helperLabel: string;
+  isOccupied: boolean;
+  canStartDining: boolean;
+  canCheckout: boolean;
+  canPickPlates: boolean;
+  pendingAction: SeatPendingAction;
+  orderSummary: OrderSummaryDto | null;
+  feedbackTone: 'success' | 'error' | null;
+  feedbackTitle: string | null;
+  feedbackDetail: string | null;
+}

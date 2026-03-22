@@ -10,7 +10,46 @@ function createStageViewModel(): BeltStageViewModel {
     beltName: 'Main Belt',
     slotCount: 8,
     occupiedPlateCount: 1,
-    slots: [],
+    selectedSeatId: 'seat-1',
+    reachArea: {
+      seatId: 'seat-1',
+      xPercent: 25,
+      yPercent: 70,
+      radiusPercent: 12,
+      ariaLabel: 'Seat 1 pickup reach',
+    },
+    slots: [
+      {
+        id: 'slot-1',
+        positionIndex: 0,
+        pathProgress: 0,
+        xPercent: 20,
+        yPercent: 20,
+        tangentDeg: 0,
+        segment: 'top-straight',
+        isWithinReach: true,
+        ariaLabel: 'Slot 1. Salmon on red tier, pickable now.',
+        plate: {
+          id: 'plate-1',
+          menuItemName: 'Salmon',
+          tierClass: 'tier-red',
+          className: 'tier-red plate--nigiri plate--plate',
+          foodClassName: 'food--nigiri visual--salmon-nigiri accent-red',
+          visual: {
+            family: 'nigiri',
+            vesselType: 'plate',
+            visualKey: 'salmon-nigiri',
+            accentClass: 'accent-red',
+            overrideName: null,
+            fallbackReason: null,
+          },
+          ariaLabel: 'Salmon on red tier, pickable now.',
+          isPickable: true,
+          isPendingPick: false,
+          isRejected: false,
+        },
+      },
+    ],
     seats: [
       {
         id: 'seat-1',
@@ -20,13 +59,13 @@ function createStageViewModel(): BeltStageViewModel {
         yPercent: 70,
         facingDeg: 0,
         isOccupied: false,
-        isActionable: true,
         isPending: false,
-        seatAction: 'occupy',
+        isSelected: true,
+        statusLabel: 'Available',
         orderId: null,
         occupiedSince: null,
         presenceCue: 'available',
-        ariaLabel: 'Seat 1 is available. Activate to occupy this seat.',
+        ariaLabel: 'Seat 1. Currently selected. Available. Activate to select this seat.',
       },
       {
         id: 'seat-2',
@@ -36,13 +75,13 @@ function createStageViewModel(): BeltStageViewModel {
         yPercent: 72,
         facingDeg: 0,
         isOccupied: true,
-        isActionable: true,
         isPending: false,
-        seatAction: 'checkout',
+        isSelected: false,
+        statusLabel: 'Occupied',
         orderId: 'order-2',
         occupiedSince: '2026-03-15T03:00:00Z',
         presenceCue: 'occupied',
-        ariaLabel: 'Seat 2 is occupied. Active order order-2. Activate to check out this seat.',
+        ariaLabel: 'Seat 2. Occupied. Active order order-2. Activate to select this seat.',
       },
     ],
     kitchen: {
@@ -75,8 +114,25 @@ describe('App', () => {
       occupyPendingLabel: () => null,
       checkoutFeedback: () => null,
       checkoutPendingLabel: () => null,
-      occupySeat: vi.fn(),
-      checkoutSeat: vi.fn(),
+      selectedSeatDetail: () => ({
+        seatId: 'seat-1',
+        seatLabel: 'Seat 1',
+        statusLabel: 'Available',
+        helperLabel: 'Seat clicks only change selection. Start dining here when you are ready.',
+        isOccupied: false,
+        canStartDining: true,
+        canCheckout: false,
+        canPickPlates: false,
+        pendingAction: null,
+        orderSummary: null,
+        feedbackTone: null,
+        feedbackTitle: null,
+        feedbackDetail: null,
+      }),
+      selectSeat: vi.fn(),
+      startDiningForSelectedSeat: vi.fn(),
+      checkoutSelectedSeat: vi.fn(),
+      pickPlate: vi.fn(),
     } as unknown as BeltVisualizationStore;
 
     await TestBed.configureTestingModule({
@@ -103,37 +159,43 @@ describe('App', () => {
     expect(compiled.textContent).not.toContain('Guest seats');
   });
 
-  it('routes a free-seat click from the stage to the occupy action', () => {
+  it('routes seat clicks from the stage to selected-seat browsing', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
     const button = fixture.nativeElement.querySelector('.seat--actionable');
     button.click();
 
-    expect(storeMock.occupySeat).toHaveBeenCalledWith('seat-1');
+    expect(storeMock.selectSeat).toHaveBeenCalledWith('seat-1');
   });
 
-  it('routes an occupied-seat click from the stage to the checkout action', () => {
+  it('routes plate picks from the stage to the pick action', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
-    const button = fixture.nativeElement.querySelector('.seat--checkout');
+    const button = fixture.nativeElement.querySelector('.plate-hitbox');
     button.click();
 
-    expect(storeMock.checkoutSeat).toHaveBeenCalledWith('seat-2');
+    expect(storeMock.pickPlate).toHaveBeenCalledWith('plate-1');
   });
 
-  it('renders occupy feedback when the store exposes a conflict or success notice', () => {
+  it('renders selected-seat detail feedback when the store exposes a notice', () => {
     storeMock = {
       ...storeMock,
-      occupyFeedback: () => ({
-        tone: 'error',
-        title: 'Seat 1 was already taken',
-        detail: 'Another guest occupied this seat first.',
+      selectedSeatDetail: () => ({
         seatId: 'seat-1',
         seatLabel: 'Seat 1',
-        orderId: 'order-1',
-        createdAtLabel: 'Mar 15, 3:00 AM',
+        statusLabel: 'Available',
+        helperLabel: 'Seat clicks only change selection. Start dining here when you are ready.',
+        isOccupied: false,
+        canStartDining: true,
+        canCheckout: false,
+        canPickPlates: false,
+        pendingAction: null,
+        orderSummary: null,
+        feedbackTone: 'error',
+        feedbackTitle: 'Seat 1 was already taken',
+        feedbackDetail: 'Another guest occupied this seat first.',
       }),
     } as unknown as BeltVisualizationStore;
 
@@ -149,41 +211,37 @@ describe('App', () => {
         fixture.detectChanges();
         const compiled = fixture.nativeElement as HTMLElement;
 
-        expect(compiled.querySelector('.counter-stage__feedback--error')).toBeTruthy();
+        expect(compiled.querySelector('.selected-seat-detail__feedback--error')).toBeTruthy();
         expect(compiled.textContent).toContain('Seat 1 was already taken');
-        expect(compiled.textContent).toContain('Open order order-1');
+        expect(compiled.textContent).toContain('Another guest occupied this seat first.');
       });
   });
 
-  it('renders checkout feedback with final summary details and empty-order totals', async () => {
+  it('renders the running order inside the selected-seat detail area', async () => {
     storeMock = {
       ...storeMock,
-      checkoutFeedback: () => ({
-        tone: 'success',
-        title: 'Seat 2 is checked out',
-        detail:
-          'Checkout is complete. No plates were recorded for this order, and the seat is free again.',
+      selectedSeatDetail: () => ({
         seatId: 'seat-2',
         seatLabel: 'Seat 2',
-        finalSummary: {
+        statusLabel: 'Occupied',
+        helperLabel:
+          'Pick plates from the highlighted reach area, or check out when the order is complete.',
+        isOccupied: true,
+        canStartDining: false,
+        canCheckout: true,
+        canPickPlates: true,
+        pendingAction: null,
+        orderSummary: {
+          orderId: 'order-2',
           seatId: 'seat-2',
-          label: 'Seat 2',
-          positionIndex: 1,
-          isOccupied: false,
-          orderSummary: {
-            orderId: 'order-2',
-            seatId: 'seat-2',
-            status: 'CHECKED_OUT',
-            createdAt: '2026-03-15T03:00:00Z',
-            closedAt: '2026-03-15T03:42:00Z',
-            lines: [],
-            totalPrice: 0,
-          },
+          status: 'OPEN',
+          createdAt: '2026-03-15T03:00:00Z',
+          lines: [],
+          totalPrice: 0,
         },
-        statusLabel: 'CHECKED_OUT',
-        createdAtLabel: 'Mar 15, 3:00 AM',
-        closedAtLabel: 'Mar 15, 3:42 AM',
-        totalPriceLabel: '0 Yen',
+        feedbackTone: null,
+        feedbackTitle: null,
+        feedbackDetail: null,
       }),
     } as unknown as BeltVisualizationStore;
 
@@ -198,10 +256,10 @@ describe('App', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.textContent).toContain('Seat 2 is checked out');
-    expect(compiled.textContent).toContain('Checked out order order-2');
-    expect(compiled.textContent).toContain('Status CHECKED_OUT');
-    expect(compiled.textContent).toContain('No plates were recorded for this order.');
-    expect(compiled.textContent).toContain('Total 0 Yen');
+    expect(compiled.textContent).toContain('Seat 2');
+    expect(compiled.textContent).toContain('Order order-2');
+    expect(compiled.textContent).toContain('OPEN');
+    expect(compiled.textContent).toContain('No plates picked yet.');
+    expect(compiled.textContent).toContain('0 Yen');
   });
 });

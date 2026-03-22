@@ -7,8 +7,11 @@ import { SeatsApi } from '../api/seats.api';
 import type {
   BeltDto,
   BeltSnapshotDto,
-  OrderLineDto,
   OrderSummaryDto,
+  PlatePickFeedback,
+  PickPlateRequest,
+  SelectedSeatDetailViewModel,
+  SeatPendingAction,
   SeatActionProblemDetail,
   SeatOrderDto,
   SeatStateDto,
@@ -65,17 +68,47 @@ export class BeltVisualizationStore {
   private readonly occupyFeedbackState = signal<OccupyFeedback | null>(null);
   private readonly checkoutPendingSeatIdState = signal<string | null>(null);
   private readonly checkoutFeedbackState = signal<CheckoutFeedback | null>(null);
+  private readonly selectedSeatIdState = signal<string | null>(null);
+  private readonly pickPlatePendingSeatIdState = signal<string | null>(null);
+  private readonly pickPlatePendingPlateIdState = signal<string | null>(null);
+  private readonly pickPlateFeedbackState = signal<PlatePickFeedback | null>(null);
+  private readonly rejectedPlateIdState = signal<string | null>(null);
   private readonly activeOrdersBySeatId = signal<Record<string, OrderSummaryDto>>({});
   private readonly checkedOutOrdersBySeatId = signal<Record<string, SeatOrderDto>>({});
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   private animationFrameId: number | null = null;
+  private rejectAnimationTimerId: ReturnType<typeof setTimeout> | null = null;
   private mediaQuery: MediaQueryList | null = null;
   private readonly handleReducedMotionChange = (event: MediaQueryListEvent): void => {
     this.reducedMotion.set(event.matches);
   };
 
   readonly hasInitialData = computed(() => !!this.snapshot());
+  readonly selectedSeatId = computed(() => this.selectedSeatIdState());
+  readonly pickPlatePendingPlateId = computed(() => this.pickPlatePendingPlateIdState());
+  readonly pickPlateFeedback = computed(() => this.pickPlateFeedbackState());
+  readonly pendingSeatId = computed(
+    () =>
+      this.pickPlatePendingSeatIdState() ??
+      this.checkoutPendingSeatIdState() ??
+      this.occupyPendingSeatIdState(),
+  );
+  readonly pendingAction = computed<SeatPendingAction>(() => {
+    if (this.pickPlatePendingSeatIdState()) {
+      return 'pick-plate';
+    }
+
+    if (this.checkoutPendingSeatIdState()) {
+      return 'checkout';
+    }
+
+    if (this.occupyPendingSeatIdState()) {
+      return 'occupy';
+    }
+
+    return null;
+  });
   readonly hasNoBelts = computed(
     () => !this.beltsLoading() && !this.primaryBelt() && !this.beltsError(),
   );
@@ -95,9 +128,12 @@ export class BeltVisualizationStore {
       this.seats(),
       getRenderOffset(snapshot, this.now(), this.reducedMotion()),
       {
-        pendingSeatId: this.checkoutPendingSeatIdState() ?? this.occupyPendingSeatIdState(),
-        pendingAction: this.checkoutPendingSeatIdState() ? 'checkout' : 'occupy',
+        pendingSeatId: this.pendingSeatId(),
+        pendingAction: this.pendingAction(),
+        pendingPlateId: this.pickPlatePendingPlateIdState(),
+        rejectedPlateId: this.rejectedPlateIdState(),
         activeOrdersBySeatId: this.activeOrdersBySeatId(),
+        selectedSeatId: this.selectedSeatIdState(),
       },
     );
   });
@@ -105,6 +141,68 @@ export class BeltVisualizationStore {
   readonly occupyFeedback = computed(() => this.occupyFeedbackState());
   readonly checkoutPendingSeatId = computed(() => this.checkoutPendingSeatIdState());
   readonly checkoutFeedback = computed(() => this.checkoutFeedbackState());
+  readonly selectedSeatDetail = computed<SelectedSeatDetailViewModel | null>(() => {
+    const selectedSeatId = this.selectedSeatIdState();
+    if (!selectedSeatId) {
+      return null;
+    }
+
+    const selectedSeat = this.findSeat(selectedSeatId);
+    if (!selectedSeat) {
+      return null;
+    }
+
+    const orderSummary = this.activeOrdersBySeatId()[selectedSeatId] ?? null;
+    const pendingAction = this.pendingSeatId() === selectedSeatId ? this.pendingAction() : null;
+    const occupyFeedback = this.occupyFeedbackState();
+    const checkoutFeedback = this.checkoutFeedbackState();
+    const pickPlateFeedback = this.pickPlateFeedbackState();
+
+    const matchingFeedback =
+      (pickPlateFeedback?.seatId === selectedSeatId
+        ? {
+            tone: pickPlateFeedback.tone,
+            title: pickPlateFeedback.title,
+            detail: pickPlateFeedback.detail,
+          }
+        : null) ??
+      (occupyFeedback?.seatId === selectedSeatId
+        ? {
+            tone: occupyFeedback.tone,
+            title: occupyFeedback.title,
+            detail: occupyFeedback.detail,
+          }
+        : null) ??
+      (checkoutFeedback?.seatId === selectedSeatId
+        ? {
+            tone: checkoutFeedback.tone,
+            title: checkoutFeedback.title,
+            detail: checkoutFeedback.detail,
+          }
+        : null);
+
+    const canStartDining = !selectedSeat.isOccupied;
+    const canCheckout = !!selectedSeat.isOccupied;
+    const canPickPlates = !!selectedSeat.isOccupied && !!orderSummary?.orderId;
+
+    return {
+      seatId: selectedSeatId,
+      seatLabel: selectedSeat.label ?? 'Selected seat',
+      statusLabel: selectedSeat.isOccupied ? 'Occupied' : 'Available',
+      helperLabel: selectedSeat.isOccupied
+        ? 'Pick plates from the highlighted reach area, or check out when the order is complete.'
+        : 'Seat clicks only change selection. Start dining here when you are ready.',
+      isOccupied: !!selectedSeat.isOccupied,
+      canStartDining,
+      canCheckout,
+      canPickPlates,
+      pendingAction,
+      orderSummary,
+      feedbackTone: matchingFeedback?.tone ?? null,
+      feedbackTitle: matchingFeedback?.title ?? null,
+      feedbackDetail: matchingFeedback?.detail ?? null,
+    };
+  });
   readonly occupyPendingLabel = computed(() => {
     const seatId = this.occupyPendingSeatIdState();
     if (!seatId) {
@@ -202,6 +300,10 @@ export class BeltVisualizationStore {
         cancelAnimationFrame(this.animationFrameId);
       }
 
+      if (this.rejectAnimationTimerId) {
+        clearTimeout(this.rejectAnimationTimerId);
+      }
+
       this.mediaQuery?.removeEventListener('change', this.handleReducedMotionChange);
     });
   }
@@ -220,17 +322,45 @@ export class BeltVisualizationStore {
     this.refreshNow();
   }
 
+  selectSeat(seatId: string): void {
+    if (!this.findSeat(seatId)) {
+      return;
+    }
+
+    this.selectedSeatIdState.set(seatId);
+  }
+
+  startDiningForSelectedSeat(): void {
+    const seatId = this.selectedSeatIdState();
+    if (!seatId) {
+      return;
+    }
+
+    this.occupySeat(seatId);
+  }
+
+  checkoutSelectedSeat(): void {
+    const seatId = this.selectedSeatIdState();
+    if (!seatId) {
+      return;
+    }
+
+    this.checkoutSeat(seatId);
+  }
+
   occupySeat(seatId: string): void {
     const seat = this.findSeat(seatId);
     if (
       !seat ||
       seat.isOccupied ||
       this.occupyPendingSeatIdState() ||
-      this.checkoutPendingSeatIdState()
+      this.checkoutPendingSeatIdState() ||
+      this.pickPlatePendingSeatIdState()
     ) {
       return;
     }
 
+    this.selectedSeatIdState.set(seatId);
     this.occupyPendingSeatIdState.set(seatId);
     this.occupyFeedbackState.set(null);
 
@@ -258,11 +388,13 @@ export class BeltVisualizationStore {
       !seat ||
       !seat.isOccupied ||
       this.occupyPendingSeatIdState() ||
-      this.checkoutPendingSeatIdState()
+      this.checkoutPendingSeatIdState() ||
+      this.pickPlatePendingSeatIdState()
     ) {
       return;
     }
 
+    this.selectedSeatIdState.set(seatId);
     this.checkoutPendingSeatIdState.set(seatId);
     this.checkoutFeedbackState.set(null);
 
@@ -280,6 +412,82 @@ export class BeltVisualizationStore {
         },
         error: (error: unknown) => {
           this.handleCheckoutError(seatId, error);
+        },
+      });
+  }
+
+  pickPlate(plateId: string): void {
+    const selectedSeatId = this.selectedSeatIdState();
+    if (!selectedSeatId || this.pendingAction()) {
+      return;
+    }
+
+    const selectedSeat = this.findSeat(selectedSeatId);
+    const stage = this.stageViewModel();
+    const selectedPlate = stage?.slots.find((slot) => slot.plate?.id === plateId)?.plate ?? null;
+    const seatLabel = selectedSeat?.label ?? 'Selected seat';
+
+    if (!selectedSeat?.isOccupied || !this.activeOrdersBySeatId()[selectedSeatId]?.orderId) {
+      this.pickPlateFeedbackState.set({
+        tone: 'error',
+        title: `${seatLabel} must start dining first`,
+        detail: 'Select an occupied seat or start dining for this seat before adding plates.',
+        seatId: selectedSeatId,
+        seatLabel,
+        plateId,
+        outcomeType: 'seat-not-occupied',
+        orderSummary: null,
+        rejectAnimationShown: false,
+      });
+      return;
+    }
+
+    if (!selectedPlate?.isPickable) {
+      this.triggerPlateReject(plateId);
+      this.pickPlateFeedbackState.set({
+        tone: 'error',
+        title: `${seatLabel} cannot reach that plate`,
+        detail:
+          "That plate is outside this seat's reachable area or is not currently pickable for the selected seat.",
+        seatId: selectedSeatId,
+        seatLabel,
+        plateId,
+        outcomeType: 'out-of-range',
+        orderSummary: null,
+        rejectAnimationShown: true,
+      });
+      return;
+    }
+
+    const request: PickPlateRequest = { plateId };
+    this.pickPlatePendingSeatIdState.set(selectedSeatId);
+    this.pickPlatePendingPlateIdState.set(plateId);
+    this.pickPlateFeedbackState.set(null);
+
+    this.seatsApi
+      .pickPlate(selectedSeatId, request)
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          this.storeSeatOrderSummary(result);
+          this.applySeatState(result);
+          this.pickPlatePendingSeatIdState.set(null);
+          this.pickPlatePendingPlateIdState.set(null);
+          this.pickPlateFeedbackState.set({
+            tone: 'success',
+            title: `${seatLabel} picked ${selectedPlate.menuItemName}`,
+            detail: 'The running order was updated from the backend response.',
+            seatId: selectedSeatId,
+            seatLabel,
+            plateId,
+            outcomeType: 'success',
+            orderSummary: result.orderSummary ?? null,
+            rejectAnimationShown: false,
+          });
+          this.refreshAfterWrite();
+        },
+        error: (error: unknown) => {
+          this.handlePickPlateError(selectedSeatId, plateId, error);
         },
       });
   }
@@ -350,6 +558,7 @@ export class BeltVisualizationStore {
         next: (seats) => {
           this.seats.set(seats);
           this.pruneActiveOrders(seats);
+          this.ensureSelectedSeat(seats);
           this.seatsError.set(null);
           this.seatsLoading.set(false);
           this.lastSeatsSuccessAt.set(Date.now());
@@ -476,6 +685,81 @@ export class BeltVisualizationStore {
               totalPriceLabel: null,
             },
     );
+    this.refreshAfterWrite();
+  }
+
+  private handlePickPlateError(seatId: string, plateId: string, error: unknown): void {
+    const seatLabel = this.getSeatLabel(seatId);
+    const problemDetail = getProblemDetail(error) as SeatActionProblemDetail | null;
+    const status = problemDetail?.status ?? null;
+    const errorCode = problemDetail?.errorCode ?? null;
+
+    this.pickPlatePendingSeatIdState.set(null);
+    this.pickPlatePendingPlateIdState.set(null);
+
+    if (status === 404) {
+      this.pickPlateFeedbackState.set({
+        tone: 'error',
+        title: `${seatLabel} or that plate is no longer available`,
+        detail:
+          problemDetail?.detail ?? 'The selected seat or plate no longer exists on this belt.',
+        seatId,
+        seatLabel,
+        plateId,
+        outcomeType: 'not-found',
+        orderSummary: null,
+        rejectAnimationShown: false,
+      });
+      this.refreshAfterWrite();
+      return;
+    }
+
+    if (status === 409) {
+      const shouldRejectPlate = errorCode !== 'SEAT_NOT_OCCUPIED';
+      if (shouldRejectPlate) {
+        this.triggerPlateReject(plateId);
+      }
+
+      this.pickPlateFeedbackState.set({
+        tone: 'error',
+        title:
+          errorCode === 'SEAT_NOT_OCCUPIED'
+            ? `${seatLabel} must start dining first`
+            : `${seatLabel} could not take that plate`,
+        detail:
+          problemDetail?.detail ??
+          (errorCode === 'SEAT_NOT_OCCUPIED'
+            ? 'The selected seat no longer has an open order for adding plates.'
+            : 'The plate or seat state changed before the pick could be completed.'),
+        seatId,
+        seatLabel,
+        plateId,
+        outcomeType:
+          errorCode === 'SEAT_NOT_OCCUPIED'
+            ? 'seat-not-occupied'
+            : errorCode === 'PLATE_NOT_PICKABLE'
+              ? 'plate-not-pickable'
+              : errorCode === 'PLATE_OUT_OF_RANGE'
+                ? 'out-of-range'
+                : 'resource-conflict',
+        orderSummary: null,
+        rejectAnimationShown: shouldRejectPlate,
+      });
+      this.refreshAfterWrite();
+      return;
+    }
+
+    this.pickPlateFeedbackState.set({
+      tone: 'error',
+      title: `We could not add that plate for ${seatLabel}`,
+      detail: this.formatError(error, 'Please try again once the belt service catches up.'),
+      seatId,
+      seatLabel,
+      plateId,
+      outcomeType: 'unknown-error',
+      orderSummary: null,
+      rejectAnimationShown: false,
+    });
     this.refreshAfterWrite();
   }
 
@@ -644,6 +928,29 @@ export class BeltVisualizationStore {
         ? current
         : Object.fromEntries(nextEntries);
     });
+  }
+
+  private ensureSelectedSeat(seats: SeatStateListDto): void {
+    const currentSelectedSeatId = this.selectedSeatIdState();
+
+    if (currentSelectedSeatId && seats.some((seat) => seat.seatId === currentSelectedSeatId)) {
+      return;
+    }
+
+    this.selectedSeatIdState.set(seats[0]?.seatId ?? null);
+  }
+
+  private triggerPlateReject(plateId: string): void {
+    this.rejectedPlateIdState.set(plateId);
+
+    if (this.rejectAnimationTimerId) {
+      clearTimeout(this.rejectAnimationTimerId);
+    }
+
+    this.rejectAnimationTimerId = setTimeout(() => {
+      this.rejectedPlateIdState.set(null);
+      this.rejectAnimationTimerId = null;
+    }, 450);
   }
 
   private getSeatLabel(seatId: string): string {
