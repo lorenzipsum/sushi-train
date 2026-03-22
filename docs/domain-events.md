@@ -1,252 +1,88 @@
-# Sushi Train — Domain Events
+# Sushi-Train Event Model
 
-This document defines the event model used across the Sushi Train application. It’s designed to work for **Phase 1 (Cute Demo)** without a real broker and to plug into **Phase 2 (Real-Time)** with Kafka/Redpanda—without changing the domain code.
-
----
-
-## 1) Envelope (common event shape)
-
-All domain events share a standard envelope. The `payload` contains the event-specific fields.
-
-```mermaid
-classDiagram
-  class EventEnvelope {
-    +type: String
-    +version: String
-    +id: UUID
-    +aggregateId: String
-    +aggregateVersion: Long
-    +occurredAt: Instant
-    +partitionKey: String
-    +traceId: String
-    +payload: Object
-  }
-```
-
-**Field purpose**
-
-- **aggregateId**: the business identity whose timeline this event belongs to (keeps per-aggregate ordering).
-- **aggregateVersion**: increments per aggregate event (detects gaps/duplicates; optional in Phase 1).
-- **partitionKey**: determines broker partition; use the same value for all events of an aggregate.
-- **traceId**: ties UI → API → broker → consumer together for debugging.
+This document captures the event model used by the current application.
+At `v0.2.0`, the production path for UI updates is Server-Sent Events (SSE), not a broker.
 
 ---
 
-## 2) Event catalog (minimal set)
+## 1) Current Event Channel (SSE)
 
-| Event             | Aggregate    | Partition key | Purpose                                              |
-| ----------------- | ------------ | ------------- | ---------------------------------------------------- |
-| `MenuItemCreated` | `menuItemId` | `menuItemId`  | Catalog item added (name, default tier, base price). |
-| `PlateCreated`    | `plateId`    | `plateId`     | Chef placed a plate on the belt (supply appears).    |
-| `PlateExpired`    | `plateId`    | `plateId`     | Plate became unavailable (age/manual).               |
-| `BeltTicked`      | `beltId`     | `beltId`      | Rotation offset advanced; drives movement.           |
-| `OrderOpened`     | `orderId`    | `orderId`     | Seat opened a new order.                             |
-| `PlatePicked`     | `orderId`    | `orderId`     | Seat picked a plate → creates an OrderLine.          |
-| `OrderCheckedOut` | `orderId`    | `orderId`     | Order closed with totals (¥).                        |
+Endpoint:
 
-> Rule of thumb: ordering events partition by `orderId`, plate lifecycle by `plateId`, belt events by `beltId`.
+- `GET /api/v1/belts/{id}/events`
+- Content type: `text/event-stream`
 
----
+Current emitted SSE event names:
 
-## 3) Flow example (picking a plate)
+- `connected`
+- `belt-state-changed`
 
-```mermaid
-sequenceDiagram
-  participant UI as UI (Seat)
-  participant API as Spring API
-  participant DOM as Domain
-  participant DB as Postgres
-  participant EVT as Event Bus (WS/Kafka)
-
-  UI->>API: POST /orders/{orderId}/pick { plateId }
-  API->>DOM: order.addLine(plateId, priceAtPick)
-  DOM-->>API: Order updated (new line, new total)
-  API->>DB: save Order + OrderLine
-  API->>EVT: publish PlatePicked (orderId, plateId, priceAtPickYen)
-  EVT-->>UI: WebSocket update (belt & bill)
-```
-
----
-
-## 4) Event specs (v1)
-
-### 4.1 MenuItemCreated (v1)
-
-- **Aggregate**: `menuItemId`
-- **When**: New catalog item is defined.
-- **Payload**
+Current payload type (`BeltUiEvent`):
 
 ```json
 {
-  "menuItemId": "mi-001",
-  "name": "Salmon Nigiri",
-  "defaultTier": "green",
-  "basePriceYen": 120
+  "eventId": "UUID",
+  "beltId": "UUID",
+  "type": "belt-state-changed",
+  "occurredAt": "2026-03-22T10:00:00Z"
 }
 ```
 
-### 4.2 PlateCreated (v1)
+Notes:
 
-- **Aggregate**: `plateId`
-- **When**: Chef adds a plate to the belt.
-- **Payload**
-
-```json
-{
-  "plateId": "plate-42",
-  "menuItemId": "mi-001",
-  "tierSnapshot": "green",
-  "priceAtCreationYen": 120,
-  "createdAt": "2025-11-03T11:22:01Z",
-  "expiresAt": "2025-11-03T11:52:01Z"
-}
-```
-
-### 4.3 PlateExpired (v1)
-
-- **Aggregate**: `plateId`
-- **When**: Plate is no longer available (time or manual removal).
-- **Payload**
-
-```json
-{
-  "plateId": "plate-42",
-  "expiredAt": "2025-11-03T11:50:57Z",
-  "reason": "AGE"
-}
-```
-
-### 4.4 BeltTicked (v1)
-
-- **Aggregate**: `beltId`
-- **When**: A tick advanced the rotation offset.
-- **Payload**
-
-```json
-{
-  "beltId": "belt-1",
-  "tick": 10234,
-  "newRotationOffset": 57
-}
-```
-
-### 4.5 OrderOpened (v1)
-
-- **Aggregate**: `orderId`
-- **When**: A seat opens an order.
-- **Payload**
-
-```json
-{
-  "orderId": "order-7d2a",
-  "seatId": "seat-A1",
-  "openedAt": "2025-11-03T11:20:00Z"
-}
-```
-
-### 4.6 PlatePicked (v1)
-
-- **Aggregate**: `orderId`
-- **When**: Seat picks a plate; creates an OrderLine.
-- **Payload**
-
-```json
-{
-  "orderId": "order-7d2a",
-  "seatId": "seat-A1",
-  "plateId": "plate-42",
-  "priceAtPickYen": 120,
-  "pickedAt": "2025-11-03T11:22:05Z"
-}
-```
-
-### 4.7 OrderCheckedOut (v1)
-
-- **Aggregate**: `orderId`
-- **When**: Order is closed and billed.
-- **Payload**
-
-```json
-{
-  "orderId": "order-7d2a",
-  "seatId": "seat-A1",
-  "totalYen": 720,
-  "itemCount": 6,
-  "checkedOutAt": "2025-11-03T11:45:00Z"
-}
-```
+- `connected` is sent immediately after subscribe.
+- `belt-state-changed` is sent after REST write operations that mutate belt/seat state.
+- Payload is an invalidation signal; frontend reloads snapshot and seats via REST.
 
 ---
 
-## 5) Envelope example (full)
+## 2) Publish Triggers (Current)
 
-```json
-{
-  "type": "PlatePicked",
-  "version": "v1",
-  "id": "d7b2f0f7-3a5e-4f6e-91ab-6dd3b5e3c3d2",
-  "aggregateId": "order-7d2a",
-  "aggregateVersion": 12,
-  "occurredAt": "2025-11-03T11:22:05Z",
-  "partitionKey": "order-7d2a",
-  "traceId": "req-9b1c",
-  "payload": {
-    "orderId": "order-7d2a",
-    "seatId": "seat-A1",
-    "plateId": "plate-42",
-    "priceAtPickYen": 120,
-    "pickedAt": "2025-11-03T11:22:05Z"
-  }
-}
-```
+`belt-state-changed` is published after:
+
+1. belt parameter updates (`PATCH /api/v1/belts/{id}`)
+2. plate creation/placement (`POST /api/v1/belts/{id}/plates`)
+3. seat occupy (`POST /api/v1/seats/{id}/occupy`)
+4. pick plate (`POST /api/v1/seats/{id}/order-lines`)
+5. seat checkout (`POST /api/v1/seats/{id}/checkout`)
 
 ---
 
-## 6) Topics (now vs later)
+## 3) Consumer Behavior
 
-- **Phase 1 (demo)**: single topic `sushi.events` (dispatch by `type`).
-- **Phase 2 (clean)**:
-  - `sushi.catalog` → `MenuItemCreated`, …
-  - `sushi.plate` → `PlateCreated`, `PlateExpired`
-  - `sushi.belt` → `BeltTicked`, `BeltSpeedChanged`
-  - `sushi.order` → `OrderOpened`, `PlatePicked`, `OrderCheckedOut`
+Frontend behavior in `belt-visualization.store.ts`:
 
-**Partitioning**
+- Try SSE first.
+- On SSE events, refresh belt snapshot and seats.
+- If SSE is unavailable/disconnected, fallback polling keeps data fresh.
 
-- Keep all events of an aggregate in the same partition:
-  - `partitionKey = orderId` for order events,
-  - `partitionKey = plateId` for plate events,
-  - `partitionKey = beltId` for belt events.
+This keeps realtime UX responsive while still robust under network/proxy limitations.
 
 ---
 
-## 7) Conventions
+## 4) Domain Events vs UI Events
 
-- Names use **PastTense** (`PlatePicked`).
-- All money fields are **integer Yen**.
-- **Idempotency**: consumers de-dupe on `id`; side effects must be safe on repeat.
-- **Versioning**: bump `version` when payload shape changes; keep old handlers during transition.
-- **Ordering**: rely on per-aggregate partitioning; optionally use `aggregateVersion` for checks.
+The current SSE stream carries UI refresh signals, not full domain event history.
 
----
+If broker-based domain events are introduced later (Kafka/Redpanda), keep them separate from SSE UI events:
 
-## 8) Testing notes
+- SSE channel: low-latency UI invalidation/update triggers
+- Broker topics: durable business events for integration, replay, analytics
 
-- Unit test domain services with **in-memory** publisher (no broker).
-- Contract test event shapes (JSON) with golden files or JSON schema.
-- Integration test a “happy path”: `OrderOpened` → `PlatePicked` → `OrderCheckedOut`.
-- If using Kafka in Phase 2, verify partitioning with Redpanda Console or Kafka tooling.
+Suggested principle for future broker usage:
+
+- retain immutable business events (for example `OrderOpened`, `PlatePicked`, `OrderCheckedOut`)
+- version event schemas explicitly
+- partition by aggregate identity for ordering guarantees
 
 ---
 
-## 9) FAQ
+## 5) Compatibility Contract
 
-**Q: Do I need `aggregateVersion` in Phase 1?**  
-A: No — it’s optional. Add it when you need replay/concurrency checks.
+To avoid frontend breakage, keep these stable unless versioned:
 
-**Q: Where do I compute belt movement?**  
-A: Emit `BeltTicked` and update `rotationOffset` in memory; use the offset formula in UI. Persist occasionally if you want recovery across restarts.
+- SSE endpoint path
+- SSE event names
+- `BeltUiEvent` JSON field names
 
----
-
-_This document lives at `docs/events.md`. Keep it in sync with the ERD and Flyway migrations._
+If a breaking change is needed, version the endpoint or event shape and run both versions during transition.

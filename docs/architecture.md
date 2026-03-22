@@ -1,14 +1,10 @@
-# Sushi-Train — Architecture Overview
+# Sushi-Train Architecture Overview
 
-This document gives a high-level view of Sushi-Train’s architecture using a simple, C4-style progression:
+This document describes the current architecture of Sushi-Train (`v0.2.0`) and the expected evolution path for cloud deployment.
 
-1. **System Context** — who/what interacts with the system
-2. **Containers** — major runtime pieces (frontend, backend, DB, broker)
-3. **Key Flows** — how the most important interactions work
-4. **Deployment (Local)** — how Docker Compose runs everything
-5. **Evolution** — how this scales in later phases
-
-Also see: [Domain Events](./domain-events.md) · [ERD / Domain Model](./domain-model.md)
+Related docs:
+- [Domain Events](./domain-events.md)
+- [Domain Model](./domain-model.md)
 
 ---
 
@@ -16,161 +12,127 @@ Also see: [Domain Events](./domain-events.md) · [ERD / Domain Model](./domain-m
 
 ```mermaid
 flowchart LR
-  U1[Guest - Seat UI]
-  U2[Operator - Belt Control]
+  user[User in browser]
+  fe[Frontend container\nAngular static app served by Nginx]
+  be[Backend container\nSpring Boot REST API]
+  db[(PostgreSQL)]
 
-  FE[Angular Frontend]
-  BE[Spring Boot Backend]
-  PG[(PostgreSQL)]
-  K[(Kafka / Redpanda - optional)]
-
-  U1 --> FE
-  U2 --> FE
-
-  FE -- REST or WebSocket --> BE
-  BE -- SQL --> PG
-  BE -. Publish or Consume events .-> K
+  user --> fe
+  fe -->|/api/* via reverse proxy| be
+  be --> db
 ```
 
-Intent: A playful sushi conveyor-belt simulation with a domain-driven core and optional event streaming.
+Key point: the browser talks to one frontend origin (`:4200`). Nginx proxies `/api/*` to the backend service in the Docker network.
 
 ---
 
-## 2) Container View (runtime building blocks)
+## 2) Runtime Containers (Local Compose)
 
-```mermaid
-flowchart TB
-  BROWSER[Browser - Angular SPA]
+The root `docker-compose.yml` starts exactly three services:
 
-  API[Spring Boot API - Ports and Adapters]
-  DB[(PostgreSQL)]
-  BROKER[(Kafka or Redpanda - optional)]
+1. `postgres` (`postgres:17`)
+2. `backend` (Spring Boot, Java 25)
+3. `frontend` (Angular build + Nginx runtime)
 
-  BROWSER -- HTTP JSON / WebSocket --> API
-  API -- Responses --> BROWSER
+Service dependencies:
 
-  API -- JDBC --> DB
-  API -. Events .-> BROKER
-```
+- `backend` waits for healthy `postgres`.
+- `frontend` waits for healthy `backend`.
 
-Key responsibilities:
+Health checks:
 
-- **Angular Frontend**: belt and seat UIs, kawaii visuals, realtime updates via WebSocket.
-- **Spring Boot Backend**: REST and WS endpoints, domain logic, scheduled belt ticks, event publishing.
-- **PostgreSQL**: persistence for menu items, plates, orders, order lines, belt slots.
-- **Kafka/Redpanda (optional)**: event backbone for real-time mode and analytics.
+- Backend: `GET /actuator/health`
+- Postgres: `pg_isready`
 
 ---
 
-## 3) Key Flows
+## 3) API and Realtime Pattern
 
-### 3.1 Belt movement (rotation offset)
+### 3.1 Command and Query
 
-```mermaid
-sequenceDiagram
-  participant SCHED as BeltScheduler
-  participant DOM as Domain - Belt
-  participant API as Spring Service
-  participant WS as WebSocket Hub
-  participant UI as Angular UI
+The frontend uses REST endpoints for snapshots and commands, for example:
 
-  SCHED->>DOM: advanceOffset()
-  DOM-->>API: new rotation offset
-  API->>WS: send BeltTicked
-  WS-->>UI: receive BeltTicked
-  UI->>UI: recompute visible slots and animate
+- `GET /api/v1/belts/{id}/snapshot`
+- `GET /api/v1/belts/{id}/seats`
+- `POST /api/v1/belts/{id}/plates`
+- `PATCH /api/v1/belts/{id}`
+- `POST /api/v1/seats/{id}/occupy`
+- `POST /api/v1/seats/{id}/order-lines`
+- `POST /api/v1/seats/{id}/checkout`
+
+### 3.2 Realtime updates
+
+Realtime UI refresh notifications use SSE:
+
+- Stream endpoint: `GET /api/v1/belts/{id}/events` (`text/event-stream`)
+- Current event names:
+  - `connected` (on initial subscription)
+  - `belt-state-changed` (after write actions that affect belt/seat view)
+
+The SSE event payload (`BeltUiEvent`) is lightweight:
+
+```json
+{
+  "eventId": "UUID",
+  "beltId": "UUID",
+  "type": "belt-state-changed",
+  "occurredAt": "2026-03-22T10:00:00Z"
+}
 ```
 
-Why offset? Slots stay fixed (0..N-1); movement is a single integer `rotation_offset`. O(1) to advance and easy to scale.
-
-### 3.2 Seat picks a plate
-
-```mermaid
-sequenceDiagram
-  participant UI as Seat UI
-  participant API as Spring REST
-  participant DOM as Domain - Order
-  participant DB as Postgres
-  participant WS as WebSocket Hub
-
-  UI->>API: POST /orders/{id}/pick { plateId }
-  API->>DOM: order.addLine(plateId, priceAtPick)
-  DOM-->>API: order updated with new line
-  API->>DB: save Order and OrderLine
-  API->>WS: publish PlatePicked
-  WS-->>UI: update order total and belt state
-```
-
-Event source: `PlatePicked` is the core business event; see [Domain Events](./domain-events.md).
+The frontend treats SSE as an invalidation signal and refreshes snapshot/seat data via REST. If SSE is unavailable, a polling fallback keeps the UI usable.
 
 ---
 
-## 4) Deployment — Local (Docker Compose)
+## 4) Domain and Persistence Shape
 
-```mermaid
-flowchart LR
-  FE[frontend : 4200]
-  BE[backend : 8088]
-  PG[(postgres : 5432)]
-  KAFKA[(redpanda : 9092 - optional)]
+The backend follows a layered style with a domain-focused core:
 
-  FE --> BE
-  BE --> PG
-  BE -. Events .-> KAFKA
-```
+- REST controllers in `interfaces/rest`
+- application services orchestrating use cases
+- domain model with business rules
+- JPA repositories/adapters
 
-Run locally:
+Database schema is managed via Flyway migrations (`V1..V3`) and includes:
+
+- `belt`, `belt_slot`, `seat`
+- `menu_item`, `plate`
+- `orders`, `order_line`
+
+---
+
+## 5) Local Deployment
+
+Standard startup:
 
 ```bash
 docker compose up --build
-# Frontend: http://localhost:4200
-# Backend:  http://localhost:8088
-# Swagger (if enabled): http://localhost:8088/swagger-ui.html
 ```
 
-Profiles:
+Default local URLs:
 
-- Phase 1: no broker; WebSocket provides live updates.
-- Phase 2+: enable broker service and Spring profile `streaming`.
+- Frontend: `http://localhost:4200`
+- Backend API: `http://localhost:8088/api/v1`
+- Swagger UI: `http://localhost:8088/swagger-ui/index.html`
+- Health: `http://localhost:8088/actuator/health`
 
----
-
-## 5) Evolution (Phases)
-
-|             Phase | Focus                      | What changes                                |
-| ----------------: | -------------------------- | ------------------------------------------- |
-|  **1. Cute Demo** | CRUD + belt scheduler + WS | Minimal adapters; single-node Compose       |
-|  **2. Real-Time** | Kafka or Redpanda events   | Outbox producer, WS consumer, dashboards    |
-| **3. Stress Lab** | Load, scaling, reliability | Autoscaling, metrics, chaos, analytics sink |
-|      **4. Cloud** | Kubernetes deployment      | Manifests or Helm, Prometheus and Grafana   |
-
-Non-breaking design choices: ports and adapters, domain events, rotation offset — all allow incremental adoption of streaming and scaling without refactoring the core.
+Environment is configured through `.env` (see `.env.example`).
 
 ---
 
-## 6) Technology Choices (why)
+## 6) Cloud Adaptation Path
 
-- **Hexagonal (Ports and Adapters)**: swap infrastructure (WebSocket vs Kafka) without touching domain.
-- **PostgreSQL + Flyway**: robust SQL with migrations; easy to grow analytics later.
-- **Angular**: component-driven UI; RxJS for realtime streams.
-- **Kafka or Redpanda (optional)**: reliable, replayable event backbone; perfect for Stress Lab.
+The current setup is intentionally close to a cloud-ready split:
 
----
+1. Managed Postgres service
+2. Backend container service
+3. Frontend static hosting or frontend container service
 
-## 7) Cross-cutting Concerns
+Recommended next steps for production:
 
-- **Observability**: Spring Actuator and Micrometer; later Prometheus and Grafana.
-- **Testing**: domain unit tests; integration tests with Testcontainers; contract tests for events.
-- **Idempotency**: events carry unique `id`; consumers dedupe; consider transactional outbox in Phase 2+.
-- **Security (later)**: seat vs operator roles; rate limits on admin actions.
+- Externalize secrets (do not store credentials in `.env`)
+- Add managed TLS and ingress
+- Add centralized logs and metrics
+- Add CI pipeline that builds and publishes backend/frontend images
 
----
-
-## 8) Traceability Map
-
-- **Domain model**: see [ERD / Domain Model](./domain-model.md)
-- **Event catalog**: see [Domain Events](./domain-events.md)
-- **API surface**: (optional) link to Swagger/OpenAPI
-- **Runbook**: (optional) `docs/runbook.md` for commands and gotchas
-
----
+Kafka/Redpanda can be added later for asynchronous domain event distribution, but it is not required for the current SSE-driven UI model.
