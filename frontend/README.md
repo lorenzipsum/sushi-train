@@ -1,59 +1,84 @@
 # Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+Angular 21 standalone frontend for the sushi-train demo application. The app renders the main belt experience, seat lifecycle, plate picking, restored seat orders, operator-side belt plate placement, and realtime belt refresh behavior inside the same UI.
 
-## Development server
+## Current State
 
-To start a local development server, run:
+Shipped frontend features:
 
-```bash
-ng serve
-```
+- `001-belt-visualization`: read-only belt baseline
+- `002-belt-layout-redesign`: richer kitchen-centered belt-stage presentation
+- `003-occupy-seat`: start dining from an available seat
+- `004-checkout-seat`: checkout flow and summary feedback
+- `005-pick-plates`: guest plate picking from the belt
+- `006-hydrate-seat-orders`: reload-time order restoration and selected-seat continuity
+- `007-add-plates-belt`: demo-mode operator flow for adding new plates to the belt
+- `008-realtime-belt-updates`: server-sent-event belt updates with polling fallback, delivered as shared backend-plus-frontend work
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Planned next work lives in `specs/ROADMAP.md`.
 
-## Code scaffolding
+## Tech Stack
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Angular 21 standalone application
+- TypeScript 5.9
+- RxJS
+- Vitest through the Angular test builder
+- Generated OpenAPI TypeScript types from `contracts/openapi.json`
 
-```bash
-ng generate component component-name
-```
+## Development
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Install dependencies:
 
 ```bash
-ng test
+npm install
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+Start the frontend with the local API proxy:
 
 ```bash
-ng e2e
+npm start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The dev server runs on `http://localhost:4200/` and proxies `/api` requests to `http://localhost:8088` via `proxy.conf.json`.
 
-## Additional Resources
+## Scripts
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Start the development server:
+
+```bash
+npm start
+```
+
+Build the production bundle:
+
+```bash
+npm run build
+```
+
+Run tests:
+
+```bash
+npm test
+```
+
+Regenerate API types after contract changes:
+
+```bash
+npm run api:types
+```
+
+## Project Structure
+
+- `src/app/`: application shell, store, belt visualization, and API services
+- `src/app/api/generated/`: generated OpenAPI types
+- `contracts/openapi.json`: API contract source
+- `specs/`: feature specs, plans, tasks, and roadmap
+- `public/`: static assets
+
+## Notes
+
+- Browser-facing API calls should stay relative to `/api/...` so the proxy handles local backend routing.
+- Belt refresh now prefers server-sent events and falls back to polling when realtime events are unavailable.
+- The `008-realtime-belt-updates` planning artifacts were maintained above `frontend/`, so that feature does not have a dedicated `frontend/specs/008-realtime-belt-updates/` folder.
+- Unit tests are Vitest-based; there is no e2e framework configured in this workspace.
+- Production output is written to `dist/frontend/`.
