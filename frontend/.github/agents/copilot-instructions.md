@@ -9,6 +9,7 @@ Auto-generated from all feature plans. Last updated: 2026-03-22
 - N/A in frontend; backend-authoritative persistence remains behind existing REST APIs, with in-memory signal state for current-session checkout confirmation (004-checkout-seat)
 - N/A in frontend; backend-authoritative persistence remains behind existing REST APIs, with in-memory signal state for selected seat, active open orders, and current-session checkout summaries (005-pick-plates)
 - N/A in frontend; backend-authoritative persistence remains behind existing REST APIs, with in-memory signal state for seat overview, restored active orders, selection continuity, and checkout summaries (006-hydrate-seat-orders)
+- N/A in the frontend; backend-authoritative persistence remains behind existing REST APIs, with in-memory Angular signal state for belt snapshot, seats, selected seat detail, and new operator placement draft or feedback state (007-add-plates-belt)
 
 - TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/router`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts` (001-belt-visualization)
 
@@ -29,8 +30,8 @@ npm test; npm run lint
 TypeScript 5.9, Angular 21 standalone: Follow standard conventions
 
 ## Recent Changes
+- 007-add-plates-belt: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts`
 - 006-hydrate-seat-orders: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts`
-- 005-pick-plates: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts`
 - 005-pick-plates: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts`
 
 

@@ -26,8 +26,30 @@
           [reducedMotion]="store.isReducedMotion()"
           [paused]="store.isPaused()"
           [degraded]="store.isDegraded()"
+          [operatorOpen]="operatorPlacement()?.isOpen ?? false"
           (selectSeat)="store.selectSeat($event)"
           (pickPlate)="store.pickPlate($event)"
+          (toggleOperator)="store.toggleOperatorPlacement()"
+        />
+
+        @if (operatorPlacement()?.isOpen) {
+          <button
+            type="button"
+            class="counter-stage__operator-backdrop"
+            aria-label="Close operator dialog"
+            (click)="store.closeOperatorPlacement()"
+          ></button>
+        }
+
+        <app-operator-plate-placement
+          class="counter-stage__operator"
+          [placement]="operatorPlacement()"
+          (dismiss)="store.closeOperatorPlacement()"
+          (retryMenuLoad)="store.retryOperatorMenuLoad()"
+          (searchChange)="store.setOperatorSearchQuery($event)"
+          (selectMenuItem)="store.selectOperatorMenuItem($event)"
+          (draftChange)="store.updateOperatorDraft($event)"
+          (submitPlacement)="store.submitOperatorPlacement()"
         />
 
         <dl class="counter-stage__stats">

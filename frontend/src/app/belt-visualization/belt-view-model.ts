@@ -73,6 +73,7 @@ export interface BeltStageKitchenViewModel {
   showChef: boolean;
   chefLabel: string;
   accentLabels: [string, string, string];
+  operatorEntryLabel: string;
 }
 
 export interface BeltStageViewModel {
@@ -296,6 +297,7 @@ export function buildBeltStageViewModel(
       showChef: true,
       chefLabel: 'Chef preparing dishes inside the counter',
       accentLabels: ['Prep board', 'Tea lamp', 'Serving trays'],
+      operatorEntryLabel: 'Add plates to the belt',
     },
     plateSizePx: getOccupiedPlateSizePx(sizing.plateSizePx, slotCount, sortedSlots),
     slotMarkerSizePx: sizing.slotMarkerSizePx,

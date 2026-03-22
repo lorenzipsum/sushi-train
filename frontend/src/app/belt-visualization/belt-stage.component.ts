@@ -16,8 +16,10 @@ export class BeltStageComponent {
   readonly reducedMotion = input(false);
   readonly paused = input(false);
   readonly degraded = input(false);
+  readonly operatorOpen = input(false);
   readonly selectSeat = output<string>();
   readonly pickPlate = output<string>();
+  readonly toggleOperator = output<void>();
 
   handleSeatClick(seat: BeltStageSeatViewModel): void {
     this.selectSeat.emit(seat.id);
@@ -25,5 +27,9 @@ export class BeltStageComponent {
 
   handlePlateClick(plate: BeltStagePlateViewModel): void {
     this.pickPlate.emit(plate.id);
+  }
+
+  handleOperatorClick(): void {
+    this.toggleOperator.emit();
   }
 }

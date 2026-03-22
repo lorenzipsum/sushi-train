@@ -87,6 +87,7 @@
 }
 
 .counter-stage {
+  position: relative;
   display: grid;
   gap: 0.9rem;
   padding: clamp(0.8rem, 1.6vw, 1.25rem);
@@ -102,6 +103,42 @@ app-selected-seat-detail {
 
 .counter-stage__selected-seat {
   display: block;
+}
+
+.counter-stage__operator {
+  display: block;
+}
+
+.counter-stage__operator-backdrop {
+  position: fixed;
+  inset: 0;
+  border: none;
+  background: rgba(42, 31, 26, 0.34);
+  backdrop-filter: blur(5px) saturate(0.74);
+  z-index: 30;
+  cursor: pointer;
+}
+
+.counter-stage__operator[data-mode='inline-kitchen'] {
+  position: fixed;
+  left: 50%;
+  top: clamp(1rem, 5vh, 2.5rem);
+  width: min(36rem, calc(100vw - 2rem));
+  transform: translateX(-50%);
+  z-index: 31;
+}
+
+.counter-stage__operator[data-mode='secondary-surface'] {
+  position: fixed;
+  left: 50%;
+  top: clamp(1rem, 5vh, 2.5rem);
+  width: min(36rem, calc(100vw - 2rem));
+  transform: translateX(-50%);
+  z-index: 31;
+}
+
+.counter-stage__operator .operator-placement {
+  width: min(36rem, calc(100vw - 2rem));
 }
 
 .counter-stage__stats {
@@ -290,6 +327,14 @@ app-selected-seat-detail {
 @media (max-width: 720px) {
   .page-shell {
     padding-inline: 0.8rem;
+  }
+
+  .counter-stage__operator[data-mode='inline-kitchen'] {
+    width: min(36rem, calc(100vw - 1rem));
+  }
+
+  .counter-stage__operator[data-mode='secondary-surface'] {
+    width: min(36rem, calc(100vw - 1rem));
   }
 
   .counter-stage__stats {

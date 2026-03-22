@@ -47,6 +47,18 @@
         </div>
       </div>
 
+      <button
+        type="button"
+        class="belt-stage__operator-entry"
+        [class.belt-stage__operator-entry--active]="operatorOpen()"
+        [attr.aria-label]="stage().kitchen.operatorEntryLabel"
+        [attr.aria-pressed]="operatorOpen()"
+        (click)="handleOperatorClick()"
+      >
+        <span class="belt-stage__operator-entry-badge" aria-hidden="true">+</span>
+        <span>{{ stage().kitchen.operatorEntryLabel }}</span>
+      </button>
+
       @if (stage().reachArea; as reachArea) {
         <div
           class="belt-stage__reach-area"

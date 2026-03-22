@@ -3,8 +3,16 @@ import { Subject, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BeltsApi } from '../api/belts.api';
+import { MenuItemsApi } from '../api/menu-items.api';
 import { SeatsApi } from '../api/seats.api';
-import type { BeltDto, BeltSnapshotDto, SeatOrderDto, SeatStateListDto } from '../api/types';
+import type {
+  BeltDto,
+  BeltSnapshotDto,
+  CreatePlateAndPlaceOnBeltRequest,
+  MenuItemDto,
+  SeatOrderDto,
+  SeatStateListDto,
+} from '../api/types';
 import { BeltVisualizationStore } from './belt-visualization.store';
 
 function createBelt(overrides: Partial<BeltDto> = {}): BeltDto {
@@ -66,6 +74,42 @@ function createSnapshot(overrides: Partial<BeltSnapshotDto> = {}): BeltSnapshotD
   };
 }
 
+function createMenuItem(overrides: Partial<MenuItemDto> = {}): MenuItemDto {
+  return {
+    id: 'menu-1',
+    name: 'Salmon Nigiri',
+    defaultTier: 'RED',
+    basePrice: 320,
+    createdAt: '2026-03-22T09:00:00Z',
+    ...overrides,
+  };
+}
+
+function createMenuPage(content: MenuItemDto[] = [createMenuItem()]) {
+  return {
+    content,
+    page: {
+      number: 0,
+      totalPages: 1,
+    },
+  };
+}
+
+function buildStoreProviders(
+  beltsApiMock: object,
+  seatsApiMock: object,
+  menuItemsApiMock = {
+    getMenuItems: vi.fn(() => of(createMenuPage())),
+  },
+) {
+  return [
+    BeltVisualizationStore,
+    { provide: BeltsApi, useValue: beltsApiMock },
+    { provide: SeatsApi, useValue: seatsApiMock },
+    { provide: MenuItemsApi, useValue: menuItemsApiMock },
+  ];
+}
+
 function createMatchMedia(matches: boolean): MediaQueryList {
   return {
     matches,
@@ -125,11 +169,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -158,11 +198,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -184,11 +220,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -212,11 +244,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -244,11 +272,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -291,11 +315,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -335,11 +355,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -383,11 +399,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -427,11 +439,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -466,11 +474,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -523,11 +527,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -569,11 +569,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -613,11 +609,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -655,11 +647,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -707,11 +695,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -750,11 +734,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -783,11 +763,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -823,11 +799,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -861,11 +833,7 @@ describe('BeltVisualizationStore', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        BeltVisualizationStore,
-        { provide: BeltsApi, useValue: beltsApiMock },
-        { provide: SeatsApi, useValue: seatsApiMock },
-      ],
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
     });
     const store = TestBed.inject(BeltVisualizationStore);
 
@@ -876,5 +844,187 @@ describe('BeltVisualizationStore', () => {
     expect(store.selectedSeatDetail()?.helperLabel).toContain(
       'Start dining here when you are ready',
     );
+  });
+
+  it('loads the full operator menu across multiple pages and filters locally', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot())),
+      getSeatOverview: vi.fn(() => of([])),
+      createPlatesAndPlaceOnBelt: vi.fn(),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+    const menuItemsApiMock = {
+      getMenuItems: vi
+        .fn()
+        .mockReturnValueOnce(
+          of({
+            content: [createMenuItem({ id: 'menu-1', name: 'Salmon Nigiri', defaultTier: 'RED' })],
+            page: { number: 0, totalPages: 2 },
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            content: [
+              createMenuItem({ id: 'menu-2', name: 'Tamago Nigiri', defaultTier: 'GREEN' }),
+            ],
+            page: { number: 1, totalPages: 2 },
+          }),
+        ),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock, menuItemsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.toggleOperatorPlacement();
+    store.setOperatorSearchQuery('tamago');
+
+    expect(menuItemsApiMock.getMenuItems).toHaveBeenCalledTimes(2);
+    expect(store.operatorPlacement()?.totalMenuCount).toBe(2);
+    expect(store.operatorPlacement()?.filteredMenuItems.map((item) => item.name)).toEqual([
+      'Tamago Nigiri',
+    ]);
+  });
+
+  it('submits operator placement once, locks duplicates, and refreshes after success', () => {
+    const placementResult$ = new Subject<{ createdCount?: number; placedPlates?: unknown[] }>();
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot())),
+      getSeatOverview: vi.fn(() => of([])),
+      createPlatesAndPlaceOnBelt: vi.fn(() => placementResult$.asObservable()),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+    const menuItemsApiMock = {
+      getMenuItems: vi.fn(() => of(createMenuPage([createMenuItem()]))),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock, menuItemsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+    const refreshSpy = vi.spyOn(store, 'refreshAfterWrite');
+
+    store.toggleOperatorPlacement();
+    store.selectOperatorMenuItem('menu-1');
+    store.submitOperatorPlacement();
+    store.submitOperatorPlacement();
+
+    expect(beltsApiMock.createPlatesAndPlaceOnBelt).toHaveBeenCalledTimes(1);
+    expect(store.operatorPlacement()?.isSubmitting).toBe(true);
+
+    placementResult$.next({ createdCount: 2, placedPlates: [{}, {}] });
+    placementResult$.complete();
+
+    expect(store.operatorPlacement()?.isSubmitting).toBe(false);
+    expect(store.operatorPlacement()?.notice?.tone).toBe('success');
+    expect(store.operatorPlacement()?.notice?.createdCount).toBe(2);
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('recomputes the default expiry at submit time before sending placement', () => {
+    vi.setSystemTime(new Date('2026-03-22T09:00:00'));
+
+    const placementResult$ = new Subject<{ createdCount?: number; placedPlates?: unknown[] }>();
+    const createPlatesAndPlaceOnBelt = vi.fn(() => placementResult$.asObservable());
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot())),
+      getSeatOverview: vi.fn(() => of([])),
+      createPlatesAndPlaceOnBelt,
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+    const menuItemsApiMock = {
+      getMenuItems: vi.fn(() => of(createMenuPage([createMenuItem()]))),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock, menuItemsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.toggleOperatorPlacement();
+    store.selectOperatorMenuItem('menu-1');
+
+    const initialDraftExpiry = store.operatorPlacement()?.draft.expiresAt;
+
+    vi.setSystemTime(new Date('2026-03-22T09:30:00'));
+    store.submitOperatorPlacement();
+
+    const request = (
+      createPlatesAndPlaceOnBelt.mock.calls as unknown as Array<
+        [string, CreatePlateAndPlaceOnBeltRequest]
+      >
+    )[0]?.[1];
+    const updatedDraftExpiry = store.operatorPlacement()?.draft.expiresAt;
+
+    if (!request) {
+      throw new Error('Expected placement request payload to be captured.');
+    }
+
+    expect(initialDraftExpiry).toBeTruthy();
+    expect(updatedDraftExpiry).toBeTruthy();
+    expect(
+      new Date(updatedDraftExpiry ?? '').getTime() - new Date(initialDraftExpiry ?? '').getTime(),
+    ).toBe(30 * 60 * 1000);
+    expect(request.expiresAt).toBe(new Date(updatedDraftExpiry ?? '').toISOString());
+  });
+
+  it('preserves the operator draft and reports normalized space failures', () => {
+    const conflict = {
+      error: {
+        status: 409,
+        detail: 'Not enough free slots remain on the belt.',
+        title: 'Placement conflict',
+      },
+    };
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot())),
+      getSeatOverview: vi.fn(() => of([])),
+      createPlatesAndPlaceOnBelt: vi.fn(() => throwError(() => conflict)),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+    const menuItemsApiMock = {
+      getMenuItems: vi.fn(() =>
+        of(createMenuPage([createMenuItem({ id: 'menu-1', name: 'Tuna Nigiri', basePrice: 410 })])),
+      ),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock, menuItemsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.toggleOperatorPlacement();
+    store.selectOperatorMenuItem('menu-1');
+    store.updateOperatorDraft({ numOfPlates: 3, priceAtCreation: '450' });
+    store.submitOperatorPlacement();
+
+    expect(store.operatorPlacement()?.notice?.outcomeType).toBe('not-enough-space');
+    expect(store.operatorPlacement()?.draft.numOfPlates).toBe(3);
+    expect(store.operatorPlacement()?.draft.priceAtCreation).toBe('450');
   });
 });

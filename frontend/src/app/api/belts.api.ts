@@ -3,7 +3,14 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_BASE_URL, buildApiUrl } from './http/api-config';
-import type { BeltListDto, BeltSnapshotDto, FullBeltDto, SeatStateListDto } from './types';
+import type {
+  BeltListDto,
+  BeltSnapshotDto,
+  CreatePlateAndPlaceOnBeltRequest,
+  CreatedPlatesOnBeltResponse,
+  FullBeltDto,
+  SeatStateListDto,
+} from './types';
 
 @Injectable({ providedIn: 'root' })
 export class BeltsApi {
@@ -27,6 +34,16 @@ export class BeltsApi {
   getSeatOverview(beltId: string): Observable<SeatStateListDto> {
     return this.http.get<SeatStateListDto>(
       buildApiUrl(this.baseUrl, `/api/v1/belts/${beltId}/seats`),
+    );
+  }
+
+  createPlatesAndPlaceOnBelt(
+    beltId: string,
+    request: CreatePlateAndPlaceOnBeltRequest,
+  ): Observable<CreatedPlatesOnBeltResponse> {
+    return this.http.post<CreatedPlatesOnBeltResponse>(
+      buildApiUrl(this.baseUrl, `/api/v1/belts/${beltId}/plates`),
+      request,
     );
   }
 }

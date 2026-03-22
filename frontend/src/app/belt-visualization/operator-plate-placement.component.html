@@ -1,0 +1,171 @@
+@if (placement(); as vm) {
+  @if (vm.isOpen) {
+    <section
+      class="operator-placement"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Operator plate placement"
+    >
+      <header class="operator-placement__header">
+        <div>
+          <p class="operator-placement__eyebrow">Demo mode operator</p>
+          <h2>Add plates to the belt</h2>
+        </div>
+
+        <button
+          type="button"
+          class="operator-placement__close"
+          aria-label="Close operator controls"
+          (click)="dismiss.emit()"
+        >
+          Close
+        </button>
+      </header>
+
+      @if (vm.notice; as notice) {
+        <section
+          class="operator-placement__notice"
+          [class.operator-placement__notice--error]="notice.tone === 'error'"
+          [class.operator-placement__notice--success]="notice.tone === 'success'"
+          aria-live="polite"
+        >
+          <h3>{{ notice.title }}</h3>
+          <p>{{ notice.detail }}</p>
+        </section>
+      }
+
+      @if (vm.menuLoadError) {
+        <section
+          class="operator-placement__notice operator-placement__notice--error"
+          aria-live="polite"
+        >
+          <h3>Menu list is unavailable</h3>
+          <p>{{ vm.menuLoadError }}</p>
+          <button
+            type="button"
+            class="operator-placement__secondary"
+            (click)="retryMenuLoad.emit()"
+          >
+            Retry menu load
+          </button>
+        </section>
+      }
+
+      <label class="operator-placement__field operator-placement__field--search">
+        <span>Search menu items</span>
+        <input
+          type="search"
+          [value]="vm.query"
+          [disabled]="vm.isMenuLoading || vm.isSubmitting"
+          placeholder="Search nigiri, tea, dessert..."
+          (input)="onSearchInput($event)"
+        />
+      </label>
+
+      @if (vm.isMenuLoading) {
+        <p class="operator-placement__meta">Loading the full menu list for the operator flow...</p>
+      } @else {
+        <div class="operator-placement__results" aria-label="Menu item results">
+          @for (item of vm.filteredMenuItems; track trackMenuItem($index, item)) {
+            <button
+              type="button"
+              class="operator-placement__result"
+              [class.operator-placement__result--selected]="item.id === vm.selectedMenuItemId"
+              [attr.aria-pressed]="item.id === vm.selectedMenuItemId"
+              [disabled]="vm.isSubmitting"
+              (click)="selectMenuItem.emit(item.id)"
+            >
+              <span>{{ item.name }}</span>
+              <small>{{ item.defaultTier }} tier · {{ item.basePrice }} Yen</small>
+            </button>
+          } @empty {
+            <p class="operator-placement__empty">No menu items match the current search.</p>
+          }
+        </div>
+      }
+
+      <div class="operator-placement__draft">
+        <p class="operator-placement__meta">
+          @if (vm.selectedMenuItemLabel) {
+            Selected: {{ vm.selectedMenuItemLabel }}
+          } @else {
+            Choose a menu item before placing plates.
+          }
+        </p>
+
+        <div class="operator-placement__fields">
+          <label class="operator-placement__field">
+            <span>Number of plates</span>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              [value]="vm.draft.numOfPlates"
+              [disabled]="vm.isSubmitting"
+              (input)="onPlateCountInput($event)"
+            />
+          </label>
+
+          <label class="operator-placement__field">
+            <span>Tier snapshot</span>
+            <select
+              [value]="vm.draft.tierSnapshot ?? ''"
+              [disabled]="vm.isSubmitting"
+              (change)="onTierChange($event)"
+            >
+              @for (tier of tierOptions; track tier) {
+                <option [value]="tier">{{ tier }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="operator-placement__field">
+            <span>Price snapshot</span>
+            <input
+              type="number"
+              min="0"
+              [value]="vm.draft.priceAtCreation"
+              [disabled]="vm.isSubmitting"
+              (input)="onPriceInput($event)"
+            />
+          </label>
+
+          <label class="operator-placement__field">
+            <span>Expires at</span>
+            <input
+              type="datetime-local"
+              [value]="vm.draft.expiresAt"
+              [disabled]="vm.isSubmitting"
+              (input)="onExpiresAtInput($event)"
+            />
+          </label>
+        </div>
+      </div>
+
+      <footer class="operator-placement__footer">
+        <p class="operator-placement__meta">
+          @if (vm.submitDisabledReason) {
+            {{ vm.submitDisabledReason }}
+          } @else if (vm.draft.isDefaultDraft) {
+            Defaults are ready for a fast operator placement.
+          } @else {
+            Manual overrides will be sent with this placement.
+          }
+        </p>
+
+        <button
+          type="button"
+          class="operator-placement__submit"
+          [disabled]="!vm.canSubmit || vm.isSubmitting"
+          (click)="submitPlacement.emit()"
+        >
+          @if (vm.isSubmitting) {
+            Placing plates...
+          } @else {
+            Place on belt
+          }
+        </button>
+      </footer>
+    </section>
+  }
+}

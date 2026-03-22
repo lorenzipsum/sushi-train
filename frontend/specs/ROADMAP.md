@@ -10,14 +10,14 @@
 | `004-checkout-seat`        | Done   | Checkout flow shipped                                              |
 | `005-pick-plates`          | Done   | Guest plate picking shipped                                        |
 | `006-hydrate-seat-orders`  | Done   | Reload-time order restoration and selected-seat continuity shipped |
+| `007-add-plates-belt`      | Done   | Demo-mode operator plate action shipped in the main belt UI        |
 
 ## Next Features
 
-| Order | Feature                     | Status   | Depends on                                                                                                                                  | Notes                                      |
-| ----- | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| 7     | `007-add-plates-to-belt`    | Proposed | `005-pick-plates`                                                                                                                           | Demo-mode operator plate action in same UI |
-| 8     | `008-realtime-belt-updates` | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-to-belt`                              | Replace or reduce polling                  |
-| 9     | `009-design-polish`         | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-to-belt`, `008-realtime-belt-updates` | Final UI pass                              |
+| Order | Feature                     | Status   | Depends on                                                                                                                               | Notes                     |
+| ----- | --------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 8     | `008-realtime-belt-updates` | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-belt`                              | Replace or reduce polling |
+| 9     | `009-design-polish`         | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-belt`, `008-realtime-belt-updates` | Final UI pass             |
 
 ## Dependency Shape
 
@@ -42,6 +42,7 @@ frontend/specs/003-occupy-seat/
 frontend/specs/004-checkout-seat/
 frontend/specs/005-pick-plates/
 frontend/specs/006-hydrate-seat-orders/
+frontend/specs/007-add-plates-belt/
 ```
 
 Each feature should contain:
