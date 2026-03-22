@@ -1,3 +1,65 @@
 :host {
   display: block;
 }
+
+.belt-stage__operator-entry {
+  position: absolute;
+  left: 50.5%;
+  top: 58%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-content: center;
+  min-width: 9.5rem;
+  padding: 0.55rem 0.8rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 251, 246, 0.96);
+  color: #5c3d2f;
+  font:
+    800 0.72rem/1 'Nunito Sans',
+    'Inter',
+    sans-serif;
+  letter-spacing: 0.03em;
+  box-shadow:
+    0 12px 26px rgba(92, 61, 47, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  cursor: pointer;
+}
+
+.belt-stage__operator-entry--active {
+  background: linear-gradient(180deg, #e45742 0%, #b62019 100%);
+  color: #fff8f4;
+}
+
+.belt-stage__operator-entry:focus-visible {
+  outline: 3px solid rgba(51, 64, 59, 0.22);
+  outline-offset: 3px;
+}
+
+.belt-stage__operator-entry-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #b62019;
+  font-size: 0.92rem;
+}
+
+.belt-stage__operator-entry--active .belt-stage__operator-entry-badge {
+  background: rgba(255, 248, 244, 0.22);
+  color: #fff8f4;
+}
+
+@media (max-width: 900px) {
+  .belt-stage__operator-entry {
+    top: 57%;
+    min-width: 8.4rem;
+    padding-inline: 0.7rem;
+    font-size: 0.68rem;
+  }
+}

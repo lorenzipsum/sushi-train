@@ -90,6 +90,7 @@ function createStageViewModel(): BeltStageViewModel {
       showChef: true,
       chefLabel: 'Chef preparing dishes',
       accentLabels: ['Prep board', 'Tea lamp', 'Serving trays'],
+      operatorEntryLabel: 'Add plates to the belt',
     },
     plateSizePx: 28,
     slotMarkerSizePx: 10,
@@ -116,6 +117,30 @@ describe('App', () => {
       occupyPendingLabel: () => null,
       checkoutFeedback: () => null,
       checkoutPendingLabel: () => null,
+      operatorPlacement: () => ({
+        isOpen: false,
+        presentationMode: 'inline-kitchen',
+        isMenuLoading: false,
+        menuLoadError: null,
+        isSubmitting: false,
+        notice: null,
+        query: '',
+        totalMenuCount: 2,
+        filteredMenuItems: [],
+        selectedMenuItemId: null,
+        selectedMenuItemLabel: null,
+        selectedMenuItemTier: null,
+        draft: {
+          menuItemId: null,
+          numOfPlates: 1,
+          tierSnapshot: null,
+          priceAtCreation: '',
+          expiresAt: '2026-03-22T11:00',
+          isDefaultDraft: false,
+        },
+        canSubmit: false,
+        submitDisabledReason: 'Choose a menu item before placing plates.',
+      }),
       selectedSeatDetail: () => ({
         seatId: 'seat-1',
         seatLabel: 'Seat 1',
@@ -138,6 +163,13 @@ describe('App', () => {
       startDiningForSelectedSeat: vi.fn(),
       checkoutSelectedSeat: vi.fn(),
       pickPlate: vi.fn(),
+      toggleOperatorPlacement: vi.fn(),
+      closeOperatorPlacement: vi.fn(),
+      retryOperatorMenuLoad: vi.fn(),
+      setOperatorSearchQuery: vi.fn(),
+      selectOperatorMenuItem: vi.fn(),
+      updateOperatorDraft: vi.fn(),
+      submitOperatorPlacement: vi.fn(),
     } as unknown as BeltVisualizationStore;
 
     await TestBed.configureTestingModule({
@@ -182,6 +214,16 @@ describe('App', () => {
     button.click();
 
     expect(storeMock.pickPlate).toHaveBeenCalledWith('plate-1');
+  });
+
+  it('routes the kitchen operator entry button to the placement toggle', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.belt-stage__operator-entry');
+    button.click();
+
+    expect(storeMock.toggleOperatorPlacement).toHaveBeenCalledTimes(1);
   });
 
   it('renders selected-seat detail feedback when the store exposes a notice', () => {

@@ -3,10 +3,17 @@ import { take } from 'rxjs';
 
 import { BeltsApi } from '../api/belts.api';
 import { getProblemDetail } from '../api/http/problem-detail';
+import { MenuItemsApi } from '../api/menu-items.api';
 import { SeatsApi } from '../api/seats.api';
 import type {
   BeltDto,
   BeltSnapshotDto,
+  MenuItemDto,
+  OperatorPlacementDraftPatch,
+  OperatorPlacementDraftValue,
+  OperatorPlacementNotice,
+  OperatorPlacementPresentationMode,
+  OperatorPlacementViewModel,
   OrderSummaryDto,
   PlatePickFeedback,
   PickPlateRequest,
@@ -23,7 +30,47 @@ import { getRenderOffset } from './motion';
 
 const POLL_INTERVAL_MS = 3000;
 const RESTORATION_RETRY_DELAY_MS = 1500;
+const OPERATOR_PANEL_BREAKPOINT = '(max-width: 900px)';
+const OPERATOR_DEFAULT_EXPIRES_IN_MINUTES = 120;
 const SELECTED_SEAT_STORAGE_KEY = 'sushi-train:selected-seat-id';
+
+function toDateTimeLocalValue(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  const hour = String(value.getHours()).padStart(2, '0');
+  const minute = String(value.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hour}:${minute}`;
+}
+
+function buildOperatorDefaultDraft(menuItem: MenuItemDto | null): OperatorPlacementDraftValue {
+  return {
+    menuItemId: menuItem?.id ?? null,
+    numOfPlates: 1,
+    tierSnapshot: menuItem?.defaultTier ?? null,
+    priceAtCreation: menuItem ? String(menuItem.basePrice) : '',
+    expiresAt: toDateTimeLocalValue(
+      new Date(Date.now() + OPERATOR_DEFAULT_EXPIRES_IN_MINUTES * 60 * 1000),
+    ),
+    isDefaultDraft: !!menuItem,
+  };
+}
+
+function buildOperatorExpiresAtValue(): string {
+  return toDateTimeLocalValue(
+    new Date(Date.now() + OPERATOR_DEFAULT_EXPIRES_IN_MINUTES * 60 * 1000),
+  );
+}
+
+function matchesOperatorSearch(menuItem: MenuItemDto, query: string): boolean {
+  if (!query) {
+    return true;
+  }
+
+  const searchable = `${menuItem.name} ${menuItem.defaultTier} ${menuItem.basePrice}`.toLowerCase();
+  return searchable.includes(query);
+}
 
 export interface OccupyFeedback {
   tone: 'success' | 'error';
@@ -51,6 +98,7 @@ export interface CheckoutFeedback {
 @Injectable({ providedIn: 'root' })
 export class BeltVisualizationStore {
   private readonly beltsApi = inject(BeltsApi);
+  private readonly menuItemsApi = inject(MenuItemsApi);
   private readonly seatsApi = inject(SeatsApi);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -79,6 +127,18 @@ export class BeltVisualizationStore {
   private readonly activeOrdersBySeatId = signal<Record<string, OrderSummaryDto>>({});
   private readonly checkedOutOrdersBySeatId = signal<Record<string, SeatOrderDto>>({});
   private readonly seatRestorationBySeatId = signal<Record<string, SeatRestorationState>>({});
+  private readonly compactOperatorLayout = signal(false);
+  private readonly operatorOpenState = signal(false);
+  private readonly operatorMenuItemsState = signal<MenuItemDto[]>([]);
+  private readonly operatorMenuLoadingState = signal(false);
+  private readonly operatorMenuLoadErrorState = signal<string | null>(null);
+  private readonly operatorSearchQueryState = signal('');
+  private readonly operatorSelectedMenuItemIdState = signal<string | null>(null);
+  private readonly operatorDraftState = signal<OperatorPlacementDraftValue>(
+    buildOperatorDefaultDraft(null),
+  );
+  private readonly operatorNoticeState = signal<OperatorPlacementNotice | null>(null);
+  private readonly operatorPendingSubmissionState = signal(false);
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   private animationFrameId: number | null = null;
@@ -86,8 +146,12 @@ export class BeltVisualizationStore {
   private readonly restorationRetryTimerIds = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly restorationInFlightSeatIds = new Set<string>();
   private mediaQuery: MediaQueryList | null = null;
+  private operatorLayoutMediaQuery: MediaQueryList | null = null;
   private readonly handleReducedMotionChange = (event: MediaQueryListEvent): void => {
     this.reducedMotion.set(event.matches);
+  };
+  private readonly handleOperatorLayoutChange = (event: MediaQueryListEvent): void => {
+    this.compactOperatorLayout.set(event.matches);
   };
 
   readonly hasInitialData = computed(() => !!this.snapshot());
@@ -148,6 +212,46 @@ export class BeltVisualizationStore {
   readonly occupyFeedback = computed(() => this.occupyFeedbackState());
   readonly checkoutPendingSeatId = computed(() => this.checkoutPendingSeatIdState());
   readonly checkoutFeedback = computed(() => this.checkoutFeedbackState());
+  readonly operatorPlacement = computed<OperatorPlacementViewModel | null>(() => {
+    if (!this.primaryBelt()?.id) {
+      return null;
+    }
+
+    const query = this.operatorSearchQueryState().trim().toLowerCase();
+    const menuItems = this.operatorMenuItemsState();
+    const filteredMenuItems = menuItems.filter((menuItem) =>
+      matchesOperatorSearch(menuItem, query),
+    );
+    const selectedMenuItemId = this.operatorSelectedMenuItemIdState();
+    const selectedMenuItem =
+      menuItems.find((menuItem) => menuItem.id === selectedMenuItemId) ?? null;
+    const draft = this.operatorDraftState();
+    const submitDisabledReason = this.getOperatorSubmitDisabledReason(
+      selectedMenuItem,
+      draft,
+      this.operatorMenuLoadingState(),
+      this.operatorMenuLoadErrorState(),
+      this.operatorPendingSubmissionState(),
+    );
+
+    return {
+      isOpen: this.operatorOpenState(),
+      presentationMode: this.compactOperatorLayout() ? 'secondary-surface' : 'inline-kitchen',
+      isMenuLoading: this.operatorMenuLoadingState(),
+      menuLoadError: this.operatorMenuLoadErrorState(),
+      isSubmitting: this.operatorPendingSubmissionState(),
+      notice: this.operatorNoticeState(),
+      query: this.operatorSearchQueryState(),
+      totalMenuCount: menuItems.length,
+      filteredMenuItems,
+      selectedMenuItemId,
+      selectedMenuItemLabel: selectedMenuItem?.name ?? null,
+      selectedMenuItemTier: selectedMenuItem?.defaultTier ?? null,
+      draft,
+      canSubmit: !submitDisabledReason,
+      submitDisabledReason,
+    };
+  });
   readonly selectedSeatDetail = computed<SelectedSeatDetailViewModel | null>(() => {
     const selectedSeatId = this.selectedSeatIdState();
     if (!selectedSeatId) {
@@ -343,8 +447,10 @@ export class BeltVisualizationStore {
 
   constructor() {
     this.setupReducedMotion();
+    this.setupOperatorLayout();
     this.startAnimationClock();
     this.loadBelts();
+    this.loadOperatorMenuItems();
 
     this.destroyRef.onDestroy(() => {
       if (this.pollTimerId) {
@@ -363,6 +469,7 @@ export class BeltVisualizationStore {
       this.restorationRetryTimerIds.clear();
 
       this.mediaQuery?.removeEventListener('change', this.handleReducedMotionChange);
+      this.operatorLayoutMediaQuery?.removeEventListener('change', this.handleOperatorLayoutChange);
     });
   }
 
@@ -404,6 +511,125 @@ export class BeltVisualizationStore {
     }
 
     this.checkoutSeat(seatId);
+  }
+
+  toggleOperatorPlacement(): void {
+    if (this.operatorOpenState()) {
+      this.operatorOpenState.set(false);
+      return;
+    }
+
+    this.operatorOpenState.set(true);
+    this.operatorNoticeState.set(null);
+    this.loadOperatorMenuItems();
+  }
+
+  closeOperatorPlacement(): void {
+    this.operatorOpenState.set(false);
+  }
+
+  retryOperatorMenuLoad(): void {
+    this.loadOperatorMenuItems(true);
+  }
+
+  setOperatorSearchQuery(query: string): void {
+    this.operatorSearchQueryState.set(query);
+  }
+
+  selectOperatorMenuItem(menuItemId: string): void {
+    const menuItem = this.operatorMenuItemsState().find((item) => item.id === menuItemId) ?? null;
+    if (!menuItem) {
+      return;
+    }
+
+    this.operatorSelectedMenuItemIdState.set(menuItem.id);
+    this.operatorDraftState.set(buildOperatorDefaultDraft(menuItem));
+    this.operatorNoticeState.set(null);
+  }
+
+  updateOperatorDraft(patch: OperatorPlacementDraftPatch): void {
+    this.operatorDraftState.update((currentDraft) => ({
+      ...currentDraft,
+      ...patch,
+      menuItemId: currentDraft.menuItemId,
+      isDefaultDraft: false,
+    }));
+  }
+
+  submitOperatorPlacement(): void {
+    const beltId = this.primaryBelt()?.id ?? null;
+    const selectedMenuItem =
+      this.operatorMenuItemsState().find(
+        (menuItem) => menuItem.id === this.operatorSelectedMenuItemIdState(),
+      ) ?? null;
+    const draft = this.operatorDraftState();
+    const submitDisabledReason = this.getOperatorSubmitDisabledReason(
+      selectedMenuItem,
+      draft,
+      this.operatorMenuLoadingState(),
+      this.operatorMenuLoadErrorState(),
+      this.operatorPendingSubmissionState(),
+    );
+
+    if (!beltId || !selectedMenuItem || submitDisabledReason) {
+      if (submitDisabledReason) {
+        this.operatorNoticeState.set({
+          tone: 'error',
+          title: 'Plate placement is not ready',
+          detail: submitDisabledReason,
+          outcomeType: 'invalid-values',
+          createdCount: null,
+          menuItemName: selectedMenuItem?.name ?? null,
+        });
+      }
+      return;
+    }
+
+    this.operatorPendingSubmissionState.set(true);
+    this.operatorNoticeState.set(null);
+
+    const expiresAt = draft.isDefaultDraft ? buildOperatorExpiresAtValue() : draft.expiresAt;
+    if (draft.isDefaultDraft) {
+      this.operatorDraftState.update((currentDraft) => ({
+        ...currentDraft,
+        expiresAt,
+      }));
+    }
+
+    this.beltsApi
+      .createPlatesAndPlaceOnBelt(beltId, {
+        menuItemId: selectedMenuItem.id,
+        numOfPlates: draft.numOfPlates,
+        tierSnapshot: draft.tierSnapshot ?? selectedMenuItem.defaultTier,
+        priceAtCreation: Number(draft.priceAtCreation),
+        expiresAt: new Date(expiresAt).toISOString(),
+      })
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          const createdCount =
+            result.createdCount ?? result.placedPlates?.length ?? draft.numOfPlates;
+          this.operatorPendingSubmissionState.set(false);
+          this.operatorNoticeState.set({
+            tone: 'success',
+            title: `${createdCount} ${selectedMenuItem.name} plate${createdCount === 1 ? '' : 's'} queued`,
+            detail:
+              createdCount === 1
+                ? 'The kitchen request was accepted, and the belt will refresh immediately.'
+                : 'The kitchen request was accepted, and the belt will refresh immediately.',
+            outcomeType: 'success',
+            createdCount,
+            menuItemName: selectedMenuItem.name,
+          });
+          this.refreshAfterWrite();
+        },
+        error: (error: unknown) => {
+          this.operatorPendingSubmissionState.set(false);
+          this.operatorNoticeState.set(
+            this.buildOperatorPlacementFailureNotice(error, selectedMenuItem.name),
+          );
+        },
+      });
   }
 
   occupySeat(seatId: string): void {
@@ -603,6 +829,46 @@ export class BeltVisualizationStore {
       });
   }
 
+  private loadOperatorMenuItems(force = false, page = 0, collected: MenuItemDto[] = []): void {
+    if (page === 0) {
+      if (!force && (this.operatorMenuLoadingState() || this.operatorMenuItemsState().length > 0)) {
+        return;
+      }
+
+      this.operatorMenuLoadingState.set(true);
+      this.operatorMenuLoadErrorState.set(null);
+      if (force) {
+        this.operatorMenuItemsState.set([]);
+      }
+    }
+
+    this.menuItemsApi
+      .getMenuItems(page)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          const nextCollected = [...collected, ...(response.content ?? [])];
+          const currentPage = Number(response.page?.number ?? page);
+          const totalPages = Math.max(1, Number(response.page?.totalPages ?? 1));
+
+          if (currentPage + 1 < totalPages) {
+            this.loadOperatorMenuItems(force, currentPage + 1, nextCollected);
+            return;
+          }
+
+          this.operatorMenuItemsState.set(nextCollected);
+          this.operatorMenuLoadingState.set(false);
+          this.reconcileOperatorMenuSelection(nextCollected);
+        },
+        error: (error: unknown) => {
+          this.operatorMenuLoadingState.set(false);
+          this.operatorMenuLoadErrorState.set(
+            this.formatError(error, 'The menu catalog could not be loaded.'),
+          );
+        },
+      });
+  }
+
   private startTrackingPrimaryBelt(beltId: string): void {
     if (this.pollTimerId) {
       clearInterval(this.pollTimerId);
@@ -681,9 +947,157 @@ export class BeltVisualizationStore {
     this.mediaQuery.addEventListener('change', this.handleReducedMotionChange);
   }
 
+  private setupOperatorLayout(): void {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    this.operatorLayoutMediaQuery = window.matchMedia(OPERATOR_PANEL_BREAKPOINT);
+    this.compactOperatorLayout.set(this.operatorLayoutMediaQuery.matches);
+    this.operatorLayoutMediaQuery.addEventListener('change', this.handleOperatorLayoutChange);
+  }
+
   private formatError(error: unknown, fallback: string): string {
     const problemDetail = getProblemDetail(error);
     return problemDetail?.detail ?? problemDetail?.title ?? fallback;
+  }
+
+  private getOperatorSubmitDisabledReason(
+    selectedMenuItem: MenuItemDto | null,
+    draft: OperatorPlacementDraftValue,
+    isLoadingMenu: boolean,
+    menuLoadError: string | null,
+    isSubmitting: boolean,
+  ): string | null {
+    if (isSubmitting) {
+      return 'An add-plates request is already in flight.';
+    }
+
+    if (isLoadingMenu) {
+      return 'Loading the menu catalog for the operator flow.';
+    }
+
+    if (menuLoadError) {
+      return 'Retry the menu load before placing plates.';
+    }
+
+    if (!selectedMenuItem) {
+      return 'Choose a menu item before placing plates.';
+    }
+
+    if (!Number.isInteger(draft.numOfPlates) || draft.numOfPlates < 1 || draft.numOfPlates > 10) {
+      return 'Use a whole number of plates between 1 and 10.';
+    }
+
+    const priceAtCreation = Number(draft.priceAtCreation);
+    if (!Number.isInteger(priceAtCreation) || priceAtCreation < 0) {
+      return 'Enter a valid non-negative price snapshot.';
+    }
+
+    if (!draft.expiresAt) {
+      return 'Choose when the new plates should expire.';
+    }
+
+    const expiresAt = new Date(draft.expiresAt);
+    if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) {
+      return 'Choose an expiry time in the future.';
+    }
+
+    return null;
+  }
+
+  private reconcileOperatorMenuSelection(menuItems: MenuItemDto[]): void {
+    const selectedMenuItemId = this.operatorSelectedMenuItemIdState();
+    if (!selectedMenuItemId) {
+      return;
+    }
+
+    const selectedMenuItem =
+      menuItems.find((menuItem) => menuItem.id === selectedMenuItemId) ?? null;
+    if (selectedMenuItem) {
+      return;
+    }
+
+    this.operatorSelectedMenuItemIdState.set(null);
+    this.operatorDraftState.set(buildOperatorDefaultDraft(null));
+  }
+
+  private buildOperatorPlacementFailureNotice(
+    error: unknown,
+    menuItemName: string,
+  ): OperatorPlacementNotice {
+    const problemDetail = getProblemDetail(error) as
+      | ({ errorCode?: string } & { status?: number; title?: string; detail?: string })
+      | null;
+    const status = problemDetail?.status ?? null;
+    const detail = problemDetail?.detail ?? problemDetail?.title ?? 'The kitchen request failed.';
+    const message = `${problemDetail?.title ?? ''} ${problemDetail?.detail ?? ''}`.toLowerCase();
+
+    if (status === 409) {
+      return {
+        tone: 'error',
+        title: 'Not enough open belt space',
+        detail:
+          detail ||
+          'The backend could not place every requested plate. Adjust the quantity and try again after the belt advances.',
+        outcomeType: 'not-enough-space',
+        createdCount: null,
+        menuItemName,
+      };
+    }
+
+    if (status === 404 && message.includes('menu')) {
+      return {
+        tone: 'error',
+        title: 'That menu item is no longer available',
+        detail,
+        outcomeType: 'invalid-menu-item',
+        createdCount: null,
+        menuItemName,
+      };
+    }
+
+    if (status === 404) {
+      return {
+        tone: 'error',
+        title: 'This belt is no longer available',
+        detail,
+        outcomeType: 'missing-belt',
+        createdCount: null,
+        menuItemName,
+      };
+    }
+
+    if (status === 400 && message.includes('menu')) {
+      return {
+        tone: 'error',
+        title: 'That menu item could not be placed',
+        detail,
+        outcomeType: 'invalid-menu-item',
+        createdCount: null,
+        menuItemName,
+      };
+    }
+
+    if (status === 400) {
+      return {
+        tone: 'error',
+        title: 'One or more placement values were rejected',
+        detail,
+        outcomeType: 'invalid-values',
+        createdCount: null,
+        menuItemName,
+      };
+    }
+
+    return {
+      tone: 'error',
+      title: 'The add-plates request did not finish',
+      detail,
+      outcomeType: status === 422 ? 'malformed-request' : 'unknown-error',
+      createdCount: null,
+      menuItemName,
+    };
   }
 
   private handleOccupyError(seatId: string, error: unknown): void {
