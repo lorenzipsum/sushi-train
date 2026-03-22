@@ -5,7 +5,18 @@
         <p class="selected-seat-detail__eyebrow">Selected seat</p>
         <h2>{{ selectedSeat.seatLabel }}</h2>
       </div>
-      <p class="selected-seat-detail__status">{{ selectedSeat.statusLabel }}</p>
+      <p
+        class="selected-seat-detail__status"
+        [class.selected-seat-detail__status--syncing]="selectedSeat.restorationStatus === 'syncing'"
+        [class.selected-seat-detail__status--unresolved]="
+          selectedSeat.restorationStatus === 'unresolved'
+        "
+        [class.selected-seat-detail__status--checked-out]="
+          selectedSeat.restorationStatus === 'checked-out'
+        "
+      >
+        {{ selectedSeat.statusLabel }}
+      </p>
     </header>
 
     <p class="selected-seat-detail__helper">{{ selectedSeat.helperLabel }}</p>
@@ -51,9 +62,20 @@
     }
 
     @if (selectedSeat.orderSummary; as orderSummary) {
-      <section class="selected-seat-detail__order" aria-label="Running order summary">
+      <section
+        class="selected-seat-detail__order"
+        [attr.aria-label]="
+          selectedSeat.isCheckoutSummary ? 'Final order summary' : 'Running order summary'
+        "
+      >
         <div class="selected-seat-detail__order-meta">
-          <p>Order {{ orderSummary.orderId }}</p>
+          <p>
+            @if (selectedSeat.isCheckoutSummary) {
+              Final summary
+            } @else {
+              Order {{ orderSummary.orderId }}
+            }
+          </p>
           <p>{{ orderSummary.status }}</p>
           <p>{{ orderSummary.totalPrice ?? 0 }} Yen</p>
         </div>
@@ -76,7 +98,10 @@
       </section>
     } @else {
       <p class="selected-seat-detail__placeholder">
-        @if (selectedSeat.canPickPlates) {
+        @if (selectedSeat.blockedReason === 'syncing') {
+          Dining state is still loading. Reach cues can stay visible, but plate picks remain blocked
+          until syncing finishes.
+        } @else if (selectedSeat.canPickPlates) {
           Pick plates from the highlighted reach area to build the running order here.
         } @else {
           This seat has no open order yet.

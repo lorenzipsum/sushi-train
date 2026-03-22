@@ -3,6 +3,8 @@ import type {
   BeltSlotSnapshotDto,
   OrderSummaryDto,
   PlateSnapshotDto,
+  SeatRestorationState,
+  SeatRestorationStatus,
   SeatPendingAction,
   SeatStateDto,
   SeatStateListDto,
@@ -52,6 +54,7 @@ export interface BeltStageSeatViewModel {
   isPending: boolean;
   isSelected: boolean;
   statusLabel: string;
+  restorationStatus: SeatRestorationStatus | null;
   orderId: string | null;
   occupiedSince: string | null;
   presenceCue: 'available' | 'occupied' | 'pending';
@@ -92,6 +95,7 @@ export interface BuildBeltStageViewModelOptions {
   pendingPlateId?: string | null;
   rejectedPlateId?: string | null;
   activeOrdersBySeatId?: Record<string, OrderSummaryDto | undefined>;
+  restorationBySeatId?: Record<string, SeatRestorationState | undefined>;
   selectedSeatId?: string | null;
 }
 
@@ -260,6 +264,7 @@ export function buildBeltStageViewModel(
   const pendingPlateId = options.pendingPlateId ?? null;
   const rejectedPlateId = options.rejectedPlateId ?? null;
   const activeOrdersBySeatId = options.activeOrdersBySeatId ?? {};
+  const restorationBySeatId = options.restorationBySeatId ?? {};
 
   const seatContexts = sortedSeats.map((seat, index) => ({
     seat,
@@ -272,8 +277,14 @@ export function buildBeltStageViewModel(
   const reachArea = getReachArea(seatContexts, selectedSeatId);
   const selectedSeatContext =
     seatContexts.find((context) => context.seatId === selectedSeatId) ?? null;
+  const selectedSeatRestorationStatus = selectedSeatContext
+    ? (restorationBySeatId[selectedSeatContext.seatId]?.restorationStatus ?? null)
+    : null;
   const selectedSeatCanPick =
-    !!selectedSeatContext?.seat.isOccupied && !!selectedSeatContext.activeOrder?.orderId;
+    !!selectedSeatContext?.seat.isOccupied &&
+    !!selectedSeatContext.activeOrder?.orderId &&
+    selectedSeatRestorationStatus !== 'syncing' &&
+    selectedSeatRestorationStatus !== 'unresolved-retrying';
 
   return {
     beltName: snapshot.beltName ?? 'Sushi belt',
@@ -329,6 +340,7 @@ export function buildBeltStageViewModel(
       const isPending = context.seatId === pendingSeatId;
       const isSelected = context.seatId === selectedSeatId;
       const isOccupied = !!context.seat.isOccupied;
+      const restorationStatus = restorationBySeatId[context.seatId]?.restorationStatus ?? null;
       const presenceCue = isPending ? 'pending' : isOccupied ? 'occupied' : 'available';
       const statusLabel = isPending
         ? pendingAction === 'checkout'
@@ -336,13 +348,23 @@ export function buildBeltStageViewModel(
           : pendingAction === 'occupy'
             ? 'Starting dining'
             : 'Updating'
-        : isOccupied
-          ? 'Occupied'
-          : 'Available';
+        : isSelected && restorationStatus === 'unresolved-retrying'
+          ? 'Retrying sync'
+          : isSelected && restorationStatus === 'syncing'
+            ? 'Syncing'
+            : isOccupied
+              ? 'Occupied'
+              : 'Available';
       const ariaParts = [context.seat.label ?? 'Seat'];
 
       if (isSelected) {
         ariaParts.push('Currently selected.');
+      }
+      if (isSelected && restorationStatus === 'syncing') {
+        ariaParts.push('Dining state is syncing.');
+      }
+      if (isSelected && restorationStatus === 'unresolved-retrying') {
+        ariaParts.push('Dining state is retrying automatically.');
       }
       ariaParts.push(isOccupied ? 'Occupied.' : 'Available.');
       if (context.activeOrder?.orderId) {
@@ -361,6 +383,7 @@ export function buildBeltStageViewModel(
         isPending,
         isSelected,
         statusLabel,
+        restorationStatus,
         orderId: context.activeOrder?.orderId ?? null,
         occupiedSince: context.activeOrder?.createdAt ?? null,
         presenceCue,

@@ -46,7 +46,9 @@
         </dl>
 
         <app-selected-seat-detail
-          [detail]="store.selectedSeatDetail()"
+          class="counter-stage__selected-seat"
+          [attr.data-seat-status]="selectedSeatDetail()?.restorationStatus ?? null"
+          [detail]="selectedSeatDetail()"
           (startDining)="store.startDiningForSelectedSeat()"
           (checkout)="store.checkoutSelectedSeat()"
         />

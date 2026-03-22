@@ -26,16 +26,38 @@ export type SeatStateDto = components['schemas']['SeatStateDto'];
 export type SeatStateListDto = SeatStateDto[];
 export type YenAmount = components['schemas']['YenAmount'];
 
+export type SeatRestorationStatus =
+  | 'syncing'
+  | 'confirmed-open-order'
+  | 'confirmed-no-order'
+  | 'unresolved-retrying';
+
+export interface SeatRestorationState {
+  seatId: string;
+  restorationStatus: SeatRestorationStatus;
+  hasRetryInFlight: boolean;
+  lastKnownOrderSummary: OrderSummaryDto | null;
+  resolutionMessage: string | null;
+}
+
 export type SeatPendingAction = 'occupy' | 'checkout' | 'pick-plate' | null;
 
 export type PlatePickOutcomeType =
   | 'success'
+  | 'syncing'
   | 'seat-not-occupied'
   | 'out-of-range'
   | 'plate-not-pickable'
   | 'resource-conflict'
   | 'not-found'
   | 'unknown-error';
+
+export type SelectedSeatStatus =
+  | 'available'
+  | 'occupied'
+  | 'syncing'
+  | 'unresolved'
+  | 'checked-out';
 
 export interface PlatePickFeedback {
   tone: 'success' | 'error';
@@ -52,12 +74,15 @@ export interface PlatePickFeedback {
 export interface SelectedSeatDetailViewModel {
   seatId: string;
   seatLabel: string;
+  restorationStatus: SelectedSeatStatus;
   statusLabel: string;
   helperLabel: string;
   isOccupied: boolean;
   canStartDining: boolean;
   canCheckout: boolean;
   canPickPlates: boolean;
+  blockedReason: 'syncing' | 'no-open-order' | null;
+  isCheckoutSummary: boolean;
   pendingAction: SeatPendingAction;
   orderSummary: OrderSummaryDto | null;
   feedbackTone: 'success' | 'error' | null;

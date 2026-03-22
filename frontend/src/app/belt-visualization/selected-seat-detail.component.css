@@ -57,6 +57,21 @@
   white-space: nowrap;
 }
 
+.selected-seat-detail__status--syncing {
+  background: rgba(246, 248, 255, 0.94);
+  color: #53608d;
+}
+
+.selected-seat-detail__status--unresolved {
+  background: rgba(255, 244, 244, 0.94);
+  color: #9f4258;
+}
+
+.selected-seat-detail__status--checked-out {
+  background: rgba(247, 255, 244, 0.94);
+  color: #4f7b47;
+}
+
 .selected-seat-detail__helper {
   color: rgba(51, 64, 59, 0.8);
 }

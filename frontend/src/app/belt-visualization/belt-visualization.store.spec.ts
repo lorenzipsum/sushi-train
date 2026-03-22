@@ -582,7 +582,7 @@ describe('BeltVisualizationStore', () => {
     expect(store.checkoutFeedback()?.tone).toBe('error');
     expect(store.checkoutFeedback()?.title).toContain('already free');
     expect(store.stageViewModel()?.seats[0].isOccupied).toBe(false);
-    expect(seatsApiMock.getSeatState).not.toHaveBeenCalled();
+    expect(seatsApiMock.getSeatState).toHaveBeenCalledTimes(1);
   });
 
   it('reports when checkout targets a missing seat and refreshes backend state', () => {
@@ -669,5 +669,212 @@ describe('BeltVisualizationStore', () => {
     expect(store.checkoutFeedback()?.finalSummary?.orderSummary?.orderId).toBe('order-1');
     expect(store.checkoutFeedback()?.statusLabel).toBe('CHECKED_OUT');
     expect(store.beltName()).toBe('Main Belt Updated');
+  });
+
+  it('restores the previously selected occupied seat and hydrates all occupied seats on load', () => {
+    sessionStorage.setItem('sushi-train:selected-seat-id', 'seat-2');
+
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot())),
+      getSeatOverview: vi.fn(() =>
+        of([
+          { seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true },
+          { seatId: 'seat-2', label: 'Seat 2', positionIndex: 1, isOccupied: true },
+        ]),
+      ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn((seatId: string) =>
+        of(
+          createSeatOrder({
+            seatId,
+            label: seatId === 'seat-2' ? 'Seat 2' : 'Seat 1',
+            positionIndex: seatId === 'seat-2' ? 1 : 0,
+            orderSummary: {
+              orderId: `order-${seatId}`,
+              seatId,
+              status: 'OPEN',
+              createdAt: '2026-03-15T03:00:00Z',
+              lines: [],
+              totalPrice: 0,
+            },
+          }),
+        ),
+      ),
+      checkout: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    expect(store.selectedSeatId()).toBe('seat-2');
+    expect(seatsApiMock.getSeatState).toHaveBeenCalledTimes(2);
+    expect(store.selectedSeatDetail()?.seatId).toBe('seat-2');
+    expect(store.selectedSeatDetail()?.canPickPlates).toBe(true);
+    expect(store.selectedSeatDetail()?.restorationStatus).toBe('occupied');
+  });
+
+  it('blocks plate picking with syncing feedback while occupied seat hydration is still in progress', () => {
+    const pendingSeatState$ = new Subject<SeatOrderDto>();
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() =>
+        of(
+          createSnapshot({
+            slots: [
+              {
+                slotId: 'slot-1',
+                positionIndex: 0,
+                plate: { plateId: 'plate-1', menuItemName: 'Salmon Nigiri', tier: 'RED' },
+              },
+            ],
+          }),
+        ),
+      ),
+      getSeatOverview: vi.fn(() =>
+        of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }]),
+      ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(() => pendingSeatState$.asObservable()),
+      checkout: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.pickPlate('plate-1');
+
+    expect(store.pickPlateFeedback()?.outcomeType).toBe('syncing');
+    expect(store.pickPlateFeedback()?.title).toContain('still syncing');
+    expect(store.selectedSeatDetail()?.blockedReason).toBe('syncing');
+  });
+
+  it('retries occupied-seat hydration automatically after a temporary failure', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot())),
+      getSeatOverview: vi.fn(() =>
+        of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }]),
+      ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi
+        .fn()
+        .mockReturnValueOnce(throwError(() => new Error('Temporary failure')))
+        .mockReturnValueOnce(of(createSeatOrder())),
+      checkout: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    expect(store.selectedSeatDetail()?.restorationStatus).toBe('unresolved');
+
+    vi.advanceTimersByTime(1500);
+
+    expect(seatsApiMock.getSeatState).toHaveBeenCalledTimes(2);
+    expect(store.selectedSeatDetail()?.restorationStatus).toBe('occupied');
+    expect(store.selectedSeatDetail()?.canPickPlates).toBe(true);
+  });
+
+  it('shows the final checkout summary in the selected-seat detail after checkout succeeds', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi
+        .fn()
+        .mockReturnValueOnce(of(createSnapshot()))
+        .mockReturnValueOnce(of(createSnapshot())),
+      getSeatOverview: vi
+        .fn()
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }]),
+        )
+        .mockReturnValueOnce(
+          of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: false }]),
+        ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(() => of(createCheckedOutSeatOrder())),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.checkoutSeat('seat-1');
+
+    expect(store.selectedSeatDetail()?.isCheckoutSummary).toBe(true);
+    expect(store.selectedSeatDetail()?.statusLabel).toBe('Checked out');
+    expect(store.selectedSeatDetail()?.orderSummary?.orderId).toBe('order-1');
+  });
+
+  it('reconciles an initially occupied seat to available when hydration finds no active order', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot())),
+      getSeatOverview: vi.fn(() =>
+        of([{ seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true }]),
+      ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(() =>
+        of({
+          seatId: 'seat-1',
+          label: 'Seat 1',
+          positionIndex: 0,
+          isOccupied: false,
+          orderSummary: undefined,
+        }),
+      ),
+      checkout: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        BeltVisualizationStore,
+        { provide: BeltsApi, useValue: beltsApiMock },
+        { provide: SeatsApi, useValue: seatsApiMock },
+      ],
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    expect(store.stageViewModel()?.seats[0].isOccupied).toBe(false);
+    expect(store.selectedSeatDetail()?.restorationStatus).toBe('available');
+    expect(store.selectedSeatDetail()?.canStartDining).toBe(true);
+    expect(store.selectedSeatDetail()?.canPickPlates).toBe(false);
+    expect(store.selectedSeatDetail()?.helperLabel).toContain(
+      'Start dining here when you are ready',
+    );
   });
 });
