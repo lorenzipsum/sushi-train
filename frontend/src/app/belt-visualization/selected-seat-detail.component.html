@@ -1,0 +1,87 @@
+@if (detail(); as selectedSeat) {
+  <section class="selected-seat-detail" aria-label="Selected seat detail">
+    <header class="selected-seat-detail__header">
+      <div>
+        <p class="selected-seat-detail__eyebrow">Selected seat</p>
+        <h2>{{ selectedSeat.seatLabel }}</h2>
+      </div>
+      <p class="selected-seat-detail__status">{{ selectedSeat.statusLabel }}</p>
+    </header>
+
+    <p class="selected-seat-detail__helper">{{ selectedSeat.helperLabel }}</p>
+
+    <div class="selected-seat-detail__actions">
+      <button
+        type="button"
+        class="selected-seat-detail__action selected-seat-detail__action--primary"
+        [disabled]="!selectedSeat.canStartDining || !!selectedSeat.pendingAction"
+        (click)="startDining.emit()"
+      >
+        @if (selectedSeat.pendingAction === 'occupy') {
+          Starting dining...
+        } @else {
+          Start dining
+        }
+      </button>
+
+      <button
+        type="button"
+        class="selected-seat-detail__action"
+        [disabled]="!selectedSeat.canCheckout || !!selectedSeat.pendingAction"
+        (click)="checkout.emit()"
+      >
+        @if (selectedSeat.pendingAction === 'checkout') {
+          Checking out...
+        } @else {
+          Checkout
+        }
+      </button>
+    </div>
+
+    @if (selectedSeat.feedbackTitle && selectedSeat.feedbackDetail) {
+      <section
+        class="selected-seat-detail__feedback"
+        [class.selected-seat-detail__feedback--error]="selectedSeat.feedbackTone === 'error'"
+        [class.selected-seat-detail__feedback--success]="selectedSeat.feedbackTone === 'success'"
+        aria-live="polite"
+      >
+        <h3>{{ selectedSeat.feedbackTitle }}</h3>
+        <p>{{ selectedSeat.feedbackDetail }}</p>
+      </section>
+    }
+
+    @if (selectedSeat.orderSummary; as orderSummary) {
+      <section class="selected-seat-detail__order" aria-label="Running order summary">
+        <div class="selected-seat-detail__order-meta">
+          <p>Order {{ orderSummary.orderId }}</p>
+          <p>{{ orderSummary.status }}</p>
+          <p>{{ orderSummary.totalPrice ?? 0 }} Yen</p>
+        </div>
+
+        <ul class="selected-seat-detail__order-lines">
+          @if (orderSummary.lines?.length) {
+            @for (line of orderSummary.lines; track trackOrderLine($index, line)) {
+              <li>
+                <span>{{ line.menuItemName ?? 'Menu item' }}</span>
+                <span>{{ line.price ?? 0 }} Yen</span>
+              </li>
+            }
+          } @else {
+            <li>
+              <span>No plates picked yet.</span>
+              <span>0 Yen</span>
+            </li>
+          }
+        </ul>
+      </section>
+    } @else {
+      <p class="selected-seat-detail__placeholder">
+        @if (selectedSeat.canPickPlates) {
+          Pick plates from the highlighted reach area to build the running order here.
+        } @else {
+          This seat has no open order yet.
+        }
+      </p>
+    }
+  </section>
+}

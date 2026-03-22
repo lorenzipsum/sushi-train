@@ -38,10 +38,11 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[1].xPercent).toBeLessThanOrEqual(95);
     expect([0, -90, 90, 180]).toContain(result.seats[1].facingDeg);
     expect(result.seats[1].presenceCue).toBe('occupied');
-    expect(result.seats[0].isActionable).toBe(true);
-    expect(result.seats[0].seatAction).toBe('occupy');
-    expect(result.seats[1].isActionable).toBe(true);
-    expect(result.seats[1].seatAction).toBe('checkout');
+    expect(result.selectedSeatId).toBe('seat-1');
+    expect(result.reachArea?.seatId).toBe('seat-1');
+    expect(result.seats[0].isSelected).toBe(true);
+    expect(result.seats[0].statusLabel).toBe('Available');
+    expect(result.seats[1].statusLabel).toBe('Occupied');
     expect(result.kitchen.showChef).toBe(true);
   });
 
@@ -58,11 +59,26 @@ describe('buildBeltStageViewModel', () => {
       ],
     };
 
-    const atRest = buildBeltStageViewModel(snapshot, [], 0);
+    const seats: SeatStateListDto = [
+      { seatId: 'seat-1', label: 'Seat 1', positionIndex: 0, isOccupied: true },
+    ];
+
+    const atRest = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-1',
+      activeOrdersBySeatId: {
+        'seat-1': {
+          orderId: 'order-1',
+          createdAt: '2026-03-15T03:00:00Z',
+          seatId: 'seat-1',
+          status: 'OPEN',
+        },
+      },
+    });
     const shifted = buildBeltStageViewModel(snapshot, [], 2);
 
     expect(atRest.slots[0].plate?.visual.family).toBe('nigiri');
     expect(atRest.slots[0].plate?.visual.visualKey).toBe('tamago-nigiri');
+    expect(atRest.reachArea?.seatId).toBe('seat-1');
     expect(shifted.slots[0].xPercent).not.toBe(atRest.slots[0].xPercent);
   });
 
@@ -133,6 +149,7 @@ describe('buildBeltStageViewModel', () => {
     const result = buildBeltStageViewModel(snapshot, seats, 0, {
       pendingSeatId: 'seat-1',
       pendingAction: 'occupy',
+      selectedSeatId: 'seat-1',
       activeOrdersBySeatId: {
         'seat-2': {
           orderId: 'order-2',
@@ -145,12 +162,12 @@ describe('buildBeltStageViewModel', () => {
 
     expect(result.seats[0].isPending).toBe(true);
     expect(result.seats[0].presenceCue).toBe('pending');
-    expect(result.seats[0].isActionable).toBe(false);
-    expect(result.seats[0].seatAction).toBeNull();
+    expect(result.seats[0].statusLabel).toBe('Starting dining');
+    expect(result.seats[0].isSelected).toBe(true);
     expect(result.seats[1].orderId).toBe('order-2');
     expect(result.seats[1].occupiedSince).toBe('2026-03-15T03:00:00Z');
-    expect(result.seats[1].seatAction).toBe('checkout');
+    expect(result.seats[1].statusLabel).toBe('Occupied');
     expect(result.seats[1].ariaLabel).toContain('Active order order-2');
-    expect(result.seats[1].ariaLabel).toContain('Activate to check out this seat.');
+    expect(result.seats[1].ariaLabel).toContain('Activate to select this seat.');
   });
 });

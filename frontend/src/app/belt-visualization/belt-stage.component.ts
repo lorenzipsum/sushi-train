@@ -1,5 +1,9 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import type { BeltStageSeatViewModel, BeltStageViewModel } from './belt-view-model';
+import type {
+  BeltStagePlateViewModel,
+  BeltStageSeatViewModel,
+  BeltStageViewModel,
+} from './belt-view-model';
 
 @Component({
   selector: 'app-belt-stage',
@@ -12,19 +16,14 @@ export class BeltStageComponent {
   readonly reducedMotion = input(false);
   readonly paused = input(false);
   readonly degraded = input(false);
-  readonly occupySeat = output<string>();
-  readonly checkoutSeat = output<string>();
+  readonly selectSeat = output<string>();
+  readonly pickPlate = output<string>();
 
   handleSeatClick(seat: BeltStageSeatViewModel): void {
-    if (!seat.isActionable) {
-      return;
-    }
+    this.selectSeat.emit(seat.id);
+  }
 
-    if (seat.seatAction === 'checkout') {
-      this.checkoutSeat.emit(seat.id);
-      return;
-    }
-
-    this.occupySeat.emit(seat.id);
+  handlePlateClick(plate: BeltStagePlateViewModel): void {
+    this.pickPlate.emit(plate.id);
   }
 }

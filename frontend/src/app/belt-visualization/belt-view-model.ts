@@ -3,6 +3,7 @@ import type {
   BeltSlotSnapshotDto,
   OrderSummaryDto,
   PlateSnapshotDto,
+  SeatPendingAction,
   SeatStateDto,
   SeatStateListDto,
 } from '../api/types';
@@ -22,6 +23,9 @@ export interface BeltStagePlateViewModel {
   foodClassName: string;
   visual: MenuItemVisual;
   ariaLabel: string;
+  isPickable: boolean;
+  isPendingPick: boolean;
+  isRejected: boolean;
 }
 
 export interface BeltStageSlotViewModel {
@@ -34,6 +38,7 @@ export interface BeltStageSlotViewModel {
   segment: BeltTrackSegment;
   plate: BeltStagePlateViewModel | null;
   ariaLabel: string;
+  isWithinReach: boolean;
 }
 
 export interface BeltStageSeatViewModel {
@@ -44,12 +49,20 @@ export interface BeltStageSeatViewModel {
   yPercent: number;
   facingDeg: number;
   isOccupied: boolean;
-  isActionable: boolean;
   isPending: boolean;
-  seatAction: 'occupy' | 'checkout' | null;
+  isSelected: boolean;
+  statusLabel: string;
   orderId: string | null;
   occupiedSince: string | null;
   presenceCue: 'available' | 'occupied' | 'pending';
+  ariaLabel: string;
+}
+
+export interface BeltStageReachAreaViewModel {
+  seatId: string;
+  xPercent: number;
+  yPercent: number;
+  radiusPercent: number;
   ariaLabel: string;
 }
 
@@ -69,12 +82,24 @@ export interface BeltStageViewModel {
   plateSizePx: number;
   slotMarkerSizePx: number;
   seatSizePx: number;
+  selectedSeatId: string | null;
+  reachArea: BeltStageReachAreaViewModel | null;
 }
 
 export interface BuildBeltStageViewModelOptions {
   pendingSeatId?: string | null;
-  pendingAction?: 'occupy' | 'checkout' | null;
+  pendingAction?: SeatPendingAction;
+  pendingPlateId?: string | null;
+  rejectedPlateId?: string | null;
   activeOrdersBySeatId?: Record<string, OrderSummaryDto | undefined>;
+  selectedSeatId?: string | null;
+}
+
+interface SeatLayoutContext {
+  seat: SeatStateDto;
+  seatId: string;
+  point: ReturnType<typeof getCounterSeatPoint>;
+  activeOrder?: OrderSummaryDto;
 }
 
 function getOccupiedPlateSizePx(
@@ -131,6 +156,19 @@ function getTierClass(plate: PlateSnapshotDto | null): string {
   }
 }
 
+function getDistance(
+  left: Pick<
+    BeltStageSeatViewModel | BeltStageSlotViewModel | BeltStageReachAreaViewModel,
+    'xPercent' | 'yPercent'
+  >,
+  right: Pick<
+    BeltStageSeatViewModel | BeltStageSlotViewModel | BeltStageReachAreaViewModel,
+    'xPercent' | 'yPercent'
+  >,
+): number {
+  return Math.hypot(left.xPercent - right.xPercent, left.yPercent - right.yPercent);
+}
+
 function getPlateLabel(plate: PlateSnapshotDto | null): string {
   if (!plate) {
     return 'Empty slot';
@@ -141,9 +179,16 @@ function getPlateLabel(plate: PlateSnapshotDto | null): string {
   return `${plate.menuItemName ?? 'Plate'} on ${plate.tier?.toLowerCase() ?? 'unknown'} tier, ${price}`;
 }
 
-function buildPlateViewModel(plate: PlateSnapshotDto, index: number): BeltStagePlateViewModel {
+function buildPlateViewModel(
+  plate: PlateSnapshotDto,
+  index: number,
+  isPickable: boolean,
+  isPendingPick: boolean,
+  isRejected: boolean,
+): BeltStagePlateViewModel {
   const visual = resolveMenuItemVisual(plate.menuItemName);
   const tierClass = getTierClass(plate);
+  const pickabilityLabel = isPickable ? 'Pickable now.' : 'Not pickable right now.';
 
   return {
     id: plate.plateId ?? `plate-${index}`,
@@ -152,7 +197,46 @@ function buildPlateViewModel(plate: PlateSnapshotDto, index: number): BeltStageP
     className: `${tierClass} plate--${visual.family} plate--${visual.vesselType}`,
     foodClassName: `food--${visual.family} visual--${visual.visualKey} ${visual.accentClass}`,
     visual,
-    ariaLabel: getPlateLabel(plate),
+    ariaLabel: `${getPlateLabel(plate)} ${pickabilityLabel}`,
+    isPickable,
+    isPendingPick,
+    isRejected,
+  };
+}
+
+function getReachArea(
+  seatContexts: SeatLayoutContext[],
+  selectedSeatId: string | null,
+): BeltStageReachAreaViewModel | null {
+  if (!selectedSeatId) {
+    return null;
+  }
+
+  const selectedIndex = seatContexts.findIndex((context) => context.seatId === selectedSeatId);
+  if (selectedIndex === -1) {
+    return null;
+  }
+
+  const selectedSeat = seatContexts[selectedIndex];
+  let radiusPercent = 12;
+
+  if (seatContexts.length > 1) {
+    const previousSeat =
+      seatContexts[(selectedIndex - 1 + seatContexts.length) % seatContexts.length];
+    const nextSeat = seatContexts[(selectedIndex + 1) % seatContexts.length];
+    const neighborDistances = [
+      getDistance(selectedSeat.point, previousSeat.point),
+      getDistance(selectedSeat.point, nextSeat.point),
+    ];
+    radiusPercent = Math.max(10, Math.min(20, Math.max(...neighborDistances) * 0.58));
+  }
+
+  return {
+    seatId: selectedSeatId,
+    xPercent: selectedSeat.point.xPercent,
+    yPercent: selectedSeat.point.yPercent,
+    radiusPercent,
+    ariaLabel: `${selectedSeat.seat.label ?? 'Selected seat'} pickup reach`,
   };
 }
 
@@ -173,12 +257,30 @@ export function buildBeltStageViewModel(
   );
   const pendingSeatId = options.pendingSeatId ?? null;
   const pendingAction = options.pendingAction ?? null;
+  const pendingPlateId = options.pendingPlateId ?? null;
+  const rejectedPlateId = options.rejectedPlateId ?? null;
   const activeOrdersBySeatId = options.activeOrdersBySeatId ?? {};
+
+  const seatContexts = sortedSeats.map((seat, index) => ({
+    seat,
+    seatId: getSeatId(seat, index),
+    point: getCounterSeatPoint(index, sortedSeats.length),
+    activeOrder: seat.seatId ? activeOrdersBySeatId[seat.seatId] : undefined,
+  }));
+
+  const selectedSeatId = options.selectedSeatId ?? seatContexts[0]?.seatId ?? null;
+  const reachArea = getReachArea(seatContexts, selectedSeatId);
+  const selectedSeatContext =
+    seatContexts.find((context) => context.seatId === selectedSeatId) ?? null;
+  const selectedSeatCanPick =
+    !!selectedSeatContext?.seat.isOccupied && !!selectedSeatContext.activeOrder?.orderId;
 
   return {
     beltName: snapshot.beltName ?? 'Sushi belt',
     slotCount,
     occupiedPlateCount,
+    selectedSeatId,
+    reachArea,
     kitchen: {
       showChef: true,
       chefLabel: 'Chef preparing dishes inside the counter',
@@ -194,7 +296,20 @@ export function buildBeltStageViewModel(
         slotCount,
         renderOffset,
       );
-      const plate = slot.plate ? buildPlateViewModel(slot.plate, index) : null;
+      const slotPoint = { xPercent, yPercent };
+      const isWithinReach = reachArea
+        ? getDistance(slotPoint, reachArea) <= reachArea.radiusPercent
+        : false;
+      const isPickable = !!slot.plate && isWithinReach && selectedSeatCanPick && !pendingAction;
+      const plate = slot.plate
+        ? buildPlateViewModel(
+            slot.plate,
+            index,
+            isPickable,
+            slot.plate.plateId === pendingPlateId,
+            slot.plate.plateId === rejectedPlateId,
+          )
+        : null;
 
       return {
         id: getSlotId(slot, index),
@@ -206,50 +321,48 @@ export function buildBeltStageViewModel(
         tangentDeg,
         segment,
         plate,
+        isWithinReach,
         ariaLabel: `Slot ${positionIndex + 1}. ${plate?.ariaLabel ?? 'Empty slot'}`,
       };
     }),
-    seats: sortedSeats.map((seat, index) => {
-      const positionIndex = seat.positionIndex ?? index;
-      const { xPercent, yPercent, facingDeg } = getCounterSeatPoint(index, sortedSeats.length);
-      const seatId = getSeatId(seat, index);
-      const activeOrder = seat.seatId ? activeOrdersBySeatId[seat.seatId] : undefined;
-      const isPending = seat.seatId === pendingSeatId;
-      const isOccupied = !!seat.isOccupied;
-      const seatAction = isPending ? null : isOccupied ? 'checkout' : 'occupy';
-      const isActionable = seatAction !== null;
+    seats: seatContexts.map((context) => {
+      const isPending = context.seatId === pendingSeatId;
+      const isSelected = context.seatId === selectedSeatId;
+      const isOccupied = !!context.seat.isOccupied;
       const presenceCue = isPending ? 'pending' : isOccupied ? 'occupied' : 'available';
-      const ariaParts = [seat.label ?? `Seat ${index + 1}`];
+      const statusLabel = isPending
+        ? pendingAction === 'checkout'
+          ? 'Checking out'
+          : pendingAction === 'occupy'
+            ? 'Starting dining'
+            : 'Updating'
+        : isOccupied
+          ? 'Occupied'
+          : 'Available';
+      const ariaParts = [context.seat.label ?? 'Seat'];
 
-      if (isPending) {
-        ariaParts.push(
-          pendingAction === 'checkout'
-            ? 'is checking out right now.'
-            : 'is being occupied right now.',
-        );
-      } else if (isOccupied) {
-        ariaParts.push('is occupied.');
-        if (activeOrder?.orderId) {
-          ariaParts.push(`Active order ${activeOrder.orderId}.`);
-        }
-        ariaParts.push('Activate to check out this seat.');
-      } else {
-        ariaParts.push('is available. Activate to occupy this seat.');
+      if (isSelected) {
+        ariaParts.push('Currently selected.');
       }
+      ariaParts.push(isOccupied ? 'Occupied.' : 'Available.');
+      if (context.activeOrder?.orderId) {
+        ariaParts.push(`Active order ${context.activeOrder.orderId}.`);
+      }
+      ariaParts.push('Activate to select this seat.');
 
       return {
-        id: seatId,
-        label: seat.label ?? `Seat ${index + 1}`,
-        positionIndex,
-        xPercent,
-        yPercent,
-        facingDeg,
+        id: context.seatId,
+        label: context.seat.label ?? 'Seat',
+        positionIndex: context.seat.positionIndex ?? 0,
+        xPercent: context.point.xPercent,
+        yPercent: context.point.yPercent,
+        facingDeg: context.point.facingDeg,
         isOccupied,
-        isActionable,
         isPending,
-        seatAction,
-        orderId: activeOrder?.orderId ?? null,
-        occupiedSince: activeOrder?.createdAt ?? null,
+        isSelected,
+        statusLabel,
+        orderId: context.activeOrder?.orderId ?? null,
+        occupiedSince: context.activeOrder?.createdAt ?? null,
         presenceCue,
         ariaLabel: ariaParts.join(' '),
       };

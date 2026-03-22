@@ -47,10 +47,23 @@
         </div>
       </div>
 
+      @if (stage().reachArea; as reachArea) {
+        <div
+          class="belt-stage__reach-area"
+          [style.left.%]="reachArea.xPercent"
+          [style.top.%]="reachArea.yPercent"
+          [style.width.%]="reachArea.radiusPercent * 2"
+          [style.height.%]="reachArea.radiusPercent * 2"
+          [attr.aria-label]="reachArea.ariaLabel"
+          [attr.title]="reachArea.ariaLabel"
+        ></div>
+      }
+
       @for (slot of stage().slots; track slot.id) {
         <div
           class="slot"
           [class.slot--occupied]="!!slot.plate"
+          [class.slot--within-reach]="slot.isWithinReach"
           [class.slot--reduced]="reducedMotion()"
           [style.left.%]="slot.xPercent"
           [style.top.%]="slot.yPercent"
@@ -61,15 +74,26 @@
           <span class="slot__marker"></span>
 
           @if (slot.plate; as plate) {
-            <span class="plate" [class]="plate.className">
-              <span class="plate__rim"></span>
-              <span class="plate__center"></span>
-              <span class="food" [class]="plate.foodClassName">
-                <span class="food__base"></span>
-                <span class="food__topping"></span>
-                <span class="food__accent"></span>
+            <button
+              type="button"
+              class="plate-hitbox"
+              [class.plate-hitbox--pickable]="plate.isPickable"
+              [class.plate-hitbox--pending]="plate.isPendingPick"
+              [class.plate-hitbox--rejected]="plate.isRejected"
+              [attr.aria-label]="plate.ariaLabel"
+              [attr.title]="plate.ariaLabel"
+              (click)="handlePlateClick(plate)"
+            >
+              <span class="plate" [class]="plate.className">
+                <span class="plate__rim"></span>
+                <span class="plate__center"></span>
+                <span class="food" [class]="plate.foodClassName">
+                  <span class="food__base"></span>
+                  <span class="food__topping"></span>
+                  <span class="food__accent"></span>
+                </span>
               </span>
-            </span>
+            </button>
           }
         </div>
       }
@@ -77,54 +101,30 @@
 
     <div class="belt-stage__seat-row">
       @for (seat of stage().seats; track seat.id) {
-        @if (seat.isActionable) {
-          <button
-            type="button"
-            class="seat seat--actionable"
-            [class.seat--occupied]="seat.isOccupied"
-            [class.seat--checkout]="seat.seatAction === 'checkout'"
-            [class.seat--pending]="seat.isPending"
-            [style.left.%]="seat.xPercent"
-            [style.top.%]="seat.yPercent"
-            [style.transform]="'translate(-50%, -50%) rotate(' + seat.facingDeg + 'deg)'"
-            [attr.aria-label]="seat.ariaLabel"
-            [attr.title]="seat.ariaLabel"
-            (click)="handleSeatClick(seat)"
-          >
-            <span class="seat__frame" aria-hidden="true"></span>
-            <span class="seat__cushion" aria-hidden="true"></span>
-            <span class="seat__label" aria-hidden="true">{{ seat.label }}</span>
-            @if (seat.isOccupied) {
-              <span class="seat__guest" aria-hidden="true">
-                <span class="seat__guest-knot"></span>
-                <span class="seat__guest-head"></span>
-                <span class="seat__guest-body"></span>
-              </span>
-            }
-          </button>
-        } @else {
-          <div
-            class="seat"
-            [class.seat--occupied]="seat.isOccupied"
-            [class.seat--pending]="seat.isPending"
-            [style.left.%]="seat.xPercent"
-            [style.top.%]="seat.yPercent"
-            [style.transform]="'translate(-50%, -50%) rotate(' + seat.facingDeg + 'deg)'"
-            [attr.aria-label]="seat.ariaLabel"
-            [attr.title]="seat.ariaLabel"
-          >
-            <span class="seat__frame" aria-hidden="true"></span>
-            <span class="seat__cushion" aria-hidden="true"></span>
-            <span class="seat__label" aria-hidden="true">{{ seat.label }}</span>
-            @if (seat.isOccupied) {
-              <span class="seat__guest" aria-hidden="true">
-                <span class="seat__guest-knot"></span>
-                <span class="seat__guest-head"></span>
-                <span class="seat__guest-body"></span>
-              </span>
-            }
-          </div>
-        }
+        <button
+          type="button"
+          class="seat seat--actionable"
+          [class.seat--occupied]="seat.isOccupied"
+          [class.seat--pending]="seat.isPending"
+          [class.seat--selected]="seat.isSelected"
+          [style.left.%]="seat.xPercent"
+          [style.top.%]="seat.yPercent"
+          [style.transform]="'translate(-50%, -50%) rotate(' + seat.facingDeg + 'deg)'"
+          [attr.aria-label]="seat.ariaLabel"
+          [attr.title]="seat.ariaLabel"
+          (click)="handleSeatClick(seat)"
+        >
+          <span class="seat__frame" aria-hidden="true"></span>
+          <span class="seat__cushion" aria-hidden="true"></span>
+          <span class="seat__label" aria-hidden="true">{{ seat.label }}</span>
+          @if (seat.isOccupied) {
+            <span class="seat__guest" aria-hidden="true">
+              <span class="seat__guest-knot"></span>
+              <span class="seat__guest-head"></span>
+              <span class="seat__guest-body"></span>
+            </span>
+          }
+        </button>
       }
     </div>
   </div>
