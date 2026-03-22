@@ -2,30 +2,31 @@
 
 ## Current
 
-| Feature                    | Status | Notes                    |
-| -------------------------- | ------ | ------------------------ |
-| `001-belt-visualization`   | Done   | Read-only belt baseline  |
-| `002-belt-layout-redesign` | Done   | Manual review still open |
-| `004-checkout-seat`        | Done   | Checkout flow shipped    |
+| Feature                    | Status | Notes                                                              |
+| -------------------------- | ------ | ------------------------------------------------------------------ |
+| `001-belt-visualization`   | Done   | Read-only belt baseline                                            |
+| `002-belt-layout-redesign` | Done   | Belt-stage redesign shipped; earlier manual review note remains    |
+| `003-occupy-seat`          | Done   | Start seat lifecycle                                               |
+| `004-checkout-seat`        | Done   | Checkout flow shipped                                              |
+| `005-pick-plates`          | Done   | Guest plate picking shipped                                        |
+| `006-hydrate-seat-orders`  | Done   | Reload-time order restoration and selected-seat continuity shipped |
 
 ## Next Features
 
-| Order | Feature                     | Status   | Depends on                 | Notes                         |
-| ----- | --------------------------- | -------- | -------------------------- | ----------------------------- |
-| 3     | `003-occupy-seat`           | Done     | `002-belt-layout-redesign` | Start seat lifecycle          |
-| 4     | `004-checkout-seat`         | Done     | `003-occupy-seat`          | Close seat lifecycle          |
-| 5     | `005-pick-plates`           | Active   | `003-occupy-seat`          | Guest plate action            |
-| 6     | `006-add-plates-to-belt`    | Proposed | `005-pick-plates`          | Kitchen or staff plate action |
-| 7     | `007-realtime-belt-updates` | Proposed | `003`-`006`                | Replace or reduce polling     |
-| 8     | `008-design-polish`         | Proposed | `003`-`007`                | Final UI pass                 |
+| Order | Feature                     | Status   | Depends on                                                                                                                                  | Notes                                      |
+| ----- | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| 7     | `007-add-plates-to-belt`    | Proposed | `005-pick-plates`                                                                                                                           | Demo-mode operator plate action in same UI |
+| 8     | `008-realtime-belt-updates` | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-to-belt`                              | Replace or reduce polling                  |
+| 9     | `009-design-polish`         | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-to-belt`, `008-realtime-belt-updates` | Final UI pass                              |
 
 ## Dependency Shape
 
 ```text
 002 -> 003 -> 004
          -> 005 -> 006
-003-006 -> 007
+         -> 005 -> 007
 003-007 -> 008
+003-008 -> 009
 ```
 
 ## Spec Kit Rules
@@ -40,6 +41,7 @@
 frontend/specs/003-occupy-seat/
 frontend/specs/004-checkout-seat/
 frontend/specs/005-pick-plates/
+frontend/specs/006-hydrate-seat-orders/
 ```
 
 Each feature should contain:
