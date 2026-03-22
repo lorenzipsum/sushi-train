@@ -122,7 +122,7 @@ flowchart LR
 Run locally:
 
 ```bash
-docker-compose up --build
+docker compose up --build
 # Frontend: http://localhost:4200
 # Backend:  http://localhost:8088
 # Swagger (if enabled): http://localhost:8088/swagger-ui.html

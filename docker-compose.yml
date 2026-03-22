@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sushitrain}
+      POSTGRES_USER: ${POSTGRES_USER:-sushitrain}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sushitrain}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sushitrain} -d ${POSTGRES_DB:-sushitrain}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-demo-mode}
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/sushitrain}
+      DB_USER: ${DB_USER:-sushitrain}
+      DB_PASSWORD: ${DB_PASSWORD:-sushitrain}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/actuator/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    ports:
+      - "${BACKEND_PORT:-8088}:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      API_UPSTREAM: ${FRONTEND_API_UPSTREAM:-backend:8080}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

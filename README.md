@@ -44,7 +44,7 @@ The Sushi-Train project is designed to:
 - Learn and apply **Spring Boot**, **Angular**, **PostgreSQL**, **Kafka**, **Docker**, and **Kubernetes**.
 - Experiment with **Domain-Driven Design** and **Event Streaming** in a playful context.
 - Create a well-documented, visually engaging **portfolio project**.
-- Deploy locally via `docker-compose` and optionally on the cloud (Phase 4).
+- Deploy locally via `docker compose` and optionally on the cloud (Phase 4).
 
 ---
 
@@ -68,7 +68,7 @@ The Sushi-Train project is designed to:
 - **Seats and Orders**: pick plates, view totals, and check out
 - **DDD + Ports & Adapters** structure in backend
 - **WebSocket live updates** for belt and seat view
-- Run everything locally with `docker-compose`
+- Run everything locally with `docker compose`
 
 ---
 
@@ -106,8 +106,11 @@ sushi-train/
 2. **Start the stack**
 
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
+
+   Optional: copy `.env.example` to `.env` first if you want to override ports, credentials, or runtime settings.
+   The frontend proxy upstream can be changed with `FRONTEND_API_UPSTREAM`, which is useful when the backend runs as a separate cloud service later.
 
 3. **Open in your browser**
 

@@ -28,11 +28,15 @@ It provides:
 
 ### Option 1: Docker Compose (recommended)
 
-From the `backend` directory:
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
+
+Optional:
+- copy `.env.example` to `.env`
+- adjust database credentials, published ports, or Spring profile there
 
 If Flyway fails with a checksum mismatch after migration file changes, reset local containers and volumes:
 
@@ -58,6 +62,9 @@ Swagger UI (when enabled by active profile):
 - `local`: local datasource + Flyway + Swagger enabled.
 - `demo-mode`: enables console belt animation.
 - `show-sql`: verbose SQL logging.
+
+The Docker setup reads database and port settings from environment variables, which makes the same container images easier to reuse in cloud deployments.
+The backend also exposes Actuator health at `/actuator/health`, which is the intended probe endpoint for later cloud orchestration.
 
 ## Project Layout
 

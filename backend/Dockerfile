@@ -7,10 +7,14 @@ COPY mvnw mvnw
 COPY mvnw.cmd mvnw.cmd
 COPY src src
 
-RUN ./mvnw -DskipTests package
+RUN chmod +x mvnw && ./mvnw -DskipTests package
 
 FROM eclipse-temurin:25-jre
 WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/target/sushi-train-backend-0.1.1-SNAPSHOT.jar app.jar
 
