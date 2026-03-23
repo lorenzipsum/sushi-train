@@ -287,9 +287,9 @@ function getReachArea(
   const seatLabel = selectedSeat.seat.label ?? 'Selected seat';
   const highlightRadiusPercent = baseRadiusPercent;
   const highlightWidthPercent =
-    highlightRadiusPercent * (seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 0.57 : 0.68) * 2;
+    highlightRadiusPercent * (seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 0.74 : 0.68) * 2;
   const highlightHeightPercent =
-    (seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 0.72 : 0.96) *
+    (seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 0.88 : 0.96) *
     highlightRadiusPercent *
     2;
   const rotationDeg = seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 90 : 0;

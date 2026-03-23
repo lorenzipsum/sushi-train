@@ -60,7 +60,7 @@
 .hero,
 .belt-deck,
 .state-card {
-  max-width: 76rem;
+  max-width: var(--page-max-width);
   margin-inline: auto;
 }
 

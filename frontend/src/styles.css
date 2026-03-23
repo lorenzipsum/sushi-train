@@ -1,5 +1,6 @@
 :root {
-  --page-max-width: 76rem;
+  --page-max-width: 84rem;
+  --stage-max-width: 82rem;
   --surface-cream: #fff9f1;
   --surface-cream-strong: #fff3e6;
   --surface-blush: #ffe1db;
@@ -39,7 +40,7 @@ textarea {
   --slot-size: 6px;
   --seat-size: 28px;
   position: relative;
-  width: min(100%, 74rem);
+  width: min(100%, var(--stage-max-width));
   margin-inline: auto;
 }
 

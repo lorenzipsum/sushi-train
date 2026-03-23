@@ -320,10 +320,10 @@ describe('buildBeltStageViewModel', () => {
       sideRow.reachArea?.highlightHeightPercent ?? Number.POSITIVE_INFINITY,
     );
     expect(topRow.reachArea?.highlightWidthPercent).toBeLessThan(
-      sideRow.reachArea?.highlightWidthPercent ?? Number.POSITIVE_INFINITY,
+      (topRow.reachArea?.slotLightingRadiusPercent ?? Number.POSITIVE_INFINITY) * 2,
     );
     expect(bottomRow.reachArea?.highlightWidthPercent).toBeLessThan(
-      sideRow.reachArea?.highlightWidthPercent ?? Number.POSITIVE_INFINITY,
+      (bottomRow.reachArea?.slotLightingRadiusPercent ?? Number.POSITIVE_INFINITY) * 2,
     );
   });
 
