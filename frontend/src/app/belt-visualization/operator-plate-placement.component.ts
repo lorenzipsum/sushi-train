@@ -25,6 +25,8 @@ export class OperatorPlatePlacementComponent {
   readonly draftChange = output<OperatorPlacementDraftPatch>();
   readonly submitPlacement = output<void>();
   readonly retryMenuLoad = output<void>();
+  protected readonly hasSecondaryNotice = (vm: OperatorPlacementViewModel): boolean =>
+    !!vm.notice?.secondaryDetail;
 
   protected readonly tierOptions: MenuItemTier[] = ['GREEN', 'RED', 'GOLD', 'BLACK'];
 

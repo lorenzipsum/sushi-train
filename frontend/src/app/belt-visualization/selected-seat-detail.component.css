@@ -4,11 +4,12 @@
 
 .selected-seat-detail {
   display: grid;
-  gap: 0.85rem;
-  padding: 0.95rem 1rem;
-  border-radius: 1.2rem;
-  background: rgba(255, 255, 255, 0.72);
+  gap: 0.9rem;
+  padding: 1rem 1.05rem;
+  border-radius: 1.35rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(255, 249, 242, 0.92) 100%);
   border: 1px solid rgba(123, 90, 69, 0.12);
+  box-shadow: 0 14px 24px rgba(123, 90, 69, 0.08);
 }
 
 .selected-seat-detail__header {
@@ -49,6 +50,15 @@
   color: #1f2a26;
 }
 
+.selected-seat-detail__secondary {
+  margin: 0.28rem 0 0;
+  color: rgba(92, 61, 47, 0.84);
+  font:
+    700 0.82rem/1.45 'Nunito Sans',
+    'Segoe UI',
+    sans-serif;
+}
+
 .selected-seat-detail__status {
   padding: 0.45rem 0.7rem;
   border-radius: 999px;
@@ -74,6 +84,9 @@
 
 .selected-seat-detail__helper {
   color: rgba(51, 64, 59, 0.8);
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 249, 242, 0.72);
 }
 
 .selected-seat-detail__actions {
@@ -167,6 +180,9 @@
 
 .selected-seat-detail__placeholder {
   color: rgba(51, 64, 59, 0.76);
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 249, 242, 0.72);
 }
 
 @media (max-width: 640px) {

@@ -8,8 +8,7 @@
     >
       <header class="operator-placement__header">
         <div>
-          <p class="operator-placement__eyebrow">Demo mode operator</p>
-          <h2>Add plates to the belt</h2>
+          <p class="operator-placement__eyebrow">Add plates to the belt</p>
         </div>
 
         <button
@@ -22,15 +21,17 @@
         </button>
       </header>
 
-      @if (vm.notice; as notice) {
+      @if (vm.notice?.tone === 'error' && vm.notice; as notice) {
         <section
           class="operator-placement__notice"
-          [class.operator-placement__notice--error]="notice.tone === 'error'"
-          [class.operator-placement__notice--success]="notice.tone === 'success'"
+          [class.operator-placement__notice--error]="true"
           aria-live="polite"
         >
           <h3>{{ notice.title }}</h3>
           <p>{{ notice.detail }}</p>
+          @if (hasSecondaryNotice(vm)) {
+            <p class="operator-placement__notice-secondary">{{ notice.secondaryDetail }}</p>
+          }
         </section>
       }
 
@@ -52,7 +53,7 @@
       }
 
       <label class="operator-placement__field operator-placement__field--search">
-        <span>Search menu items</span>
+        <span>Search menu items ({{ vm.resultsSummaryLabel }})</span>
         <input
           type="search"
           [value]="vm.query"
@@ -85,13 +86,9 @@
       }
 
       <div class="operator-placement__draft">
-        <p class="operator-placement__meta">
-          @if (vm.selectedMenuItemLabel) {
-            Selected: {{ vm.selectedMenuItemLabel }}
-          } @else {
-            Choose a menu item before placing plates.
-          }
-        </p>
+        @if (vm.selectedMenuItemLabel) {
+          <p class="operator-placement__meta">Selected: {{ vm.selectedMenuItemLabel }}</p>
+        }
 
         <div class="operator-placement__fields">
           <label class="operator-placement__field">
@@ -143,15 +140,11 @@
       </div>
 
       <footer class="operator-placement__footer">
-        <p class="operator-placement__meta">
-          @if (vm.submitDisabledReason) {
-            {{ vm.submitDisabledReason }}
-          } @else if (vm.draft.isDefaultDraft) {
-            Defaults are ready for a fast operator placement.
-          } @else {
-            Manual overrides will be sent with this placement.
-          }
-        </p>
+        @if (vm.submitDisabledReason) {
+          <div class="operator-placement__footer-copy">
+            <p class="operator-placement__meta">{{ vm.submitDisabledReason }}</p>
+          </div>
+        }
 
         <button
           type="button"

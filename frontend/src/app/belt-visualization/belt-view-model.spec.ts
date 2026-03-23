@@ -43,7 +43,12 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[0].isSelected).toBe(true);
     expect(result.seats[0].statusLabel).toBe('Available');
     expect(result.seats[1].statusLabel).toBe('Occupied');
+    expect(result.seats[0].secondaryLabel).toBe('Tap to start');
+    expect(result.presentation.layoutVariant).toBe('current-balanced');
+    expect(result.presentation.primaryLabel).toBe('Counter loop overview');
+    expect(result.presentation.legends).toHaveLength(3);
     expect(result.kitchen.showChef).toBe(true);
+    expect(result.kitchen.chefSecondaryLabel).toContain('Knife skills');
   });
 
   it('adds menu-item family metadata and render-offset-aware slot positions', () => {
@@ -163,6 +168,7 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[0].isPending).toBe(true);
     expect(result.seats[0].presenceCue).toBe('pending');
     expect(result.seats[0].statusLabel).toBe('Starting dining');
+    expect(result.seats[0].secondaryLabel).toBe('Starting dining');
     expect(result.seats[0].isSelected).toBe(true);
     expect(result.seats[1].orderId).toBe('order-2');
     expect(result.seats[1].occupiedSince).toBe('2026-03-15T03:00:00Z');

@@ -3,6 +3,9 @@
   [class.belt-stage--paused]="paused()"
   [class.belt-stage--reduced]="reducedMotion()"
   [class.belt-stage--degraded]="degraded()"
+  [attr.data-layout-variant]="stage().presentation.layoutVariant"
+  [attr.data-ornament-density]="stage().presentation.ornamentDensity"
+  [attr.data-seat-label-mode]="stage().presentation.seatLabelMode"
   [style.--plate-size.px]="stage().plateSizePx"
   [style.--slot-size.px]="stage().slotMarkerSizePx"
   [style.--seat-size.px]="stage().seatSizePx"
@@ -15,7 +18,6 @@
       <div class="belt-stage__lane belt-stage__lane--inner" aria-hidden="true">
         <div class="belt-stage__kitchen">
           <div class="belt-stage__kitchen-island"></div>
-          <div class="belt-stage__pass"></div>
           @if (stage().kitchen.showChef) {
             <div class="belt-stage__chef" [attr.title]="stage().kitchen.chefLabel">
               <span class="belt-stage__chef-hat"></span>
@@ -35,29 +37,51 @@
             [attr.title]="stage().kitchen.accentLabels[0]"
           ></div>
           <div
-            class="belt-stage__prep belt-stage__prep--lamp"
-            [attr.title]="stage().kitchen.accentLabels[1]"
-          ></div>
-          <div
             class="belt-stage__prep belt-stage__prep--tray"
             [attr.title]="stage().kitchen.accentLabels[2]"
           ></div>
-          <div class="belt-stage__prep belt-stage__prep--mat"></div>
-          <div class="belt-stage__prep belt-stage__prep--nigiri"></div>
+        </div>
+
+        <div class="belt-stage__kitchen-stats" aria-label="Kitchen summary">
+          <div
+            class="belt-stage__kitchen-stat belt-stage__kitchen-stat--with-action"
+            [class.belt-stage__kitchen-stat--active]="operatorOpen()"
+          >
+            <span>Plates</span>
+            <strong>{{ stage().occupiedPlateCount }}</strong>
+            <button
+              type="button"
+              class="belt-stage__kitchen-action"
+              [class.belt-stage__kitchen-action--active]="operatorOpen()"
+              [attr.aria-pressed]="operatorOpen()"
+              aria-label="Add plates"
+              title="Add plates"
+              (click)="handleOperatorClick()"
+            >
+              <span aria-hidden="true">+</span>
+            </button>
+          </div>
+
+          <div class="belt-stage__kitchen-stat">
+            <span>Seats</span>
+            <strong>{{ occupiedSeatCount() }}/{{ stage().seats.length }}</strong>
+          </div>
+
+          <div class="belt-stage__kitchen-stat belt-stage__kitchen-stat--with-action">
+            <span>Belt speed</span>
+            <strong>{{ speedLabel() }}</strong>
+            <button
+              type="button"
+              class="belt-stage__kitchen-action belt-stage__kitchen-action--settings"
+              aria-label="Counter settings"
+              title="Counter settings"
+              disabled
+            >
+              <span aria-hidden="true">⚙</span>
+            </button>
+          </div>
         </div>
       </div>
-
-      <button
-        type="button"
-        class="belt-stage__operator-entry"
-        [class.belt-stage__operator-entry--active]="operatorOpen()"
-        [attr.aria-label]="stage().kitchen.operatorEntryLabel"
-        [attr.aria-pressed]="operatorOpen()"
-        (click)="handleOperatorClick()"
-      >
-        <span class="belt-stage__operator-entry-badge" aria-hidden="true">+</span>
-        <span>{{ stage().kitchen.operatorEntryLabel }}</span>
-      </button>
 
       @if (stage().reachArea; as reachArea) {
         <div
@@ -128,7 +152,6 @@
         >
           <span class="seat__frame" aria-hidden="true"></span>
           <span class="seat__cushion" aria-hidden="true"></span>
-          <span class="seat__label" aria-hidden="true">{{ seat.label }}</span>
           @if (seat.isOccupied) {
             <span class="seat__guest" aria-hidden="true">
               <span class="seat__guest-knot"></span>

@@ -4,6 +4,9 @@
       <div>
         <p class="selected-seat-detail__eyebrow">Selected seat</p>
         <h2>{{ selectedSeat.seatLabel }}</h2>
+        @if (hasSecondaryLabel(selectedSeat)) {
+          <p class="selected-seat-detail__secondary">{{ selectedSeat.secondaryLabel }}</p>
+        }
       </div>
       <p
         class="selected-seat-detail__status"
@@ -19,7 +22,9 @@
       </p>
     </header>
 
-    <p class="selected-seat-detail__helper">{{ selectedSeat.helperLabel }}</p>
+    @if (hasHelperLabel(selectedSeat)) {
+      <p class="selected-seat-detail__helper">{{ selectedSeat.helperLabel }}</p>
+    }
 
     <div class="selected-seat-detail__actions">
       <button
@@ -49,11 +54,14 @@
       </button>
     </div>
 
-    @if (selectedSeat.feedbackTitle && selectedSeat.feedbackDetail) {
+    @if (
+      selectedSeat.feedbackTone === 'error' &&
+      selectedSeat.feedbackTitle &&
+      selectedSeat.feedbackDetail
+    ) {
       <section
         class="selected-seat-detail__feedback"
         [class.selected-seat-detail__feedback--error]="selectedSeat.feedbackTone === 'error'"
-        [class.selected-seat-detail__feedback--success]="selectedSeat.feedbackTone === 'success'"
         aria-live="polite"
       >
         <h3>{{ selectedSeat.feedbackTitle }}</h3>
@@ -69,15 +77,13 @@
         "
       >
         <div class="selected-seat-detail__order-meta">
-          <p>
-            @if (selectedSeat.isCheckoutSummary) {
-              Final summary
-            } @else {
-              Order {{ orderSummary.orderId }}
-            }
-          </p>
-          <p>{{ orderSummary.status }}</p>
-          <p>{{ orderSummary.totalPrice ?? 0 }} Yen</p>
+          @if (selectedSeat.isCheckoutSummary) {
+            <p>Order total: {{ orderSummary.totalPrice ?? 0 }} Yen</p>
+          } @else {
+            <p>Order {{ orderSummary.orderId }}</p>
+            <p>{{ orderSummary.status }}</p>
+            <p>{{ orderSummary.totalPrice ?? 0 }} Yen</p>
+          }
         </div>
 
         <ul class="selected-seat-detail__order-lines">

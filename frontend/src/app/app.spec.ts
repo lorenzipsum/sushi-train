@@ -66,6 +66,7 @@ function createStageViewModel(): BeltStageViewModel {
         orderId: null,
         occupiedSince: null,
         presenceCue: 'available',
+        secondaryLabel: 'Tap to start',
         ariaLabel: 'Seat 1. Currently selected. Available. Activate to select this seat.',
       },
       {
@@ -83,14 +84,45 @@ function createStageViewModel(): BeltStageViewModel {
         orderId: 'order-2',
         occupiedSince: '2026-03-15T03:00:00Z',
         presenceCue: 'occupied',
+        secondaryLabel: 'Dining now',
         ariaLabel: 'Seat 2. Occupied. Active order order-2. Activate to select this seat.',
       },
     ],
     kitchen: {
       showChef: true,
       chefLabel: 'Chef preparing dishes',
+      chefSecondaryLabel: 'Knife skills: precise. Ego: respectfully medium.',
       accentLabels: ['Prep board', 'Tea lamp', 'Serving trays'],
+      signLabel: 'House special: tiny drama, stable workflows',
       operatorEntryLabel: 'Add plates to the belt',
+      operatorSecondaryLabel: 'Backstage hatch for plate logistics',
+    },
+    presentation: {
+      layoutVariant: 'current-balanced',
+      ornamentDensity: 'full',
+      seatLabelMode: 'full',
+      primaryLabel: 'Counter loop overview',
+      secondaryLabel: 'Warm cafe energy, same belt logic, zero workflow plot twists.',
+      legends: [
+        {
+          id: 'seats',
+          primaryLabel: 'Seats stay literal',
+          secondaryLabel: 'Tap a stool to focus the dining panel.',
+          tone: 'warm',
+        },
+        {
+          id: 'reach',
+          primaryLabel: 'Dashed ring = pickup reach',
+          secondaryLabel: 'Only that zone is fair game for plate picking.',
+          tone: 'reach',
+        },
+        {
+          id: 'operator',
+          primaryLabel: 'Kitchen hatch opens plate controls',
+          secondaryLabel: 'Chef chaos is decorative. The form is still strict.',
+          tone: 'operator',
+        },
+      ],
     },
     plateSizePx: 28,
     slotMarkerSizePx: 10,
@@ -110,7 +142,7 @@ describe('App', () => {
       isReducedMotion: () => false,
       isPaused: () => false,
       isDegraded: () => false,
-      speedLabel: () => '1 slot every 500ms',
+      speedLabel: () => '1/500ms',
       occupiedPlateCount: () => 1,
       occupiedSeatCount: () => 0,
       occupyFeedback: () => null,
@@ -120,12 +152,15 @@ describe('App', () => {
       operatorPlacement: () => ({
         isOpen: false,
         presentationMode: 'inline-kitchen',
+        secondaryLabel:
+          'Kitchen hatch controls with enough ceremony to feel fun, not enough to slow you down.',
         isMenuLoading: false,
         menuLoadError: null,
         isSubmitting: false,
         notice: null,
         query: '',
         totalMenuCount: 2,
+        resultsSummaryLabel: '0 of 2 menu items currently match the search',
         filteredMenuItems: [],
         selectedMenuItemId: null,
         selectedMenuItemLabel: null,
@@ -140,13 +175,16 @@ describe('App', () => {
         },
         canSubmit: false,
         submitDisabledReason: 'Choose a menu item before placing plates.',
+        submitSecondaryHint:
+          'Primary guidance stays literal so the operator flow never turns into a guessing game.',
       }),
       selectedSeatDetail: () => ({
         seatId: 'seat-1',
         seatLabel: 'Seat 1',
         restorationStatus: 'available',
         statusLabel: 'Available',
-        helperLabel: 'Seat clicks only change selection. Start dining here when you are ready.',
+        helperLabel: null,
+        secondaryLabel: null,
         isOccupied: false,
         canStartDining: true,
         canCheckout: false,
@@ -190,10 +228,99 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('h1')?.textContent).toContain('Kaitenzushi');
+    expect(compiled.querySelector('.hero__subtitle')?.textContent).toContain(
+      'Sushi Train Simulator, grab a seat and eat',
+    );
     expect(compiled.querySelector('.counter-stage')).toBeTruthy();
-    expect(compiled.querySelector('.support-panels')).toBeFalsy();
-    expect(compiled.textContent).toContain('Service pace');
-    expect(compiled.textContent).not.toContain('Guest seats');
+    expect(compiled.querySelector('.counter-stage__guide-button')).toBeTruthy();
+    expect(compiled.textContent).toContain('Belt speed');
+    expect(compiled.textContent).not.toContain('Warm cafe staging, unchanged service logic');
+  });
+
+  it('opens and closes the centralized counter notes dialog', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const openButton = compiled.querySelector('.counter-stage__guide-button') as HTMLButtonElement;
+
+    expect(compiled.querySelector('.guide-dialog')).toBeNull();
+
+    openButton.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.guide-dialog')).toBeTruthy();
+    expect(compiled.textContent).toContain('How this sushi bar behaves');
+    expect(compiled.textContent).toContain(
+      'One place for the demo rules, so the stage can breathe a little.',
+    );
+
+    const closeButton = compiled.querySelector('.guide-dialog__close') as HTMLButtonElement;
+    closeButton.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.guide-dialog')).toBeNull();
+  });
+
+  it('renders the loading state with literal primary copy and playful secondary copy', async () => {
+    storeMock = {
+      ...storeMock,
+      stageViewModel: () => null,
+      isLoading: () => true,
+    } as unknown as BeltVisualizationStore;
+
+    TestBed.resetTestingModule();
+
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.state-card--loading')).toBeTruthy();
+    expect(compiled.textContent).toContain('Setting the belt in motion');
+    expect(compiled.textContent).toContain(
+      'Tiny lanterns are imaginary. The loading state is unfortunately real.',
+    );
+  });
+
+  it('renders the fatal state with an authored error card', async () => {
+    storeMock = {
+      ...storeMock,
+      stageViewModel: () => null,
+      fatalMessage: () => 'Backend unavailable',
+    } as unknown as BeltVisualizationStore;
+
+    TestBed.resetTestingModule();
+
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.state-card--error')).toBeTruthy();
+    expect(compiled.textContent).toContain('We could not set the sushi belt table');
+    expect(compiled.textContent).toContain('Backend unavailable');
+    expect(compiled.textContent).toContain(
+      'The rice is innocent. The data path is the one being dramatic.',
+    );
+  });
+
+  it('keeps the primary seat and kitchen controls visible without filler seat copy', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.belt-stage__kitchen-action')).toBeTruthy();
+    expect(compiled.textContent).toContain('Start dining');
+    expect(compiled.textContent).not.toContain('The rice will not judge you');
   });
 
   it('routes seat clicks from the stage to selected-seat browsing', () => {
@@ -216,11 +343,11 @@ describe('App', () => {
     expect(storeMock.pickPlate).toHaveBeenCalledWith('plate-1');
   });
 
-  it('routes the kitchen operator entry button to the placement toggle', () => {
+  it('routes the kitchen plates tile to the placement toggle', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
-    const button = fixture.nativeElement.querySelector('.belt-stage__operator-entry');
+    const button = fixture.nativeElement.querySelector('.belt-stage__kitchen-action');
     button.click();
 
     expect(storeMock.toggleOperatorPlacement).toHaveBeenCalledTimes(1);
@@ -234,7 +361,8 @@ describe('App', () => {
         seatLabel: 'Seat 1',
         restorationStatus: 'available',
         statusLabel: 'Available',
-        helperLabel: 'Seat clicks only change selection. Start dining here when you are ready.',
+        helperLabel: null,
+        secondaryLabel: null,
         isOccupied: false,
         canStartDining: true,
         canCheckout: false,
@@ -275,8 +403,8 @@ describe('App', () => {
         seatLabel: 'Seat 2',
         restorationStatus: 'occupied',
         statusLabel: 'Occupied',
-        helperLabel:
-          'Pick plates from the highlighted reach area, or check out when the order is complete.',
+        helperLabel: null,
+        secondaryLabel: null,
         isOccupied: true,
         canStartDining: false,
         canCheckout: true,
@@ -326,6 +454,7 @@ describe('App', () => {
         statusLabel: 'Syncing dining state',
         helperLabel:
           'Dining state is loading from the backend. Reach cues may stay visible, but picks remain blocked until sync completes.',
+        secondaryLabel: 'The reach ring may linger, but the backend still has the final word.',
         isOccupied: true,
         canStartDining: false,
         canCheckout: true,
@@ -365,8 +494,8 @@ describe('App', () => {
         seatLabel: 'Seat 1',
         restorationStatus: 'checked-out',
         statusLabel: 'Checked out',
-        helperLabel:
-          'This final backend summary remains visible for the seat that just checked out.',
+        helperLabel: null,
+        secondaryLabel: null,
         isOccupied: false,
         canStartDining: true,
         canCheckout: false,
@@ -401,7 +530,8 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('.selected-seat-detail__status--checked-out')).toBeTruthy();
-    expect(compiled.textContent).toContain('Final summary');
-    expect(compiled.textContent).toContain('CHECKED_OUT');
+    expect(compiled.textContent).toContain('Order total: 0 Yen');
+    expect(compiled.textContent).not.toContain('respectful encore');
+    expect(compiled.textContent).not.toContain('final backend summary remains visible');
   });
 });

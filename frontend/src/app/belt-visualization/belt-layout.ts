@@ -27,6 +27,12 @@ export interface BeltStageSizing {
   seatSizePx: number;
 }
 
+export interface BeltStageReadabilityProfile {
+  layoutVariant: 'current-balanced';
+  ornamentDensity: 'full' | 'trimmed';
+  seatLabelMode: 'full' | 'compact';
+}
+
 const TRACK_LEFT_PERCENT = 10.5;
 const TRACK_RIGHT_PERCENT = 89.5;
 const TRACK_TOP_PERCENT = 17.5;
@@ -306,5 +312,20 @@ export function getStageSizing(slotCount: number, seatCount: number): BeltStageS
     plateSizePx: clamp(Math.round(48 - safeSlotCount * 1.4), 28, 40),
     slotMarkerSizePx: clamp(Math.round(22 - safeSlotCount * 0.45), 10, 18),
     seatSizePx: clamp(Math.round(72 - safeSeatCount * 1.8), 44, 64),
+  };
+}
+
+export function getStageReadabilityProfile(
+  slotCount: number,
+  seatCount: number,
+): BeltStageReadabilityProfile {
+  const safeSlotCount = Math.max(slotCount, 1);
+  const safeSeatCount = Math.max(seatCount, 1);
+  const denseCounter = safeSlotCount >= 16 || safeSeatCount >= 10;
+
+  return {
+    layoutVariant: 'current-balanced',
+    ornamentDensity: denseCounter ? 'trimmed' : 'full',
+    seatLabelMode: safeSeatCount >= 10 ? 'compact' : 'full',
   };
 }

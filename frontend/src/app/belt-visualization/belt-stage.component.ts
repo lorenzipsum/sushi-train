@@ -13,6 +13,8 @@ import type {
 })
 export class BeltStageComponent {
   readonly stage = input.required<BeltStageViewModel>();
+  readonly speedLabel = input.required<string>();
+  readonly occupiedSeatCount = input.required<number>();
   readonly reducedMotion = input(false);
   readonly paused = input(false);
   readonly degraded = input(false);

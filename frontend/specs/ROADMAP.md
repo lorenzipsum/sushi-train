@@ -1,25 +1,30 @@
 # Roadmap
 
-Current frontend state: features `001` through `008` are shipped on `main`. The remaining planned work starts with final design polish.
+Current frontend state: local frontend features `001` through `007` are shipped on `main`. A shared realtime-updates milestone is also shipped, and the remaining planned local frontend work starts with final design polish.
 
 ## Current
 
-| Feature                     | Status | Notes                                                              |
-| --------------------------- | ------ | ------------------------------------------------------------------ |
-| `001-belt-visualization`    | Done   | Read-only belt baseline                                            |
-| `002-belt-layout-redesign`  | Done   | Belt-stage redesign shipped; earlier manual review note remains    |
-| `003-occupy-seat`           | Done   | Start seat lifecycle                                               |
-| `004-checkout-seat`         | Done   | Checkout flow shipped                                              |
-| `005-pick-plates`           | Done   | Guest plate picking shipped                                        |
-| `006-hydrate-seat-orders`   | Done   | Reload-time order restoration and selected-seat continuity shipped |
-| `007-add-plates-belt`       | Done   | Demo-mode operator plate action shipped in the main belt UI        |
-| `008-realtime-belt-updates` | Done   | Server-sent-event belt updates with polling fallback shipped       |
+| Feature                    | Status | Notes                                                              |
+| -------------------------- | ------ | ------------------------------------------------------------------ |
+| `001-belt-visualization`   | Done   | Read-only belt baseline                                            |
+| `002-belt-layout-redesign` | Done   | Belt-stage redesign shipped; earlier manual review note remains    |
+| `003-occupy-seat`          | Done   | Start seat lifecycle                                               |
+| `004-checkout-seat`        | Done   | Checkout flow shipped                                              |
+| `005-pick-plates`          | Done   | Guest plate picking shipped                                        |
+| `006-hydrate-seat-orders`  | Done   | Reload-time order restoration and selected-seat continuity shipped |
+| `007-add-plates-belt`      | Done   | Demo-mode operator plate action shipped in the main belt UI        |
+
+## Shared Shipped Milestones
+
+| Milestone               | Status | Notes                                                        |
+| ----------------------- | ------ | ------------------------------------------------------------ |
+| `realtime-belt-updates` | Done   | Server-sent-event belt updates with polling fallback shipped |
 
 ## Next Features
 
-| Order | Feature             | Status   | Depends on                                                                                                                               | Notes                                     |
-| ----- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| 9     | `009-design-polish` | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-belt`, `008-realtime-belt-updates` | Final UI pass after realtime updates land |
+| Order | Feature             | Status   | Depends on                                                                                                                           | Notes                                     |
+| ----- | ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
+| 8     | `008-design-polish` | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-belt`, `realtime-belt-updates` | Final UI pass after realtime updates land |
 
 ## Dependency Shape
 
@@ -27,7 +32,7 @@ Current frontend state: features `001` through `008` are shipped on `main`. The 
 002 -> 003 -> 004
          -> 005 -> 006
          -> 005 -> 007
-003-008 -> 009
+003-007 -> realtime-updates -> 008
 ```
 
 ## Spec Kit Rules
@@ -44,9 +49,10 @@ frontend/specs/004-checkout-seat/
 frontend/specs/005-pick-plates/
 frontend/specs/006-hydrate-seat-orders/
 frontend/specs/007-add-plates-belt/
+frontend/specs/008-design-polish/
 ```
 
-Note: `008-realtime-belt-updates` was implemented from a shared backend-plus-frontend effort. Its planning artifacts were maintained one level above `frontend/`, so there is no dedicated `frontend/specs/008-realtime-belt-updates/` folder.
+Note: `realtime-belt-updates` was implemented as a shared backend-plus-frontend effort. Its planning artifacts were maintained one level above `frontend/`, so there is no dedicated `frontend/specs/` feature folder for that milestone.
 
 Each feature should contain:
 

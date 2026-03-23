@@ -1,28 +1,76 @@
-<main class="page-shell">
-  <section class="hero">
-    <h1>Kaitenzushi</h1>
+<main class="page-shell" [attr.data-shell-tone]="shellStateCard()?.tone ?? 'ready'">
+  <div class="page-shell__steam page-shell__steam--left" aria-hidden="true"></div>
+  <div class="page-shell__steam page-shell__steam--right" aria-hidden="true"></div>
+
+  <section class="hero" [attr.aria-label]="heroPresentation().subtitle">
+    <div class="hero__headline">
+      <h1>{{ heroPresentation().title }}</h1>
+    </div>
+    <p class="hero__subtitle">{{ heroPresentation().subtitle }}</p>
   </section>
 
-  @if (store.fatalMessage(); as fatalMessage) {
-    <section class="state-card state-card--error" aria-live="polite">
-      <h2>We could not set the sushi belt table</h2>
-      <p>{{ fatalMessage }}</p>
-    </section>
-  } @else if (store.hasNoBelts()) {
-    <section class="state-card" aria-live="polite">
-      <h2>No belts are ready yet</h2>
-      <p>The overview will appear as soon as the backend returns at least one belt.</p>
-    </section>
-  } @else if (store.isLoading()) {
-    <section class="state-card state-card--loading" aria-live="polite" aria-busy="true">
-      <h2>Setting the belt in motion</h2>
-      <p>Fetching the belt, its seats, and the latest movement snapshot.</p>
+  @if (shellStateCard(); as stateCard) {
+    <section
+      class="state-card"
+      [class.state-card--error]="stateCard.tone === 'error'"
+      [class.state-card--loading]="stateCard.tone === 'loading'"
+      [class.state-card--empty]="stateCard.tone === 'empty'"
+      aria-live="polite"
+      [attr.aria-busy]="stateCard.tone === 'loading' ? 'true' : null"
+    >
+      <p class="state-card__eyebrow">{{ stateCard.eyebrow }}</p>
+      <h2>{{ stateCard.title }}</h2>
+      <p>{{ stateCard.detail }}</p>
+      <p class="state-card__quip">{{ stateCard.quip }}</p>
     </section>
   } @else if (store.stageViewModel(); as stage) {
     <section class="belt-deck">
+      @if (isGuideOpen()) {
+        <section class="guide-dialog" role="dialog" aria-modal="true" aria-label="Counter notes">
+          <button
+            type="button"
+            class="guide-dialog__backdrop"
+            aria-label="Close counter notes"
+            (click)="closeGuide()"
+          ></button>
+
+          <div class="guide-dialog__card">
+            <header class="guide-dialog__header">
+              <div>
+                <p class="guide-dialog__eyebrow">Counter notes</p>
+                <h3>How this sushi bar behaves</h3>
+                <p class="guide-dialog__detail">
+                  One place for the demo rules, so the stage can breathe a little.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="guide-dialog__close"
+                aria-label="Close counter notes"
+                (click)="closeGuide()"
+              >
+                Close
+              </button>
+            </header>
+
+            <div class="guide-dialog__items">
+              @for (item of guideItems; track item.title) {
+                <section class="guide-dialog__item">
+                  <h4>{{ item.title }}</h4>
+                  <p>{{ item.detail }}</p>
+                </section>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
       <section class="counter-stage" aria-label="Belt stage">
         <app-belt-stage
           [stage]="stage"
+          [speedLabel]="store.speedLabel()"
+          [occupiedSeatCount]="store.occupiedSeatCount()"
           [reducedMotion]="store.isReducedMotion()"
           [paused]="store.isPaused()"
           [degraded]="store.isDegraded()"
@@ -52,36 +100,41 @@
           (submitPlacement)="store.submitOperatorPlacement()"
         />
 
-        <dl class="counter-stage__stats">
-          <div>
-            <dt>Service pace</dt>
-            <dd>{{ store.speedLabel() }}</dd>
-          </div>
-          <div>
-            <dt>Plates</dt>
-            <dd>{{ store.occupiedPlateCount() }}</dd>
-          </div>
-          <div>
-            <dt>Seats</dt>
-            <dd>{{ store.occupiedSeatCount() }}/{{ stage.seats.length }}</dd>
-          </div>
-        </dl>
+        <div class="counter-stage__seat-row">
+          <app-selected-seat-detail
+            class="counter-stage__selected-seat"
+            [attr.data-seat-status]="selectedSeatDetail()?.restorationStatus ?? null"
+            [detail]="selectedSeatDetail()"
+            (startDining)="store.startDiningForSelectedSeat()"
+            (checkout)="store.checkoutSelectedSeat()"
+          />
 
-        <app-selected-seat-detail
-          class="counter-stage__selected-seat"
-          [attr.data-seat-status]="selectedSeatDetail()?.restorationStatus ?? null"
-          [detail]="selectedSeatDetail()"
-          (startDining)="store.startDiningForSelectedSeat()"
-          (checkout)="store.checkoutSelectedSeat()"
-        />
+          <div class="counter-stage__seat-tools">
+            <button
+              type="button"
+              class="counter-stage__guide-button"
+              aria-label="Counter notes"
+              title="Counter notes"
+              (click)="openGuide()"
+            >
+              <span aria-hidden="true">?</span>
+            </button>
+          </div>
+        </div>
 
         @if (store.isDegraded() || store.isReducedMotion()) {
           <p class="counter-stage__notice">
             @if (store.isDegraded()) {
               <span>Showing the last good belt state while refresh catches up.</span>
+              <span class="counter-stage__notice-secondary"
+                >The chef calls this a dramatic pause. The UI calls it a safe fallback.</span
+              >
             }
             @if (store.isReducedMotion()) {
               <span>Reduced motion keeps the counter readable without continuous glide.</span>
+              <span class="counter-stage__notice-secondary"
+                >Less swoosh, same service clarity, no hidden tricks.</span
+              >
             }
           </p>
         }

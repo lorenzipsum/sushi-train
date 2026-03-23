@@ -81,7 +81,8 @@ export interface SelectedSeatDetailViewModel {
   seatLabel: string;
   restorationStatus: SelectedSeatStatus;
   statusLabel: string;
-  helperLabel: string;
+  helperLabel: string | null;
+  secondaryLabel: string | null;
   isOccupied: boolean;
   canStartDining: boolean;
   canCheckout: boolean;
@@ -110,6 +111,7 @@ export interface OperatorPlacementNotice {
   tone: 'success' | 'error';
   title: string;
   detail: string;
+  secondaryDetail: string | null;
   outcomeType: OperatorPlacementOutcomeType;
   createdCount: number | null;
   menuItemName: string | null;
@@ -134,12 +136,14 @@ export interface OperatorPlacementDraftPatch {
 export interface OperatorPlacementViewModel {
   isOpen: boolean;
   presentationMode: OperatorPlacementPresentationMode;
+  secondaryLabel: string;
   isMenuLoading: boolean;
   menuLoadError: string | null;
   isSubmitting: boolean;
   notice: OperatorPlacementNotice | null;
   query: string;
   totalMenuCount: number;
+  resultsSummaryLabel: string;
   filteredMenuItems: MenuItemDto[];
   selectedMenuItemId: string | null;
   selectedMenuItemLabel: string | null;
@@ -147,4 +151,5 @@ export interface OperatorPlacementViewModel {
   draft: OperatorPlacementDraftValue;
   canSubmit: boolean;
   submitDisabledReason: string | null;
+  submitSecondaryHint: string | null;
 }

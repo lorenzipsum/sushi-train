@@ -10,12 +10,14 @@ function createPlacement(
   return {
     isOpen: true,
     presentationMode: 'secondary-surface',
+    secondaryLabel: 'Compact kitchen hatch. Same controls, less decorative elbow room.',
     isMenuLoading: false,
     menuLoadError: null,
     isSubmitting: false,
     notice: null,
     query: '',
     totalMenuCount: 2,
+    resultsSummaryLabel: '2 of 2 menu items currently match the search',
     filteredMenuItems: [
       {
         id: 'menu-1',
@@ -45,6 +47,7 @@ function createPlacement(
     },
     canSubmit: true,
     submitDisabledReason: null,
+    submitSecondaryHint: 'Default values are the fast lane. Even the chef approves this shortcut.',
     ...overrides,
   };
 }

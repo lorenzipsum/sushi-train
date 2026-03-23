@@ -16,7 +16,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /app/target/sushi-train-backend-0.1.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/sushi-train-backend-0.2.0.jar app.jar
 
 EXPOSE 8080
 

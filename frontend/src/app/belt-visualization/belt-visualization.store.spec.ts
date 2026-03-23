@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { BeltEventsApi } from '../api/belt-events.api';
 import { BeltsApi } from '../api/belts.api';
 import { MenuItemsApi } from '../api/menu-items.api';
 import { SeatsApi } from '../api/seats.api';
@@ -102,8 +103,13 @@ function buildStoreProviders(
     getMenuItems: vi.fn(() => of(createMenuPage())),
   },
 ) {
+  const beltEventsApiMock = {
+    openBeltEvents: vi.fn(() => ({ close: vi.fn() }) as Pick<EventSource, 'close'> as EventSource),
+  };
+
   return [
     BeltVisualizationStore,
+    { provide: BeltEventsApi, useValue: beltEventsApiMock },
     { provide: BeltsApi, useValue: beltsApiMock },
     { provide: SeatsApi, useValue: seatsApiMock },
     { provide: MenuItemsApi, useValue: menuItemsApiMock },
@@ -841,9 +847,7 @@ describe('BeltVisualizationStore', () => {
     expect(store.selectedSeatDetail()?.restorationStatus).toBe('available');
     expect(store.selectedSeatDetail()?.canStartDining).toBe(true);
     expect(store.selectedSeatDetail()?.canPickPlates).toBe(false);
-    expect(store.selectedSeatDetail()?.helperLabel).toContain(
-      'Start dining here when you are ready',
-    );
+    expect(store.selectedSeatDetail()?.helperLabel).toBeNull();
   });
 
   it('loads the full operator menu across multiple pages and filters locally', () => {

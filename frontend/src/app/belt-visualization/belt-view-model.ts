@@ -11,6 +11,7 @@ import type {
 } from '../api/types';
 import {
   getCounterSeatPoint,
+  getStageReadabilityProfile,
   getSlotLayoutPoint,
   getStageSizing,
   type BeltTrackSegment,
@@ -58,7 +59,15 @@ export interface BeltStageSeatViewModel {
   orderId: string | null;
   occupiedSince: string | null;
   presenceCue: 'available' | 'occupied' | 'pending';
+  secondaryLabel: string | null;
   ariaLabel: string;
+}
+
+export interface BeltStageLegendViewModel {
+  id: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+  tone: 'warm' | 'reach' | 'operator';
 }
 
 export interface BeltStageReachAreaViewModel {
@@ -72,8 +81,20 @@ export interface BeltStageReachAreaViewModel {
 export interface BeltStageKitchenViewModel {
   showChef: boolean;
   chefLabel: string;
+  chefSecondaryLabel: string;
   accentLabels: [string, string, string];
+  signLabel: string;
   operatorEntryLabel: string;
+  operatorSecondaryLabel: string;
+}
+
+export interface BeltStagePresentationViewModel {
+  layoutVariant: 'current-balanced';
+  ornamentDensity: 'full' | 'trimmed';
+  seatLabelMode: 'full' | 'compact';
+  primaryLabel: string;
+  secondaryLabel: string;
+  legends: BeltStageLegendViewModel[];
 }
 
 export interface BeltStageViewModel {
@@ -83,6 +104,7 @@ export interface BeltStageViewModel {
   slots: BeltStageSlotViewModel[];
   seats: BeltStageSeatViewModel[];
   kitchen: BeltStageKitchenViewModel;
+  presentation: BeltStagePresentationViewModel;
   plateSizePx: number;
   slotMarkerSizePx: number;
   seatSizePx: number;
@@ -254,6 +276,7 @@ export function buildBeltStageViewModel(
   const slotCount = Math.max(1, snapshot.beltSlotCount ?? snapshot.slots?.length ?? 1);
   const occupiedPlateCount = snapshot.slots?.filter((slot) => !!slot.plate).length ?? 0;
   const sizing = getStageSizing(slotCount, seats.length);
+  const readabilityProfile = getStageReadabilityProfile(slotCount, seats.length);
   const sortedSlots = [...(snapshot.slots ?? [])].sort(
     (left, right) => (left.positionIndex ?? 0) - (right.positionIndex ?? 0),
   );
@@ -296,8 +319,36 @@ export function buildBeltStageViewModel(
     kitchen: {
       showChef: true,
       chefLabel: 'Chef preparing dishes inside the counter',
+      chefSecondaryLabel: 'Knife skills: precise. Ego: respectfully medium.',
       accentLabels: ['Prep board', 'Tea lamp', 'Serving trays'],
+      signLabel: 'House special: tiny drama, stable workflows',
       operatorEntryLabel: 'Add plates to the belt',
+      operatorSecondaryLabel: 'Backstage hatch for plate logistics',
+    },
+    presentation: {
+      ...readabilityProfile,
+      primaryLabel: 'Counter loop overview',
+      secondaryLabel: 'Warm cafe energy, same belt logic, zero workflow plot twists.',
+      legends: [
+        {
+          id: 'seats',
+          primaryLabel: 'Seats stay literal',
+          secondaryLabel: 'Tap a stool to focus the dining panel.',
+          tone: 'warm',
+        },
+        {
+          id: 'reach',
+          primaryLabel: 'Dashed ring = pickup reach',
+          secondaryLabel: 'Only that zone is fair game for plate picking.',
+          tone: 'reach',
+        },
+        {
+          id: 'operator',
+          primaryLabel: 'Kitchen hatch opens plate controls',
+          secondaryLabel: 'Chef chaos is decorative. The form is still strict.',
+          tone: 'operator',
+        },
+      ],
     },
     plateSizePx: getOccupiedPlateSizePx(sizing.plateSizePx, slotCount, sortedSlots),
     slotMarkerSizePx: sizing.slotMarkerSizePx,
@@ -358,6 +409,7 @@ export function buildBeltStageViewModel(
               ? 'Occupied'
               : 'Available';
       const ariaParts = [context.seat.label ?? 'Seat'];
+      const secondaryLabel = isPending ? statusLabel : isOccupied ? 'Dining now' : 'Tap to start';
 
       if (isSelected) {
         ariaParts.push('Currently selected.');
@@ -389,6 +441,7 @@ export function buildBeltStageViewModel(
         orderId: context.activeOrder?.orderId ?? null,
         occupiedSince: context.activeOrder?.createdAt ?? null,
         presenceCue,
+        secondaryLabel,
         ariaLabel: ariaParts.join(' '),
       };
     }),

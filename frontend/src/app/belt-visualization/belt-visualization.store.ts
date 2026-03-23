@@ -74,6 +74,64 @@ function matchesOperatorSearch(menuItem: MenuItemDto, query: string): boolean {
   return searchable.includes(query);
 }
 
+function buildOperatorSecondaryLabel(isCompact: boolean): string {
+  return isCompact
+    ? 'Compact kitchen hatch. Same controls, less decorative elbow room.'
+    : 'Kitchen hatch controls with enough ceremony to feel fun, not enough to slow you down.';
+}
+
+function buildOperatorSubmitSecondaryHint(
+  submitDisabledReason: string | null,
+  isDefaultDraft: boolean,
+): string | null {
+  if (submitDisabledReason) {
+    return 'Primary guidance stays literal so the operator flow never turns into a guessing game.';
+  }
+
+  return isDefaultDraft
+    ? 'Default values are the fast lane. Even the chef approves this shortcut.'
+    : 'Manual overrides are allowed. Drama in the copy does not mean drama in the payload.';
+}
+
+function buildSelectedSeatSecondaryLabel(
+  restorationStatus: 'available' | 'occupied' | 'syncing' | 'unresolved' | 'checked-out',
+): string | null {
+  switch (restorationStatus) {
+    case 'checked-out':
+      return null;
+    case 'unresolved':
+      return 'Humor is off duty until the dining state becomes trustworthy again.';
+    case 'syncing':
+      return 'The reach ring may linger, but the backend still has the final word.';
+    case 'occupied':
+      return null;
+    case 'available':
+    default:
+      return null;
+  }
+}
+
+function buildOperatorNoticeSecondaryDetail(
+  outcomeType: OperatorPlacementNotice['outcomeType'],
+  createdCount: number | null,
+): string | null {
+  if (outcomeType === 'success') {
+    return createdCount === 1
+      ? 'One plate queued, zero chaos introduced.'
+      : 'Multiple plates queued. The belt remains professionally calm.';
+  }
+
+  if (outcomeType === 'not-enough-space') {
+    return 'Literal message first: the belt is full. Joke second: the plates unionized.';
+  }
+
+  if (outcomeType === 'invalid-values') {
+    return 'The form is strict on purpose. Cute UI does not mean permissive math.';
+  }
+
+  return 'The kitchen copy can stay playful because the actual error stays plain.';
+}
+
 export interface OccupyFeedback {
   tone: 'success' | 'error';
   title: string;
@@ -242,12 +300,14 @@ export class BeltVisualizationStore {
     return {
       isOpen: this.operatorOpenState(),
       presentationMode: this.compactOperatorLayout() ? 'secondary-surface' : 'inline-kitchen',
+      secondaryLabel: buildOperatorSecondaryLabel(this.compactOperatorLayout()),
       isMenuLoading: this.operatorMenuLoadingState(),
       menuLoadError: this.operatorMenuLoadErrorState(),
       isSubmitting: this.operatorPendingSubmissionState(),
       notice: this.operatorNoticeState(),
       query: this.operatorSearchQueryState(),
       totalMenuCount: menuItems.length,
+      resultsSummaryLabel: `${filteredMenuItems.length} of ${menuItems.length} menu items currently match the search`,
       filteredMenuItems,
       selectedMenuItemId,
       selectedMenuItemLabel: selectedMenuItem?.name ?? null,
@@ -255,6 +315,10 @@ export class BeltVisualizationStore {
       draft,
       canSubmit: !submitDisabledReason,
       submitDisabledReason,
+      submitSecondaryHint: buildOperatorSubmitSecondaryHint(
+        submitDisabledReason,
+        draft.isDefaultDraft,
+      ),
     };
   });
   readonly selectedSeatDetail = computed<SelectedSeatDetailViewModel | null>(() => {
@@ -289,21 +353,21 @@ export class BeltVisualizationStore {
             : 'syncing';
 
     const matchingFeedback =
-      (pickPlateFeedback?.seatId === selectedSeatId
+      (pickPlateFeedback?.seatId === selectedSeatId && pickPlateFeedback.tone === 'error'
         ? {
             tone: pickPlateFeedback.tone,
             title: pickPlateFeedback.title,
             detail: pickPlateFeedback.detail,
           }
         : null) ??
-      (occupyFeedback?.seatId === selectedSeatId
+      (occupyFeedback?.seatId === selectedSeatId && occupyFeedback.tone === 'error'
         ? {
             tone: occupyFeedback.tone,
             title: occupyFeedback.title,
             detail: occupyFeedback.detail,
           }
         : null) ??
-      (checkoutFeedback?.seatId === selectedSeatId
+      (checkoutFeedback?.seatId === selectedSeatId && checkoutFeedback.tone === 'error'
         ? {
             tone: checkoutFeedback.tone,
             title: checkoutFeedback.title,
@@ -334,19 +398,15 @@ export class BeltVisualizationStore {
             ? 'Occupied'
             : 'Available';
 
-    const helperLabel = isCheckoutSummary
-      ? 'This final backend summary remains visible for the seat that just checked out.'
-      : restorationStatus === 'unresolved'
+    const helperLabel =
+      restorationStatus === 'unresolved'
         ? (restoration?.resolutionMessage ??
           'We could not confirm this dining state yet. Automatic retry is still running in the background.')
         : restorationStatus === 'syncing'
           ? (restoration?.resolutionMessage ??
             'Dining state is loading from the backend. Reach cues may stay visible, but picks remain blocked until sync completes.')
-          : selectedSeat.isOccupied
-            ? orderSummary?.lines?.length
-              ? 'Pick plates from the highlighted reach area, or check out when the order is complete.'
-              : 'Dining is active. Pick the next reachable plate to start building the running order here.'
-            : 'Seat clicks only change selection. Start dining here when you are ready.';
+          : null;
+    const secondaryLabel = buildSelectedSeatSecondaryLabel(restorationStatus);
 
     return {
       seatId: selectedSeatId,
@@ -354,6 +414,7 @@ export class BeltVisualizationStore {
       restorationStatus,
       statusLabel,
       helperLabel,
+      secondaryLabel,
       isOccupied: !!selectedSeat.isOccupied,
       canStartDining,
       canCheckout,
@@ -447,7 +508,7 @@ export class BeltVisualizationStore {
       return 'Paused';
     }
 
-    return `${speed} slot${speed === 1 ? '' : 's'} every ${tickMs}ms`;
+    return `${speed}/${tickMs}ms`;
   });
 
   constructor() {
@@ -585,6 +646,7 @@ export class BeltVisualizationStore {
           tone: 'error',
           title: 'Plate placement is not ready',
           detail: submitDisabledReason,
+          secondaryDetail: buildOperatorNoticeSecondaryDetail('invalid-values', null),
           outcomeType: 'invalid-values',
           createdCount: null,
           menuItemName: selectedMenuItem?.name ?? null,
@@ -625,6 +687,7 @@ export class BeltVisualizationStore {
               createdCount === 1
                 ? 'The kitchen request was accepted, and the belt will refresh immediately.'
                 : 'The kitchen request was accepted, and the belt will refresh immediately.',
+            secondaryDetail: buildOperatorNoticeSecondaryDetail('success', createdCount),
             outcomeType: 'success',
             createdCount,
             menuItemName: selectedMenuItem.name,
@@ -1123,6 +1186,7 @@ export class BeltVisualizationStore {
         detail:
           detail ||
           'The backend could not place every requested plate. Adjust the quantity and try again after the belt advances.',
+        secondaryDetail: buildOperatorNoticeSecondaryDetail('not-enough-space', null),
         outcomeType: 'not-enough-space',
         createdCount: null,
         menuItemName,
@@ -1134,6 +1198,7 @@ export class BeltVisualizationStore {
         tone: 'error',
         title: 'That menu item is no longer available',
         detail,
+        secondaryDetail: buildOperatorNoticeSecondaryDetail('invalid-menu-item', null),
         outcomeType: 'invalid-menu-item',
         createdCount: null,
         menuItemName,
@@ -1145,6 +1210,7 @@ export class BeltVisualizationStore {
         tone: 'error',
         title: 'This belt is no longer available',
         detail,
+        secondaryDetail: buildOperatorNoticeSecondaryDetail('missing-belt', null),
         outcomeType: 'missing-belt',
         createdCount: null,
         menuItemName,
@@ -1156,6 +1222,7 @@ export class BeltVisualizationStore {
         tone: 'error',
         title: 'That menu item could not be placed',
         detail,
+        secondaryDetail: buildOperatorNoticeSecondaryDetail('invalid-menu-item', null),
         outcomeType: 'invalid-menu-item',
         createdCount: null,
         menuItemName,
@@ -1167,6 +1234,7 @@ export class BeltVisualizationStore {
         tone: 'error',
         title: 'One or more placement values were rejected',
         detail,
+        secondaryDetail: buildOperatorNoticeSecondaryDetail('invalid-values', null),
         outcomeType: 'invalid-values',
         createdCount: null,
         menuItemName,
@@ -1177,6 +1245,10 @@ export class BeltVisualizationStore {
       tone: 'error',
       title: 'The add-plates request did not finish',
       detail,
+      secondaryDetail: buildOperatorNoticeSecondaryDetail(
+        status === 422 ? 'malformed-request' : 'unknown-error',
+        null,
+      ),
       outcomeType: status === 422 ? 'malformed-request' : 'unknown-error',
       createdCount: null,
       menuItemName,

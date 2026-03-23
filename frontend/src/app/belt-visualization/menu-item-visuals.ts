@@ -250,6 +250,18 @@ export function resolveMenuItemVisual(menuItemName: string | null | undefined): 
   }
 
   if (normalizedName.includes('nigiri')) {
+    if (normalizedName.includes('salmon')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['salmon nigiri'], 'family fallback');
+    }
+
+    if (normalizedName.includes('tuna')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['tuna nigiri'], 'family fallback');
+    }
+
+    if (normalizedName.includes('tamago') || normalizedName.includes('egg')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['tamago nigiri'], 'family fallback');
+    }
+
     return buildVisual(menuItemName, EXACT_VISUALS['salmon nigiri'], 'family fallback');
   }
 
@@ -273,18 +285,41 @@ export function resolveMenuItemVisual(menuItemName: string | null | undefined): 
     normalizedName.includes('tea') ||
     normalizedName.includes('latte') ||
     normalizedName.includes('cola') ||
+    normalizedName.includes('ramune') ||
     normalizedName.includes('water') ||
     normalizedName.includes('beer')
   ) {
+    if (normalizedName.includes('cola') || normalizedName.includes('ramune')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['cola'], 'family fallback');
+    }
+
+    if (normalizedName.includes('water') || normalizedName.includes('mizu')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['mineral water'], 'family fallback');
+    }
+
+    if (normalizedName.includes('beer')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['asahi super dry beer'], 'family fallback');
+    }
+
     return buildVisual(menuItemName, EXACT_VISUALS['green tea (hot)'], 'family fallback');
   }
 
   if (
     normalizedName.includes('mochi') ||
     normalizedName.includes('custard') ||
+    normalizedName.includes('pudding') ||
     normalizedName.includes('cheesecake') ||
+    normalizedName.includes('ice cream') ||
     normalizedName.includes('dessert')
   ) {
+    if (normalizedName.includes('custard') || normalizedName.includes('pudding')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['purin (custard)'], 'family fallback');
+    }
+
+    if (normalizedName.includes('cheesecake')) {
+      return buildVisual(menuItemName, EXACT_VISUALS['cheesecake slice'], 'family fallback');
+    }
+
     return buildVisual(menuItemName, EXACT_VISUALS['mochi ice cream'], 'family fallback');
   }
 

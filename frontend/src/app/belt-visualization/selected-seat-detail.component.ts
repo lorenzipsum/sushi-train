@@ -13,6 +13,10 @@ export class SelectedSeatDetailComponent {
 
   readonly startDining = output<void>();
   readonly checkout = output<void>();
+  protected readonly hasSecondaryLabel = (detail: SelectedSeatDetailViewModel): boolean =>
+    !!detail.secondaryLabel;
+  protected readonly hasHelperLabel = (detail: SelectedSeatDetailViewModel): boolean =>
+    !!detail.helperLabel;
 
   protected readonly trackOrderLine = (
     _index: number,

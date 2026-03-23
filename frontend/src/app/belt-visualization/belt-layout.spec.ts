@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getCounterSeatPoint,
   getRacetrackPoint,
+  getStageReadabilityProfile,
   getSlotLayoutPoint,
   getStageSizing,
 } from './belt-layout';
@@ -60,5 +61,16 @@ describe('belt-layout', () => {
     expect(roomy.plateSizePx).toBeGreaterThan(dense.plateSizePx);
     expect(roomy.seatSizePx).toBeGreaterThan(dense.seatSizePx);
     expect(dense.slotMarkerSizePx).toBeGreaterThanOrEqual(10);
+  });
+
+  it('keeps the current-balanced layout while trimming ornaments on denser counters', () => {
+    const roomy = getStageReadabilityProfile(8, 6);
+    const dense = getStageReadabilityProfile(20, 12);
+
+    expect(roomy.layoutVariant).toBe('current-balanced');
+    expect(dense.layoutVariant).toBe('current-balanced');
+    expect(roomy.ornamentDensity).toBe('full');
+    expect(dense.ornamentDensity).toBe('trimmed');
+    expect(dense.seatLabelMode).toBe('compact');
   });
 });

@@ -2,64 +2,154 @@
   display: block;
 }
 
-.belt-stage__operator-entry {
+.belt-stage__kitchen-stat span,
+.belt-stage__kitchen-stat small {
+  margin: 0;
+  font-family: 'Nunito Sans', 'Segoe UI', sans-serif;
+}
+
+.belt-stage__counter {
+  isolation: isolate;
+}
+
+.belt-stage__kitchen-stats {
   position: absolute;
-  left: 50.5%;
-  top: 58%;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  justify-content: center;
-  min-width: 9.5rem;
-  padding: 0.55rem 0.8rem;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 251, 246, 0.96);
-  color: #5c3d2f;
+  left: 50%;
+  bottom: 14.5%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  width: min(70%, 25rem);
+  translate: -50% 0;
+  z-index: 4;
+}
+
+.belt-stage__kitchen-stat {
+  position: relative;
+  display: grid;
+  gap: 0.12rem;
+  align-content: center;
+  justify-items: center;
+  min-height: 3.25rem;
+  margin: 0;
+  padding: 0.42rem 0.72rem;
+  border-radius: 1rem;
+  background: rgba(255, 250, 244, 0.94);
+  border: 1px solid rgba(123, 90, 69, 0.12);
+  box-shadow: 0 10px 18px rgba(92, 61, 47, 0.08);
+  text-align: center;
+}
+
+.belt-stage__kitchen-stat--with-action {
+  padding-right: 2rem;
+}
+
+.belt-stage__kitchen-stat span {
+  color: rgba(92, 61, 47, 0.74);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.belt-stage__kitchen-stat strong {
+  color: #22302c;
   font:
-    800 0.72rem/1 'Nunito Sans',
-    'Inter',
+    800 0.82rem/1.2 'Baloo 2',
+    'Trebuchet MS',
     sans-serif;
-  letter-spacing: 0.03em;
-  box-shadow:
-    0 12px 26px rgba(92, 61, 47, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  transform: translate(-50%, -50%);
-  z-index: 5;
+  text-align: center;
+}
+
+.belt-stage__kitchen-stat small {
+  color: rgba(92, 61, 47, 0.76);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.belt-stage__kitchen-stat--action {
+  border: 1px solid rgba(196, 92, 73, 0.26);
   cursor: pointer;
 }
 
-.belt-stage__operator-entry--active {
+.belt-stage__kitchen-action {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  display: inline-grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
   background: linear-gradient(180deg, #e45742 0%, #b62019 100%);
+  box-shadow: 0 8px 14px rgba(182, 32, 25, 0.18);
   color: #fff8f4;
+  cursor: pointer;
+  z-index: 5;
 }
 
-.belt-stage__operator-entry:focus-visible {
+.belt-stage__kitchen-action--settings {
+  background: linear-gradient(180deg, #b38b63 0%, #7b5a45 100%);
+  box-shadow: 0 8px 14px rgba(123, 90, 69, 0.18);
+  color: #fff8f4;
+  cursor: default;
+  opacity: 1;
+}
+
+.belt-stage__kitchen-action span {
+  font:
+    800 1rem/1 'Baloo 2',
+    'Trebuchet MS',
+    sans-serif;
+}
+
+.belt-stage__kitchen-action--settings span {
+  font-size: 0.9rem;
+}
+
+.belt-stage__kitchen-action:focus-visible {
   outline: 3px solid rgba(51, 64, 59, 0.22);
   outline-offset: 3px;
 }
 
-.belt-stage__operator-entry-badge {
-  display: inline-grid;
-  place-items: center;
-  width: 1.2rem;
-  height: 1.2rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
-  color: #b62019;
-  font-size: 0.92rem;
+.belt-stage__kitchen-action:disabled {
+  pointer-events: none;
 }
 
-.belt-stage__operator-entry--active .belt-stage__operator-entry-badge {
-  background: rgba(255, 248, 244, 0.22);
+.belt-stage__kitchen-stat--active {
+  background: linear-gradient(180deg, rgba(228, 87, 66, 0.96) 0%, rgba(182, 32, 25, 0.96) 100%);
+}
+
+.belt-stage__kitchen-stat--active span,
+.belt-stage__kitchen-stat--active strong,
+.belt-stage__kitchen-stat--active small {
   color: #fff8f4;
 }
 
+.belt-stage__kitchen-action--active {
+  background: rgba(255, 248, 244, 0.92);
+  color: #b62019;
+}
+
 @media (max-width: 900px) {
-  .belt-stage__operator-entry {
-    top: 57%;
-    min-width: 8.4rem;
-    padding-inline: 0.7rem;
-    font-size: 0.68rem;
+  .belt-stage__kitchen-stats {
+    width: min(78%, 24rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .belt-stage__kitchen-stats {
+    width: min(84%, 19rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .belt-stage__kitchen-stat:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .belt-stage__kitchen-stat--with-action {
+    min-height: 3.4rem;
   }
 }
