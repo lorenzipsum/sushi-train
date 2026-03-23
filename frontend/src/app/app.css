@@ -25,6 +25,7 @@
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
+  overflow-x: clip;
   padding: clamp(0.6rem, 1.4vw, 1.2rem) clamp(1rem, 2vw, 2rem) clamp(1rem, 2vw, 1.6rem);
   background:
     radial-gradient(circle at top left, rgba(255, 187, 166, 0.28), transparent 26%),
