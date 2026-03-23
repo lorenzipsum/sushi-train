@@ -42,7 +42,7 @@ const TRACK_CORNER_RADIUS_PERCENT = 4;
 const SEAT_LEFT_PERCENT = 5;
 const SEAT_RIGHT_PERCENT = 95;
 const SEAT_TOP_PERCENT = 7.5;
-const SEAT_BOTTOM_PERCENT = 91.5;
+const SEAT_BOTTOM_PERCENT = 92.5;
 const SEAT_SIDE_WEIGHTS = [2, 1, 2, 1] as const;
 
 function clamp(value: number, min: number, max: number): number {

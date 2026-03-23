@@ -311,6 +311,15 @@ describe('buildBeltStageViewModel', () => {
       sideRow.reachArea?.radiusPercent ?? 0,
     );
     expect(topRow.reachArea?.highlightWidthPercent).toBeLessThan(
+      topRow.reachArea?.highlightHeightPercent ?? Number.POSITIVE_INFINITY,
+    );
+    expect(bottomRow.reachArea?.highlightWidthPercent).toBeLessThan(
+      bottomRow.reachArea?.highlightHeightPercent ?? Number.POSITIVE_INFINITY,
+    );
+    expect(sideRow.reachArea?.highlightWidthPercent).toBeLessThan(
+      sideRow.reachArea?.highlightHeightPercent ?? Number.POSITIVE_INFINITY,
+    );
+    expect(topRow.reachArea?.highlightWidthPercent).toBeLessThan(
       sideRow.reachArea?.highlightWidthPercent ?? Number.POSITIVE_INFINITY,
     );
     expect(bottomRow.reachArea?.highlightWidthPercent).toBeLessThan(
@@ -318,7 +327,7 @@ describe('buildBeltStageViewModel', () => {
     );
   });
 
-  it('lights extra slots for bottom-row seats without widening actual pick reach', () => {
+  it('keeps bottom-row slot lighting authoritative and separate from the shortened highlight shape', () => {
     const snapshot: BeltSnapshotDto = {
       beltName: 'Main Belt',
       beltSlotCount: 24,
@@ -346,9 +355,9 @@ describe('buildBeltStageViewModel', () => {
       },
     });
 
-    const actuallyReachableCount = result.slots.filter((slot) => slot.isWithinReach).length;
-    const visiblyLitCount = result.slots.filter((slot) => slot.isHighlightedByReach).length;
-
-    expect(visiblyLitCount).toBeGreaterThan(actuallyReachableCount);
+    expect(result.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
+      result.reachArea?.radiusPercent ?? 0,
+    );
+    expect(result.slots.some((slot) => slot.isHighlightedByReach)).toBe(true);
   });
 });

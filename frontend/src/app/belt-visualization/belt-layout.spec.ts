@@ -40,6 +40,15 @@ describe('belt-layout', () => {
     expect(leftSeat.facingDeg).toBe(90);
   });
 
+  it('keeps the bottom-seat clearance aligned with the top-seat clearance from the belt edge', () => {
+    const bottomSeat = getCounterSeatPoint(0, 8);
+    const topSeat = getCounterSeatPoint(4, 8);
+    const bottomBeltEdge = getRacetrackPoint(0.6).yPercent;
+    const topBeltEdge = getRacetrackPoint(0).yPercent;
+
+    expect(bottomSeat.yPercent - bottomBeltEdge).toBe(topBeltEdge - topSeat.yPercent);
+  });
+
   it('weights seat counts toward the longer top and bottom sides', () => {
     const seats = Array.from({ length: 24 }, (_, index) => getCounterSeatPoint(index, 24));
     const bottomSeats = seats.filter((seat) => seat.facingDeg === 0).length;
