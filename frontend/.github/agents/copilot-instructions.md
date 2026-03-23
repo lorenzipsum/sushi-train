@@ -12,6 +12,7 @@ Auto-generated from all feature plans. Last updated: 2026-03-23
 - N/A in the frontend; backend-authoritative persistence remains behind existing REST APIs, with in-memory Angular signal state for belt snapshot, seats, selected seat detail, and new operator placement draft or feedback state (007-add-plates-belt)
 - TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/router`, `@angular/common/http`, `rxjs`, existing generated DTOs from `src/app/api/generated/openapi.types.ts` (008-design-polish)
 - N/A, frontend-only presentation changes over the existing in-memory Angular signal state and backend-authoritative REST data (008-design-polish)
+- N/A in the frontend; backend-authoritative belt and seat state over REST with in-memory Angular signal state for snapshot, seats, selected seat context, operator flow, and new speed-control state (009-refine-belt-interactions)
 
 - TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/router`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts` (001-belt-visualization)
 
@@ -32,9 +33,9 @@ npm test; npm run lint
 TypeScript 5.9, Angular 21 standalone: Follow standard conventions
 
 ## Recent Changes
+- 009-refine-belt-interactions: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts`
 - 008-design-polish: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/router`, `@angular/common/http`, `rxjs`, existing generated DTOs from `src/app/api/generated/openapi.types.ts`
 - 007-add-plates-belt: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts`
-- 006-hydrate-seat-orders: Added TypeScript 5.9, Angular 21 standalone + `@angular/core`, `@angular/common`, `@angular/common/http`, `rxjs`, generated DTOs from `src/app/api/generated/openapi.types.ts`
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -75,10 +75,111 @@
           [paused]="store.isPaused()"
           [degraded]="store.isDegraded()"
           [operatorOpen]="operatorPlacement()?.isOpen ?? false"
+          [settingsOpen]="beltSpeedDialog()?.isOpen ?? false"
           (selectSeat)="store.selectSeat($event)"
           (pickPlate)="store.pickPlate($event)"
           (toggleOperator)="store.toggleOperatorPlacement()"
+          (openSettings)="openBeltSpeedDialog()"
         />
+
+        @if (beltSpeedDialog(); as speedDialog) {
+          @if (speedDialog.isOpen) {
+            <section
+              class="belt-speed-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="belt-speed-dialog-title"
+              aria-describedby="belt-speed-dialog-detail"
+            >
+              <button
+                type="button"
+                class="belt-speed-dialog__backdrop"
+                aria-label="Close belt speed dialog"
+                (click)="closeBeltSpeedDialog()"
+              ></button>
+
+              <div
+                class="belt-speed-dialog__card"
+                tabindex="-1"
+                (keydown.escape)="closeBeltSpeedDialog()"
+                (keydown)="handleBeltSpeedDialogKeydown($event)"
+              >
+                <header class="belt-speed-dialog__header">
+                  <div>
+                    <p class="belt-speed-dialog__eyebrow" id="belt-speed-dialog-title">
+                      Adjust belt speed
+                    </p>
+                    <p id="belt-speed-dialog-detail" class="belt-speed-dialog__detail">
+                      Current belt speed: <strong>{{ speedDialog.currentSpeedLabel }}</strong>
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="belt-speed-dialog__close"
+                    aria-label="Close belt speed dialog"
+                    [disabled]="speedDialog.isSubmitting"
+                    (click)="closeBeltSpeedDialog()"
+                  >
+                    Close
+                  </button>
+                </header>
+
+                <div class="belt-speed-dialog__body">
+                  <select
+                    #beltSpeedSelect
+                    id="belt-speed-select"
+                    class="belt-speed-dialog__select"
+                    aria-label="Belt speed"
+                    [value]="'' + speedDialog.selectedSpeed"
+                    [disabled]="speedDialog.isSubmitting"
+                    (change)="updateBeltSpeedSelection(beltSpeedSelect.value)"
+                  >
+                    @for (option of speedDialog.options; track option.value) {
+                      <option
+                        [value]="'' + option.value"
+                        [selected]="option.value === speedDialog.selectedSpeed"
+                      >
+                        {{ option.label }} - {{ option.detail }}
+                      </option>
+                    }
+                  </select>
+
+                  @if (speedDialog.feedback; as speedFeedback) {
+                    <section
+                      class="belt-speed-dialog__feedback"
+                      [class.belt-speed-dialog__feedback--error]="speedFeedback.tone === 'error'"
+                      [class.belt-speed-dialog__feedback--success]="speedFeedback.tone === 'success'"
+                      aria-live="polite"
+                    >
+                      <h4>{{ speedFeedback.title }}</h4>
+                      <p>{{ speedFeedback.detail }}</p>
+                    </section>
+                  }
+                </div>
+
+                <footer class="belt-speed-dialog__actions">
+                  <button
+                    type="button"
+                    class="belt-speed-dialog__action belt-speed-dialog__action--ghost"
+                    [disabled]="speedDialog.isSubmitting"
+                    (click)="closeBeltSpeedDialog()"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="belt-speed-dialog__action belt-speed-dialog__action--primary"
+                    [disabled]="!speedDialog.canSubmit"
+                    (click)="submitBeltSpeedDialog()"
+                  >
+                    {{ speedDialog.isSubmitting ? 'Applying…' : 'Apply speed' }}
+                  </button>
+                </footer>
+              </div>
+            </section>
+          }
+        }
 
         @if (operatorPlacement()?.isOpen) {
           <button
@@ -121,6 +222,20 @@
             </button>
           </div>
         </div>
+
+        @if (store.beltSpeedFeedback(); as speedFeedback) {
+          @if (!beltSpeedDialog()?.isOpen) {
+            <section
+              class="counter-stage__feedback"
+              [class.counter-stage__feedback--success]="speedFeedback.tone === 'success'"
+              [class.counter-stage__feedback--error]="speedFeedback.tone === 'error'"
+              aria-live="polite"
+            >
+              <h2>{{ speedFeedback.title }}</h2>
+              <p>{{ speedFeedback.detail }}</p>
+            </section>
+          }
+        }
 
         @if (store.isDegraded() || store.isReducedMotion()) {
           <p class="counter-stage__notice">

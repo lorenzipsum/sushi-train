@@ -7,6 +7,9 @@ import { getProblemDetail } from '../api/http/problem-detail';
 import { MenuItemsApi } from '../api/menu-items.api';
 import { SeatsApi } from '../api/seats.api';
 import type {
+  BeltSpeedDialogViewModel,
+  BeltSpeedOption,
+  BeltSpeedUpdateFeedback,
   BeltDto,
   BeltSnapshotDto,
   MenuItemDto,
@@ -35,6 +38,45 @@ const RESTORATION_RETRY_DELAY_MS = 1500;
 const OPERATOR_PANEL_BREAKPOINT = '(max-width: 900px)';
 const OPERATOR_DEFAULT_EXPIRES_IN_MINUTES = 120;
 const SELECTED_SEAT_STORAGE_KEY = 'sushi-train:selected-seat-id';
+const BELT_SPEED_OPTIONS: BeltSpeedOption[] = [
+  { value: 0, label: 'Paused', detail: '0 slots per 500ms' },
+  { value: 1, label: 'Slow glide', detail: '1 slot per 500ms' },
+  { value: 2, label: 'Counter pace', detail: '2 slots per 500ms' },
+  { value: 3, label: 'Brisk service', detail: '3 slots per 500ms' },
+  { value: 4, label: 'Lunch rush', detail: '4 slots per 500ms' },
+  { value: 5, label: 'Turbo demo', detail: '5 slots per 500ms' },
+];
+
+function getBeltSpeedOption(value: number): BeltSpeedOption {
+  return BELT_SPEED_OPTIONS.find((option) => option.value === value) ?? BELT_SPEED_OPTIONS[0];
+}
+
+function buildBeltSpeedLabel(speed: number, tickMs: number): string {
+  if (speed === 0) {
+    return 'Paused';
+  }
+
+  return `${speed}/${tickMs}ms`;
+}
+
+function buildBeltSpeedSummary(speed: number): string {
+  if (speed === 0) {
+    return 'paused';
+  }
+
+  return `${speed} slot${speed === 1 ? '' : 's'} per tick`;
+}
+
+function buildBeltSpeedDialogCurrentLabel(speed: number): string {
+  const option = getBeltSpeedOption(speed);
+  return `${option.label} (${option.detail})`;
+}
+
+function clampBeltSpeed(speed: number): number {
+  const minSpeed = BELT_SPEED_OPTIONS[0]?.value ?? 0;
+  const maxSpeed = BELT_SPEED_OPTIONS[BELT_SPEED_OPTIONS.length - 1]?.value ?? minSpeed;
+  return Math.min(maxSpeed, Math.max(minSpeed, speed));
+}
 
 function toDateTimeLocalValue(value: Date): string {
   const year = value.getFullYear();
@@ -200,6 +242,10 @@ export class BeltVisualizationStore {
   );
   private readonly operatorNoticeState = signal<OperatorPlacementNotice | null>(null);
   private readonly operatorPendingSubmissionState = signal(false);
+  private readonly beltSpeedDialogOpenState = signal(false);
+  private readonly beltSpeedSelectionState = signal<number | null>(null);
+  private readonly beltSpeedPendingSubmissionState = signal(false);
+  private readonly beltSpeedFeedbackState = signal<BeltSpeedUpdateFeedback | null>(null);
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   private beltEventsSource: EventSource | null = null;
@@ -321,6 +367,38 @@ export class BeltVisualizationStore {
       ),
     };
   });
+  readonly beltSpeedDialog = computed<BeltSpeedDialogViewModel | null>(() => {
+    const snapshot = this.snapshot();
+    if (!snapshot) {
+      return null;
+    }
+
+    const currentSpeed = snapshot.beltSpeedSlotsPerTick ?? 0;
+    const selectedSpeed = this.beltSpeedSelectionState() ?? currentSpeed;
+    const selectedOption = getBeltSpeedOption(selectedSpeed);
+    const submitDisabledReason = this.beltSpeedDialogOpenState()
+      ? this.getBeltSpeedSubmitDisabledReason(
+          currentSpeed,
+          selectedSpeed,
+          this.beltSpeedPendingSubmissionState(),
+        )
+      : null;
+
+    return {
+      isOpen: this.beltSpeedDialogOpenState(),
+      options: BELT_SPEED_OPTIONS,
+      currentSpeed,
+      selectedSpeed,
+      currentSpeedLabel: buildBeltSpeedDialogCurrentLabel(currentSpeed),
+      selectedSpeedLabel: selectedOption.label,
+      helperLabel: selectedSpeed === currentSpeed ? '' : `${selectedOption.label}. ${selectedOption.detail}`,
+      canSubmit: !submitDisabledReason,
+      submitDisabledReason,
+      isSubmitting: this.beltSpeedPendingSubmissionState(),
+      feedback: this.beltSpeedFeedbackState(),
+    };
+  });
+  readonly beltSpeedFeedback = computed(() => this.beltSpeedFeedbackState());
   readonly selectedSeatDetail = computed<SelectedSeatDetailViewModel | null>(() => {
     const selectedSeatId = this.selectedSeatIdState();
     if (!selectedSeatId) {
@@ -508,7 +586,7 @@ export class BeltVisualizationStore {
       return 'Paused';
     }
 
-    return `${speed}/${tickMs}ms`;
+    return buildBeltSpeedLabel(speed, tickMs);
   });
 
   constructor() {
@@ -554,6 +632,90 @@ export class BeltVisualizationStore {
 
   refreshAfterWrite(): void {
     this.refreshNow();
+  }
+
+  openBeltSpeedDialog(): void {
+    const snapshot = this.snapshot();
+    if (!snapshot || !this.primaryBelt()?.id) {
+      return;
+    }
+
+    this.beltSpeedSelectionState.set(snapshot.beltSpeedSlotsPerTick ?? 0);
+    this.beltSpeedFeedbackState.set(null);
+    this.beltSpeedDialogOpenState.set(true);
+  }
+
+  closeBeltSpeedDialog(): void {
+    if (this.beltSpeedPendingSubmissionState()) {
+      return;
+    }
+
+    this.beltSpeedDialogOpenState.set(false);
+  }
+
+  selectBeltSpeed(speed: number): void {
+    if (!BELT_SPEED_OPTIONS.some((option) => option.value === speed)) {
+      return;
+    }
+
+    this.beltSpeedSelectionState.set(speed);
+    this.beltSpeedFeedbackState.set(null);
+  }
+
+  stepBeltSpeedSelection(step: 1 | -1): void {
+    const snapshot = this.snapshot();
+    if (!this.beltSpeedDialogOpenState() || !snapshot || this.beltSpeedPendingSubmissionState()) {
+      return;
+    }
+
+    const currentSelection = this.beltSpeedSelectionState() ?? snapshot.beltSpeedSlotsPerTick ?? 0;
+    const nextSelection = clampBeltSpeed(currentSelection + step);
+    this.selectBeltSpeed(nextSelection);
+  }
+
+  nudgeBeltSpeed(step: 1 | -1): void {
+    const beltId = this.primaryBelt()?.id ?? null;
+    const snapshot = this.snapshot();
+    if (!beltId || !snapshot || this.beltSpeedPendingSubmissionState()) {
+      return;
+    }
+
+    const currentSpeed = snapshot.beltSpeedSlotsPerTick ?? 0;
+    const nextSpeed = clampBeltSpeed(currentSpeed + step);
+    if (nextSpeed === currentSpeed) {
+      return;
+    }
+
+    this.applyBeltSpeedChange(beltId, nextSpeed, false);
+  }
+
+  submitBeltSpeedDialog(): void {
+    const beltId = this.primaryBelt()?.id ?? null;
+    const snapshot = this.snapshot();
+    const currentSpeed = snapshot?.beltSpeedSlotsPerTick ?? 0;
+    const selectedSpeed = this.beltSpeedSelectionState();
+    const submitDisabledReason =
+      selectedSpeed == null
+        ? 'Choose a belt speed before applying the update.'
+        : this.getBeltSpeedSubmitDisabledReason(
+            currentSpeed,
+            selectedSpeed,
+            this.beltSpeedPendingSubmissionState(),
+          );
+
+    if (!beltId || !snapshot || selectedSpeed == null || submitDisabledReason) {
+      if (submitDisabledReason) {
+        this.beltSpeedFeedbackState.set({
+          tone: 'error',
+          title: 'Belt speed is not ready to update',
+          detail: submitDisabledReason,
+          appliedSpeed: selectedSpeed,
+        });
+      }
+      return;
+    }
+
+    this.applyBeltSpeedChange(beltId, selectedSpeed, true);
   }
 
   selectSeat(seatId: string): void {
@@ -1150,6 +1312,64 @@ export class BeltVisualizationStore {
     }
 
     return null;
+  }
+
+  private getBeltSpeedSubmitDisabledReason(
+    currentSpeed: number,
+    selectedSpeed: number,
+    isSubmitting: boolean,
+  ): string | null {
+    if (isSubmitting) {
+      return 'A belt speed update is already in flight.';
+    }
+
+    if (!BELT_SPEED_OPTIONS.some((option) => option.value === selectedSpeed)) {
+      return 'Choose one of the supported belt speeds.';
+    }
+
+    if (selectedSpeed === currentSpeed) {
+      return 'Choose a different speed to apply an update.';
+    }
+
+    return null;
+  }
+
+  private applyBeltSpeedChange(
+    beltId: string,
+    selectedSpeed: number,
+    closeDialogOnSuccess: boolean,
+  ): void {
+    this.beltSpeedSelectionState.set(selectedSpeed);
+    this.beltSpeedPendingSubmissionState.set(true);
+    this.beltSpeedFeedbackState.set(null);
+
+    this.beltsApi
+      .updateBelt(beltId, { speedSlotsPerTick: selectedSpeed })
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.beltSpeedPendingSubmissionState.set(false);
+          if (closeDialogOnSuccess) {
+            this.beltSpeedDialogOpenState.set(false);
+          }
+          this.beltSpeedFeedbackState.set({
+            tone: 'success',
+            title: 'Belt speed updated',
+            detail: `The belt is now ${buildBeltSpeedSummary(selectedSpeed)}.`,
+            appliedSpeed: selectedSpeed,
+          });
+          this.refreshAfterWrite();
+        },
+        error: (error: unknown) => {
+          this.beltSpeedPendingSubmissionState.set(false);
+          this.beltSpeedFeedbackState.set({
+            tone: 'error',
+            title: 'Belt speed was not updated',
+            detail: this.formatError(error, 'The belt speed request failed.'),
+            appliedSpeed: selectedSpeed,
+          });
+        },
+      });
   }
 
   private reconcileOperatorMenuSelection(menuItems: MenuItemDto[]): void {

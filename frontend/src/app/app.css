@@ -264,9 +264,186 @@
 }
 
 .guide-dialog__close:focus-visible,
-.counter-stage__guide-button:focus-visible {
+.counter-stage__guide-button:focus-visible,
+.belt-speed-dialog__close:focus-visible,
+.belt-speed-dialog__action:focus-visible,
+.belt-speed-dialog__select:focus-visible {
   outline: 3px solid rgba(51, 64, 59, 0.22);
   outline-offset: 3px;
+}
+
+.belt-speed-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 33;
+}
+
+.belt-speed-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(42, 31, 26, 0.38);
+  backdrop-filter: blur(6px) saturate(0.78);
+  cursor: pointer;
+}
+
+.belt-speed-dialog__card {
+  position: relative;
+  z-index: 1;
+  width: min(32rem, calc(100vw - 2rem));
+  margin: min(12vh, 4rem) auto 0;
+  padding: 1.15rem 1.2rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 250, 244, 0.99) 0%, rgba(255, 244, 233, 0.98) 100%);
+  border: 1px solid rgba(123, 90, 69, 0.16);
+  box-shadow: 0 28px 52px rgba(92, 61, 47, 0.24);
+}
+
+.belt-speed-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.belt-speed-dialog__eyebrow,
+.belt-speed-dialog__detail,
+.belt-speed-dialog__helper,
+.belt-speed-dialog__feedback p {
+  margin: 0;
+  font-family: 'Nunito Sans', 'Segoe UI', sans-serif;
+}
+
+.belt-speed-dialog__eyebrow {
+  color: rgba(53, 80, 74, 0.78);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.belt-speed-dialog__header h3,
+.belt-speed-dialog__feedback h4 {
+  margin: 0;
+  color: #24423b;
+  font-family: 'Baloo 2', 'Trebuchet MS', sans-serif;
+}
+
+.belt-speed-dialog__header h3 {
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.belt-speed-dialog__detail {
+  margin-top: 0.35rem;
+  color: rgba(34, 48, 44, 0.8);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.belt-speed-dialog__body {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.belt-speed-dialog__label {
+  color: rgba(53, 80, 74, 0.88);
+  font:
+    800 0.76rem/1 'Nunito Sans',
+    'Segoe UI',
+    sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.belt-speed-dialog__select {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(123, 90, 69, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+  color: #22302c;
+  font:
+    800 0.92rem/1.35 'Nunito Sans',
+    'Segoe UI',
+    sans-serif;
+}
+
+.belt-speed-dialog__helper {
+  color: rgba(34, 48, 44, 0.74);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.belt-speed-dialog__feedback {
+  padding: 0.8rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(123, 90, 69, 0.12);
+  background: rgba(255, 252, 247, 0.94);
+}
+
+.belt-speed-dialog__feedback h4 {
+  font-size: 0.98rem;
+  line-height: 1.15;
+}
+
+.belt-speed-dialog__feedback p {
+  margin-top: 0.3rem;
+  color: rgba(51, 64, 59, 0.82);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.belt-speed-dialog__feedback--success {
+  background: rgba(247, 255, 244, 0.94);
+  border-color: rgba(139, 187, 116, 0.38);
+}
+
+.belt-speed-dialog__feedback--error {
+  background: rgba(255, 244, 244, 0.94);
+  border-color: rgba(201, 65, 88, 0.3);
+}
+
+.belt-speed-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.belt-speed-dialog__action,
+.belt-speed-dialog__close {
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font:
+    800 0.84rem/1 'Nunito Sans',
+    'Segoe UI',
+    sans-serif;
+}
+
+.belt-speed-dialog__close,
+.belt-speed-dialog__action--ghost {
+  background: rgba(255, 255, 255, 0.9);
+  color: #5c3d2f;
+}
+
+.belt-speed-dialog__action--primary {
+  background: linear-gradient(180deg, #e45742 0%, #b62019 100%);
+  color: #fff8f4;
+  box-shadow: 0 10px 18px rgba(182, 32, 25, 0.18);
+}
+
+.belt-speed-dialog__action:disabled,
+.belt-speed-dialog__close:disabled,
+.belt-speed-dialog__select:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
 }
 
 .counter-stage,
@@ -302,6 +479,19 @@ app-selected-seat-detail {
   display: flex;
   align-items: flex-start;
   gap: 0.85rem;
+}
+
+.counter-stage__active-seat-hint {
+  margin: 0;
+  padding: 0.85rem 0.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(228, 87, 66, 0.16);
+  background: linear-gradient(180deg, rgba(255, 249, 243, 0.96) 0%, rgba(255, 239, 227, 0.94) 100%);
+  color: rgba(84, 44, 53, 0.94);
+  font:
+    800 0.88rem/1.45 'Nunito Sans',
+    'Segoe UI',
+    sans-serif;
 }
 
 .counter-stage__seat-tools {
@@ -532,6 +722,12 @@ app-selected-seat-detail {
 
   .guide-dialog__header {
     flex-direction: column;
+  }
+
+  .belt-speed-dialog__header,
+  .belt-speed-dialog__actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

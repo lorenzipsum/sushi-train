@@ -5,7 +5,9 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL, buildApiUrl } from './http/api-config';
 import type {
   BeltListDto,
+  BeltParamsDto,
   BeltSnapshotDto,
+  BeltUpdateRequest,
   CreatePlateAndPlaceOnBeltRequest,
   CreatedPlatesOnBeltResponse,
   FullBeltDto,
@@ -34,6 +36,13 @@ export class BeltsApi {
   getSeatOverview(beltId: string): Observable<SeatStateListDto> {
     return this.http.get<SeatStateListDto>(
       buildApiUrl(this.baseUrl, `/api/v1/belts/${beltId}/seats`),
+    );
+  }
+
+  updateBelt(beltId: string, request: BeltUpdateRequest): Observable<BeltParamsDto> {
+    return this.http.patch<BeltParamsDto>(
+      buildApiUrl(this.baseUrl, `/api/v1/belts/${beltId}`),
+      request,
     );
   }
 

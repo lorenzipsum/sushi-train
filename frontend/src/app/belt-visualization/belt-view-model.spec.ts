@@ -40,6 +40,11 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[1].presenceCue).toBe('occupied');
     expect(result.selectedSeatId).toBe('seat-1');
     expect(result.reachArea?.seatId).toBe('seat-1');
+    expect(result.reachArea?.seatSegment).toBe('bottom-row');
+    expect(result.reachArea?.ownershipLabel).toContain('Seat 1 currently owns the lit pickup reach.');
+    expect(result.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
+      result.reachArea?.radiusPercent ?? 0,
+    );
     expect(result.seats[0].isSelected).toBe(true);
     expect(result.seats[0].statusLabel).toBe('Available');
     expect(result.seats[1].statusLabel).toBe('Occupied');
@@ -245,5 +250,105 @@ describe('buildBeltStageViewModel', () => {
     expect(result.seats[0].restorationStatus).toBe('confirmed-no-order');
     expect(result.seats[0].statusLabel).toBe('Available');
     expect(result.slots[0].plate?.isPickable).toBe(false);
+  });
+
+  it('expands the top-row reach radius without changing the bottom-row default radius', () => {
+    const snapshot: BeltSnapshotDto = {
+      beltName: 'Main Belt',
+      beltSlotCount: 12,
+      slots: [{ slotId: 'slot-1', positionIndex: 0 }],
+    };
+    const seats: SeatStateListDto = Array.from({ length: 8 }, (_, index) => ({
+      seatId: `seat-${index + 1}`,
+      label: `Seat ${index + 1}`,
+      positionIndex: index,
+      isOccupied: index === 0 || index === 4,
+    }));
+
+    const bottomRow = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-1',
+      activeOrdersBySeatId: {
+        'seat-1': {
+          orderId: 'order-1',
+          createdAt: '2026-03-15T03:00:00Z',
+          seatId: 'seat-1',
+          status: 'OPEN',
+        },
+      },
+    });
+    const topRow = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-5',
+      activeOrdersBySeatId: {
+        'seat-5': {
+          orderId: 'order-5',
+          createdAt: '2026-03-15T03:00:00Z',
+          seatId: 'seat-5',
+          status: 'OPEN',
+        },
+      },
+    });
+    const sideRow = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-3',
+      activeOrdersBySeatId: {
+        'seat-3': {
+          orderId: 'order-3',
+          createdAt: '2026-03-15T03:00:00Z',
+          seatId: 'seat-3',
+          status: 'OPEN',
+        },
+      },
+    });
+
+    expect(bottomRow.reachArea?.seatSegment).toBe('bottom-row');
+    expect(topRow.reachArea?.seatSegment).toBe('top-row');
+    expect(sideRow.reachArea?.seatSegment).toBe('side-row');
+    expect(topRow.reachArea?.radiusPercent).toBeGreaterThan(bottomRow.reachArea?.radiusPercent ?? 0);
+    expect(topRow.reachArea?.slotLightingRadiusPercent).toBe(topRow.reachArea?.radiusPercent);
+    expect(bottomRow.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
+      bottomRow.reachArea?.radiusPercent ?? 0,
+    );
+    expect(sideRow.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
+      sideRow.reachArea?.radiusPercent ?? 0,
+    );
+    expect(topRow.reachArea?.highlightWidthPercent).toBeLessThan(
+      sideRow.reachArea?.highlightWidthPercent ?? Number.POSITIVE_INFINITY,
+    );
+    expect(bottomRow.reachArea?.highlightWidthPercent).toBeLessThan(
+      sideRow.reachArea?.highlightWidthPercent ?? Number.POSITIVE_INFINITY,
+    );
+  });
+
+  it('lights extra slots for bottom-row seats without widening actual pick reach', () => {
+    const snapshot: BeltSnapshotDto = {
+      beltName: 'Main Belt',
+      beltSlotCount: 24,
+      slots: Array.from({ length: 24 }, (_, index) => ({
+        slotId: `slot-${index + 1}`,
+        positionIndex: index,
+      })),
+    };
+    const seats: SeatStateListDto = Array.from({ length: 8 }, (_, index) => ({
+      seatId: `seat-${index + 1}`,
+      label: `Seat ${index + 1}`,
+      positionIndex: index,
+      isOccupied: index === 0,
+    }));
+
+    const result = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-1',
+      activeOrdersBySeatId: {
+        'seat-1': {
+          orderId: 'order-1',
+          createdAt: '2026-03-15T03:00:00Z',
+          seatId: 'seat-1',
+          status: 'OPEN',
+        },
+      },
+    });
+
+    const actuallyReachableCount = result.slots.filter((slot) => slot.isWithinReach).length;
+    const visiblyLitCount = result.slots.filter((slot) => slot.isHighlightedByReach).length;
+
+    expect(visiblyLitCount).toBeGreaterThan(actuallyReachableCount);
   });
 });

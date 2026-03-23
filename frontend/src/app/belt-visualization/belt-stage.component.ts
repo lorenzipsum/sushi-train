@@ -19,9 +19,11 @@ export class BeltStageComponent {
   readonly paused = input(false);
   readonly degraded = input(false);
   readonly operatorOpen = input(false);
+  readonly settingsOpen = input(false);
   readonly selectSeat = output<string>();
   readonly pickPlate = output<string>();
   readonly toggleOperator = output<void>();
+  readonly openSettings = output<void>();
 
   handleSeatClick(seat: BeltStageSeatViewModel): void {
     this.selectSeat.emit(seat.id);
@@ -33,5 +35,9 @@ export class BeltStageComponent {
 
   handleOperatorClick(): void {
     this.toggleOperator.emit();
+  }
+
+  handleSettingsClick(): void {
+    this.openSettings.emit();
   }
 }

@@ -324,21 +324,37 @@ textarea {
 .belt-stage__reach-area {
   position: absolute;
   z-index: 1;
-  translate: -50% -50%;
   border-radius: 999px;
-  border: 2px dashed rgba(184, 32, 25, 0.46);
+  border: 2px dashed rgba(184, 32, 25, 0.6);
   background:
     radial-gradient(
       circle,
-      rgba(255, 234, 226, 0.28) 0%,
-      rgba(255, 234, 226, 0.08) 58%,
+      rgba(255, 244, 235, 0.5) 0%,
+      rgba(255, 226, 212, 0.18) 58%,
       transparent 72%
     ),
-    radial-gradient(circle, rgba(184, 32, 25, 0.1), transparent 74%);
+    radial-gradient(circle, rgba(184, 32, 25, 0.16), transparent 74%);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.38),
-    0 0 0 0.35rem rgba(184, 32, 25, 0.08);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.54),
+    0 0 0 0.35rem rgba(184, 32, 25, 0.1),
+    0 0 1.2rem rgba(228, 87, 66, 0.22);
   pointer-events: none;
+}
+
+.belt-stage__reach-area[data-seat-segment='top-row'] {
+  border-color: rgba(184, 32, 25, 0.72);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 0 0 0.45rem rgba(184, 32, 25, 0.12),
+    0 0 1.5rem rgba(228, 87, 66, 0.28);
+}
+
+.belt-stage__reach-area[data-seat-segment='bottom-row'] {
+  border-color: rgba(184, 32, 25, 0.72);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 0 0 0.45rem rgba(184, 32, 25, 0.12),
+    0 0 1.5rem rgba(228, 87, 66, 0.28);
 }
 .slot,
 .seat {
@@ -346,10 +362,11 @@ textarea {
 }
 
 .slot--within-reach .slot__marker {
-  background: rgba(255, 235, 214, 0.82);
+  background: rgba(255, 244, 232, 0.96);
   box-shadow:
-    0 0 0 1px rgba(184, 32, 25, 0.2),
-    0 0 0 0.16rem rgba(184, 32, 25, 0.1);
+    0 0 0 1px rgba(184, 32, 25, 0.32),
+    0 0 0 0.18rem rgba(184, 32, 25, 0.12),
+    0 0 0.8rem rgba(228, 87, 66, 0.18);
 }
 .slot__marker {
   display: block;
@@ -387,7 +404,9 @@ textarea {
 
 .plate-hitbox--pickable::after {
   border-color: rgba(184, 32, 25, 0.42);
-  box-shadow: 0 0 0 0.2rem rgba(184, 32, 25, 0.12);
+  box-shadow:
+    0 0 0 0.2rem rgba(184, 32, 25, 0.12),
+    0 0 1rem rgba(228, 87, 66, 0.16);
 }
 
 .plate-hitbox--pickable:hover::after,
@@ -415,13 +434,13 @@ textarea {
   height: var(--plate-size);
   translate: -50% -50%;
   border-radius: 999px;
+  background: transparent;
   box-shadow:
     0 10px 18px rgba(78, 52, 42, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-.plate::after,
-.plate__center::before {
+.plate::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -430,20 +449,32 @@ textarea {
 
 .seat--selected {
   box-shadow:
-    0 0 0 0.22rem rgba(184, 32, 25, 0.2),
-    0 14px 24px rgba(92, 61, 47, 0.18);
+    0 0 0 0.28rem rgba(184, 32, 25, 0.24),
+    0 0 1.2rem rgba(228, 87, 66, 0.2),
+    0 14px 24px rgba(92, 61, 47, 0.2);
 }
 
 .seat--selected::before {
   opacity: 1;
   box-shadow:
-    0 0 0 0.22rem rgba(184, 32, 25, 0.14),
-    0 0 0 0.44rem rgba(184, 32, 25, 0.08);
+    0 0 0 0.25rem rgba(184, 32, 25, 0.18),
+    0 0 0 0.58rem rgba(184, 32, 25, 0.1),
+    0 0 1rem rgba(228, 87, 66, 0.2);
+}
+
+.seat--selected .seat__frame,
+.seat--selected .seat__cushion {
+  filter: brightness(1.08);
+}
+
+.seat--selected .seat__guest-body,
+.seat--selected .seat__guest-head {
+  box-shadow: 0 0 0.7rem rgba(255, 230, 188, 0.34);
 }
 
 .plate::after {
-  inset: 8%;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+  inset: 12%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
 }
 
 @keyframes plate-reject-shake {
@@ -472,7 +503,7 @@ textarea {
 .plate::before {
   content: '';
   position: absolute;
-  inset: 18% 18% 52%;
+  inset: 14% 24% 56%;
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 100%);
   opacity: 0.75;
@@ -501,13 +532,15 @@ textarea {
 }
 
 .plate__rim {
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.72), transparent 46%),
-    repeating-radial-gradient(
-      circle at 50% 50%,
-      rgba(255, 255, 255, 0.1) 0 6%,
-      rgba(255, 255, 255, 0) 6% 12%
-    );
+  inset: 8%;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6), transparent 34%);
+  box-shadow:
+    inset 0 0 0 calc(var(--plate-size) * 0.17) var(--plate-ring-color, rgba(255, 255, 255, 0.82)),
+    inset 0 0 0 calc(var(--plate-size) * 0.28) rgba(255, 255, 255, 0.2),
+    0 0 0 2px var(--plate-ring-outline, rgba(255, 249, 241, 0.92)),
+    0 0 0 0.32rem rgba(255, 247, 238, 0.22),
+    0 0 1rem var(--plate-ring-shadow, rgba(255, 248, 240, 0.18)),
+    0 10px 18px rgba(78, 52, 42, 0.18);
 }
 
 .plate__center {
@@ -606,26 +639,44 @@ textarea {
 }
 
 .tier-green {
-  background: linear-gradient(180deg, #acd98c 0%, #8bc06f 100%);
+  --plate-ring-color: #95cf74;
+  --plate-ring-outline: rgba(246, 253, 240, 0.95);
+  --plate-ring-shadow: rgba(149, 207, 116, 0.26);
+  background: transparent;
 }
 
 .tier-red {
-  background: linear-gradient(180deg, #ff9c8a 0%, #f56f5a 100%);
+  --plate-ring-color: #ff7f68;
+  --plate-ring-outline: rgba(255, 245, 241, 0.95);
+  --plate-ring-shadow: rgba(255, 127, 104, 0.28);
+  background: transparent;
 }
 
 .tier-gold {
-  background: linear-gradient(180deg, #f0d37b 0%, #d8bb5b 100%);
+  --plate-ring-color: #e7c964;
+  --plate-ring-outline: rgba(255, 251, 233, 0.96);
+  --plate-ring-shadow: rgba(231, 201, 100, 0.28);
+  background: transparent;
 }
 
 .tier-black {
-  background: linear-gradient(180deg, #66656c 0%, #414147 100%);
+  --plate-ring-color: #7c8794;
+  --plate-ring-outline: rgba(248, 250, 252, 0.96);
+  --plate-ring-shadow: rgba(188, 205, 228, 0.28);
+  background: transparent;
 }
 
 .tier-green .plate__rim,
 .tier-red .plate__rim,
 .tier-gold .plate__rim,
 .tier-black .plate__rim {
-  box-shadow: inset 0 0 0 0.18rem rgba(255, 255, 255, 0.2);
+  box-shadow:
+    inset 0 0 0 calc(var(--plate-size) * 0.17) var(--plate-ring-color),
+    inset 0 0 0 calc(var(--plate-size) * 0.28) rgba(255, 255, 255, 0.2),
+    0 0 0 2px var(--plate-ring-outline),
+    0 0 0 0.32rem rgba(255, 247, 238, 0.22),
+    0 0 1rem var(--plate-ring-shadow),
+    0 10px 18px rgba(78, 52, 42, 0.18);
 }
 
 .food--nigiri .food__base {

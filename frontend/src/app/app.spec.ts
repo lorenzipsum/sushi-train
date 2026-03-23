@@ -16,7 +16,13 @@ function createStageViewModel(): BeltStageViewModel {
       xPercent: 25,
       yPercent: 70,
       radiusPercent: 12,
-      ariaLabel: 'Seat 1 pickup reach',
+      slotLightingRadiusPercent: 15.41,
+      highlightWidthPercent: 32.64,
+      highlightHeightPercent: 23.04,
+      rotationDeg: 90,
+      seatSegment: 'bottom-row',
+      ownershipLabel: 'Seat 1 currently owns the lit pickup reach.',
+      ariaLabel: 'Seat 1 pickup reach. Plates inside this ring can be picked now.',
     },
     slots: [
       {
@@ -28,6 +34,7 @@ function createStageViewModel(): BeltStageViewModel {
         tangentDeg: 0,
         segment: 'top-straight',
         isWithinReach: true,
+        isHighlightedByReach: true,
         ariaLabel: 'Slot 1. Salmon on red tier, pickable now.',
         plate: {
           id: 'plate-1',
@@ -178,6 +185,8 @@ describe('App', () => {
         submitSecondaryHint:
           'Primary guidance stays literal so the operator flow never turns into a guessing game.',
       }),
+      beltSpeedDialog: () => null,
+      beltSpeedFeedback: () => null,
       selectedSeatDetail: () => ({
         seatId: 'seat-1',
         seatLabel: 'Seat 1',
@@ -202,6 +211,12 @@ describe('App', () => {
       checkoutSelectedSeat: vi.fn(),
       pickPlate: vi.fn(),
       toggleOperatorPlacement: vi.fn(),
+      openBeltSpeedDialog: vi.fn(),
+      closeBeltSpeedDialog: vi.fn(),
+      selectBeltSpeed: vi.fn(),
+      stepBeltSpeedSelection: vi.fn(),
+      nudgeBeltSpeed: vi.fn(),
+      submitBeltSpeedDialog: vi.fn(),
       closeOperatorPlacement: vi.fn(),
       retryOperatorMenuLoad: vi.fn(),
       setOperatorSearchQuery: vi.fn(),
@@ -233,6 +248,7 @@ describe('App', () => {
     );
     expect(compiled.querySelector('.counter-stage')).toBeTruthy();
     expect(compiled.querySelector('.counter-stage__guide-button')).toBeTruthy();
+    expect(compiled.querySelector('.counter-stage__active-seat-hint')).toBeNull();
     expect(compiled.textContent).toContain('Belt speed');
     expect(compiled.textContent).not.toContain('Warm cafe staging, unchanged service logic');
   });
@@ -351,6 +367,107 @@ describe('App', () => {
     button.click();
 
     expect(storeMock.toggleOperatorPlacement).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes the belt speed settings tile to the speed dialog action', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const buttons = fixture.nativeElement.querySelectorAll('.belt-stage__kitchen-action');
+    const settingsButton = buttons[1] as HTMLButtonElement;
+    settingsButton.click();
+
+    expect(storeMock.openBeltSpeedDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it('nudges the live belt speed from global + and - key presses when the dialog is closed', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '+' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '-' }));
+
+    expect(storeMock.nudgeBeltSpeed).toHaveBeenNthCalledWith(1, 1);
+    expect(storeMock.nudgeBeltSpeed).toHaveBeenNthCalledWith(2, -1);
+  });
+
+  it('renders plates as ring-only visuals', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.plate__rim')).toBeTruthy();
+    expect(compiled.querySelector('.plate__center')).toBeNull();
+    expect(compiled.querySelector('.food')).toBeNull();
+  });
+
+  it('renders the speed dialog and routes select, dismiss, and submit interactions', async () => {
+    storeMock = {
+      ...storeMock,
+      beltSpeedDialog: () => ({
+        isOpen: true,
+        options: [
+          { value: 1, label: 'Slow glide', detail: '1 slot per 500ms' },
+          { value: 2, label: 'Counter pace', detail: '2 slots per 500ms' },
+        ],
+        currentSpeed: 1,
+        selectedSpeed: 1,
+        currentSpeedLabel: 'Slow glide (1 slot per 500ms)',
+        selectedSpeedLabel: 'Slow glide',
+        helperLabel: '',
+        canSubmit: true,
+        submitDisabledReason: null,
+        isSubmitting: false,
+        feedback: null,
+      }),
+    } as unknown as BeltVisualizationStore;
+
+    TestBed.resetTestingModule();
+
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const select = compiled.querySelector('#belt-speed-select') as HTMLSelectElement;
+
+    expect(compiled.querySelector('.belt-speed-dialog__label')).toBeNull();
+    expect(select.selectedIndex).toBe(0);
+    expect((select.options[0] as HTMLOptionElement).selected).toBe(true);
+
+    const dialogCard = compiled.querySelector('.belt-speed-dialog__card') as HTMLElement;
+    dialogCard.dispatchEvent(new KeyboardEvent('keydown', { key: '+' }));
+    dialogCard.dispatchEvent(new KeyboardEvent('keydown', { key: '-' }));
+    fixture.detectChanges();
+
+    expect(storeMock.stepBeltSpeedSelection).toHaveBeenNthCalledWith(1, 1);
+    expect(storeMock.stepBeltSpeedSelection).toHaveBeenNthCalledWith(2, -1);
+    expect(storeMock.nudgeBeltSpeed).not.toHaveBeenCalled();
+
+    select.value = '2';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.belt-speed-dialog')).toBeTruthy();
+    expect(compiled.textContent).toContain('Current belt speed: Slow glide (1 slot per 500ms)');
+    expect((select.options[0] as HTMLOptionElement).text).toContain('Slow glide - 1 slot per 500ms');
+    expect(compiled.textContent).not.toContain('Slow glide. 1 slot per 500ms');
+    expect(select.value).toBe('2');
+    expect(storeMock.selectBeltSpeed).toHaveBeenCalledWith(2);
+    dialogCard.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(storeMock.closeBeltSpeedDialog).toHaveBeenCalledTimes(1);
+
+    const applyButton = compiled.querySelector(
+      '.belt-speed-dialog__action--primary',
+    ) as HTMLButtonElement;
+    applyButton.click();
+
+    expect(storeMock.submitBeltSpeedDialog).toHaveBeenCalledTimes(1);
   });
 
   it('renders selected-seat detail feedback when the store exposes a notice', () => {
