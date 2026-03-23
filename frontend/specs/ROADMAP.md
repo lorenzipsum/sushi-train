@@ -1,6 +1,6 @@
 # Roadmap
 
-Current frontend state: local frontend features `001` through `007` are shipped on `main`. A shared realtime-updates milestone is also shipped, and the remaining planned local frontend work starts with final design polish.
+Current frontend state: local frontend features `001` through `008` are shipped on `main`. A shared realtime-updates milestone is also shipped.
 
 ## Current
 
@@ -13,6 +13,7 @@ Current frontend state: local frontend features `001` through `007` are shipped 
 | `005-pick-plates`          | Done   | Guest plate picking shipped                                        |
 | `006-hydrate-seat-orders`  | Done   | Reload-time order restoration and selected-seat continuity shipped |
 | `007-add-plates-belt`      | Done   | Demo-mode operator plate action shipped in the main belt UI        |
+| `008-design-polish`        | Done   | Final presentation pass shipped with playful cafe styling polish   |
 
 ## Shared Shipped Milestones
 
@@ -22,9 +23,7 @@ Current frontend state: local frontend features `001` through `007` are shipped 
 
 ## Next Features
 
-| Order | Feature             | Status   | Depends on                                                                                                                           | Notes                                     |
-| ----- | ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
-| 8     | `008-design-polish` | Proposed | `003-occupy-seat`, `004-checkout-seat`, `005-pick-plates`, `006-hydrate-seat-orders`, `007-add-plates-belt`, `realtime-belt-updates` | Final UI pass after realtime updates land |
+No additional local frontend features are currently queued in this roadmap.
 
 ## Dependency Shape
 
