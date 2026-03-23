@@ -1,6 +1,7 @@
 :root {
   --page-max-width: 84rem;
   --stage-max-width: 82rem;
+  --stage-aspect-ratio: 16 / 9;
   --surface-cream: #fff9f1;
   --surface-cream-strong: #fff3e6;
   --surface-blush: #ffe1db;
@@ -47,7 +48,7 @@ textarea {
 .belt-stage__counter {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: var(--stage-aspect-ratio);
   border-radius: clamp(2rem, 4vw, 3rem);
   overflow: hidden;
   background:
@@ -1086,5 +1087,30 @@ textarea {
   .belt-stage__chef {
     width: 18%;
     height: 26%;
+  }
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --page-max-width: 78rem;
+    --stage-max-width: 100%;
+  }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  :root {
+    --stage-aspect-ratio: 5 / 4;
+  }
+}
+
+@media (max-width: 680px) and (orientation: portrait) {
+  :root {
+    --stage-aspect-ratio: 1 / 1;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --stage-aspect-ratio: 11 / 5;
   }
 }

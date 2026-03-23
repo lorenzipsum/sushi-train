@@ -282,6 +282,8 @@ function getReachArea(
   const slotLightingRadiusPercent = Math.min(22, Math.max(12.5, baseRadiusPercent * 1.18 + 1.25));
   if (seatSegment === 'top-row') {
     radiusPercent = slotLightingRadiusPercent;
+  } else if (seatSegment === 'bottom-row') {
+    radiusPercent = slotLightingRadiusPercent;
   }
 
   const seatLabel = selectedSeat.seat.label ?? 'Selected seat';

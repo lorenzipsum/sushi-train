@@ -42,9 +42,7 @@ describe('buildBeltStageViewModel', () => {
     expect(result.reachArea?.seatId).toBe('seat-1');
     expect(result.reachArea?.seatSegment).toBe('bottom-row');
     expect(result.reachArea?.ownershipLabel).toContain('Seat 1 currently owns the lit pickup reach.');
-    expect(result.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
-      result.reachArea?.radiusPercent ?? 0,
-    );
+    expect(result.reachArea?.slotLightingRadiusPercent).toBe(result.reachArea?.radiusPercent);
     expect(result.seats[0].isSelected).toBe(true);
     expect(result.seats[0].statusLabel).toBe('Available');
     expect(result.seats[1].statusLabel).toBe('Occupied');
@@ -302,10 +300,10 @@ describe('buildBeltStageViewModel', () => {
     expect(bottomRow.reachArea?.seatSegment).toBe('bottom-row');
     expect(topRow.reachArea?.seatSegment).toBe('top-row');
     expect(sideRow.reachArea?.seatSegment).toBe('side-row');
-    expect(topRow.reachArea?.radiusPercent).toBeGreaterThan(bottomRow.reachArea?.radiusPercent ?? 0);
+    expect(topRow.reachArea?.radiusPercent).toBe(bottomRow.reachArea?.radiusPercent);
     expect(topRow.reachArea?.slotLightingRadiusPercent).toBe(topRow.reachArea?.radiusPercent);
-    expect(bottomRow.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
-      bottomRow.reachArea?.radiusPercent ?? 0,
+    expect(bottomRow.reachArea?.slotLightingRadiusPercent).toBe(
+      bottomRow.reachArea?.radiusPercent,
     );
     expect(sideRow.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
       sideRow.reachArea?.radiusPercent ?? 0,
@@ -327,13 +325,18 @@ describe('buildBeltStageViewModel', () => {
     );
   });
 
-  it('keeps bottom-row slot lighting authoritative and separate from the shortened highlight shape', () => {
+  it('lets occupied bottom-row seats pick plates that fall inside the visible lit reach', () => {
     const snapshot: BeltSnapshotDto = {
       beltName: 'Main Belt',
-      beltSlotCount: 24,
-      slots: Array.from({ length: 24 }, (_, index) => ({
+      beltSlotCount: 12,
+      slots: Array.from({ length: 12 }, (_, index) => ({
         slotId: `slot-${index + 1}`,
         positionIndex: index,
+        plate: {
+          plateId: `plate-${index + 1}`,
+          menuItemName: 'Salmon Nigiri',
+          tier: 'RED',
+        },
       })),
     };
     const seats: SeatStateListDto = Array.from({ length: 8 }, (_, index) => ({
@@ -355,6 +358,46 @@ describe('buildBeltStageViewModel', () => {
       },
     });
 
+    expect(result.reachArea?.seatSegment).toBe('bottom-row');
+
+    const highlightedBottomSlots = result.slots.filter(
+      (slot) => slot.segment === 'bottom-straight' && slot.isHighlightedByReach && slot.plate,
+    );
+
+    expect(highlightedBottomSlots.length).toBeGreaterThan(0);
+    expect(highlightedBottomSlots.every((slot) => slot.isWithinReach)).toBe(true);
+    expect(highlightedBottomSlots.every((slot) => slot.plate?.isPickable)).toBe(true);
+  });
+
+  it('keeps side-row slot lighting broader than actual pickability', () => {
+    const snapshot: BeltSnapshotDto = {
+      beltName: 'Main Belt',
+      beltSlotCount: 24,
+      slots: Array.from({ length: 24 }, (_, index) => ({
+        slotId: `slot-${index + 1}`,
+        positionIndex: index,
+      })),
+    };
+    const seats: SeatStateListDto = Array.from({ length: 8 }, (_, index) => ({
+      seatId: `seat-${index + 1}`,
+      label: `Seat ${index + 1}`,
+      positionIndex: index,
+      isOccupied: index === 2,
+    }));
+
+    const result = buildBeltStageViewModel(snapshot, seats, 0, {
+      selectedSeatId: 'seat-3',
+      activeOrdersBySeatId: {
+        'seat-3': {
+          orderId: 'order-3',
+          createdAt: '2026-03-15T03:00:00Z',
+          seatId: 'seat-3',
+          status: 'OPEN',
+        },
+      },
+    });
+
+    expect(result.reachArea?.seatSegment).toBe('side-row');
     expect(result.reachArea?.slotLightingRadiusPercent).toBeGreaterThan(
       result.reachArea?.radiusPercent ?? 0,
     );

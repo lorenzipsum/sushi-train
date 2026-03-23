@@ -3,3 +3,8 @@ dist
 .angular
 npm-debug.log
 coverage
+.git
+Dockerfile*
+.dockerignore
+*.log*
+.env*

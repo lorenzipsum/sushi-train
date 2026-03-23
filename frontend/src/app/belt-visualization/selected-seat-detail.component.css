@@ -5,6 +5,7 @@
 .selected-seat-detail {
   display: grid;
   gap: 0.9rem;
+  min-width: 0;
   padding: 1rem 1.05rem;
   border-radius: 1.35rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(255, 249, 242, 0.92) 100%);
@@ -92,12 +93,14 @@
 .selected-seat-detail__actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: stretch;
   gap: 0.65rem;
 }
 
 .selected-seat-detail__action {
   border: none;
   border-radius: 999px;
+  min-width: 0;
   padding: 0.7rem 1rem;
   font:
     800 0.88rem/1.1 'Nunito Sans',
@@ -185,8 +188,51 @@
   background: rgba(255, 249, 242, 0.72);
 }
 
+@media (max-width: 820px) {
+  .selected-seat-detail {
+    gap: 0.75rem;
+    padding: 0.9rem;
+  }
+
+  .selected-seat-detail__order-meta {
+    gap: 0.45rem;
+  }
+}
+
 @media (max-width: 640px) {
   .selected-seat-detail__header {
     flex-direction: column;
+  }
+
+  .selected-seat-detail__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .selected-seat-detail__action {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px), (max-height: 500px) and (orientation: landscape) {
+  .selected-seat-detail {
+    gap: 0.65rem;
+    padding: 0.78rem 0.82rem;
+    border-radius: 1.1rem;
+  }
+
+  .selected-seat-detail__status {
+    align-self: flex-start;
+    white-space: normal;
+  }
+
+  .selected-seat-detail__order-meta {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .selected-seat-detail__order-lines li {
+    padding: 0.45rem 0.5rem;
   }
 }

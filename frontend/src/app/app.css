@@ -738,6 +738,59 @@ app-selected-seat-detail {
   }
 }
 
+@media (max-width: 1024px) {
+  .page-shell {
+    padding-inline: clamp(0.8rem, 2vw, 1.3rem);
+  }
+
+  .hero__subtitle {
+    max-width: 30rem;
+  }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  .page-shell {
+    padding: 0.75rem 0.85rem 1rem;
+  }
+
+  .hero {
+    justify-content: start;
+    margin-bottom: 0.55rem;
+    text-align: left;
+  }
+
+  .hero__headline {
+    justify-content: flex-start;
+  }
+
+  .hero__subtitle {
+    margin-inline: 0;
+    max-width: 28rem;
+    font-size: 0.92rem;
+  }
+
+  .counter-stage {
+    gap: 0.65rem;
+    padding: 0.75rem;
+    border-radius: 1.8rem;
+  }
+
+  .counter-stage__seat-row {
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+  }
+
+  .counter-stage__seat-tools {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .counter-stage__guide-button {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+}
+
 @media (max-width: 720px) {
   .page-shell {
     padding-inline: 0.8rem;
@@ -759,6 +812,126 @@ app-selected-seat-detail {
 
   .counter-stage__operator[data-mode='secondary-surface'] {
     width: min(36rem, calc(100vw - 1rem));
+  }
+}
+
+@media (max-width: 680px) and (orientation: portrait) {
+  .page-shell__steam {
+    display: none;
+  }
+
+  .page-shell {
+    padding: 0.65rem 0.65rem 0.85rem;
+  }
+
+  .hero {
+    gap: 0.25rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .hero h1 {
+    padding-inline-start: 2.35rem;
+    font-size: clamp(1.2rem, 6vw, 1.8rem);
+    letter-spacing: 0.06em;
+  }
+
+  .hero h1::before {
+    width: 1.45rem;
+    height: 1.45rem;
+  }
+
+  .hero__subtitle {
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+
+  .counter-stage {
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border-radius: 1.45rem;
+  }
+
+  .counter-stage__feedback,
+  .counter-stage__notice {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .counter-stage__operator[data-mode='inline-kitchen'],
+  .counter-stage__operator[data-mode='secondary-surface'],
+  .counter-stage__operator .operator-placement,
+  .belt-speed-dialog__card,
+  .guide-dialog__card {
+    width: min(calc(100vw - 1rem), 32rem);
+  }
+
+  .belt-speed-dialog__card,
+  .guide-dialog__card {
+    margin-top: min(6vh, 1rem);
+    padding: 1rem;
+    border-radius: 1.2rem;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-shell__steam {
+    display: none;
+  }
+
+  .page-shell {
+    padding: 0.55rem 0.75rem 0.8rem;
+  }
+
+  .hero {
+    gap: 0.15rem;
+    margin-bottom: 0.35rem;
+    text-align: left;
+  }
+
+  .hero__headline {
+    justify-content: flex-start;
+  }
+
+  .hero h1 {
+    padding-inline-start: 2.25rem;
+    font-size: clamp(1.1rem, 3.6vw, 1.55rem);
+  }
+
+  .hero__subtitle {
+    display: none;
+  }
+
+  .counter-stage {
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border-radius: 1.4rem;
+  }
+
+  .counter-stage__seat-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.55rem;
+  }
+
+  .counter-stage__seat-tools {
+    justify-content: flex-start;
+  }
+
+  .counter-stage__guide-button {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .counter-stage__guide-button span {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .belt-speed-dialog__card,
+  .guide-dialog__card {
+    margin-top: 0.75rem;
+    max-height: calc(100dvh - 1.5rem);
+    overflow: auto;
   }
 }
 
