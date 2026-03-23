@@ -1031,4 +1031,172 @@ describe('BeltVisualizationStore', () => {
     expect(store.operatorPlacement()?.draft.numOfPlates).toBe(3);
     expect(store.operatorPlacement()?.draft.priceAtCreation).toBe('450');
   });
+
+  it('opens the belt speed dialog with the current speed selected and blocks unchanged submit', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot({ beltSpeedSlotsPerTick: 1 }))),
+      getSeatOverview: vi.fn(() => of([])),
+      updateBelt: vi.fn(),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.openBeltSpeedDialog();
+
+    expect(store.beltSpeedDialog()?.isOpen).toBe(true);
+    expect(store.beltSpeedDialog()?.currentSpeed).toBe(1);
+    expect(store.beltSpeedDialog()?.selectedSpeed).toBe(1);
+    expect(store.beltSpeedDialog()?.canSubmit).toBe(false);
+
+    store.selectBeltSpeed(3);
+
+    expect(store.beltSpeedDialog()?.selectedSpeed).toBe(3);
+    expect(store.beltSpeedDialog()?.canSubmit).toBe(true);
+  });
+
+  it('steps the belt speed selection with keyboard-style increments and clamps at pause and max speed', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot({ beltSpeedSlotsPerTick: 4 }))),
+      getSeatOverview: vi.fn(() => of([])),
+      updateBelt: vi.fn(),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.openBeltSpeedDialog();
+    expect(store.beltSpeedDialog()?.selectedSpeed).toBe(4);
+
+    store.stepBeltSpeedSelection(1);
+    expect(store.beltSpeedDialog()?.selectedSpeed).toBe(5);
+
+    store.stepBeltSpeedSelection(1);
+    expect(store.beltSpeedDialog()?.selectedSpeed).toBe(5);
+
+    store.stepBeltSpeedSelection(-1);
+    store.stepBeltSpeedSelection(-1);
+    store.stepBeltSpeedSelection(-1);
+    store.stepBeltSpeedSelection(-1);
+    store.stepBeltSpeedSelection(-1);
+    expect(store.beltSpeedDialog()?.selectedSpeed).toBe(0);
+  });
+
+  it('nudges the live belt speed directly from the current snapshot and clamps at pause and max speed', () => {
+    const updateBelt$ = new Subject<unknown>();
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot({ beltSpeedSlotsPerTick: 4 }))),
+      getSeatOverview: vi.fn(() => of([])),
+      updateBelt: vi.fn(() => updateBelt$.asObservable()),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+    const refreshSpy = vi.spyOn(store, 'refreshAfterWrite').mockImplementation(() => {});
+
+    store.nudgeBeltSpeed(1);
+
+    expect(beltsApiMock.updateBelt).toHaveBeenCalledWith('belt-1', { speedSlotsPerTick: 5 });
+
+    updateBelt$.next({});
+    updateBelt$.complete();
+
+    expect(store.beltSpeedFeedback()?.tone).toBe('success');
+    expect(store.beltSpeedFeedback()?.detail).toContain('5 slots per tick');
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates the belt speed once and refreshes after success', () => {
+    const updateBelt$ = new Subject<unknown>();
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot({ beltSpeedSlotsPerTick: 1 }))),
+      getSeatOverview: vi.fn(() => of([])),
+      updateBelt: vi.fn(() => updateBelt$.asObservable()),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+    const refreshSpy = vi.spyOn(store, 'refreshAfterWrite').mockImplementation(() => {});
+
+    store.openBeltSpeedDialog();
+    store.selectBeltSpeed(3);
+    store.submitBeltSpeedDialog();
+
+    expect(beltsApiMock.updateBelt).toHaveBeenCalledWith('belt-1', { speedSlotsPerTick: 3 });
+    expect(store.beltSpeedDialog()?.isSubmitting).toBe(true);
+
+    updateBelt$.next({});
+    updateBelt$.complete();
+
+    expect(store.beltSpeedDialog()?.isOpen).toBe(false);
+    expect(store.beltSpeedFeedback()?.tone).toBe('success');
+    expect(store.beltSpeedFeedback()?.detail).toContain('3 slots per tick');
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the belt speed dialog open and surfaces normalized error feedback after a failed update', () => {
+    const beltsApiMock = {
+      getAllBelts: vi.fn(() => of([createBelt()])),
+      getBeltSnapshot: vi.fn(() => of(createSnapshot({ beltSpeedSlotsPerTick: 1 }))),
+      getSeatOverview: vi.fn(() => of([])),
+      updateBelt: vi.fn(() =>
+        throwError(() => ({ error: { status: 409, detail: 'The belt is locked for maintenance.' } })),
+      ),
+    };
+    const seatsApiMock = {
+      occupySeat: vi.fn(),
+      getSeatState: vi.fn(),
+      checkout: vi.fn(),
+      pickPlate: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: buildStoreProviders(beltsApiMock, seatsApiMock),
+    });
+    const store = TestBed.inject(BeltVisualizationStore);
+
+    store.openBeltSpeedDialog();
+    store.selectBeltSpeed(4);
+    store.submitBeltSpeedDialog();
+
+    expect(store.beltSpeedDialog()?.isOpen).toBe(true);
+    expect(store.beltSpeedFeedback()?.tone).toBe('error');
+    expect(store.beltSpeedFeedback()?.detail).toContain('The belt is locked for maintenance.');
+  });
 });

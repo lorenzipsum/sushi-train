@@ -42,6 +42,7 @@ export interface BeltStageSlotViewModel {
   plate: BeltStagePlateViewModel | null;
   ariaLabel: string;
   isWithinReach: boolean;
+  isHighlightedByReach: boolean;
 }
 
 export interface BeltStageSeatViewModel {
@@ -75,6 +76,12 @@ export interface BeltStageReachAreaViewModel {
   xPercent: number;
   yPercent: number;
   radiusPercent: number;
+  slotLightingRadiusPercent: number;
+  highlightWidthPercent: number;
+  highlightHeightPercent: number;
+  rotationDeg: number;
+  seatSegment: 'top-row' | 'side-row' | 'bottom-row';
+  ownershipLabel: string;
   ariaLabel: string;
 }
 
@@ -127,6 +134,18 @@ interface SeatLayoutContext {
   seatId: string;
   point: ReturnType<typeof getCounterSeatPoint>;
   activeOrder?: OrderSummaryDto;
+}
+
+function getSeatSegment(point: SeatLayoutContext['point']): 'top-row' | 'side-row' | 'bottom-row' {
+  if (point.facingDeg === 180) {
+    return 'top-row';
+  }
+
+  if (point.facingDeg === 0) {
+    return 'bottom-row';
+  }
+
+  return 'side-row';
 }
 
 function getOccupiedPlateSizePx(
@@ -245,7 +264,8 @@ function getReachArea(
   }
 
   const selectedSeat = seatContexts[selectedIndex];
-  let radiusPercent = 12;
+  const seatSegment = getSeatSegment(selectedSeat.point);
+  let baseRadiusPercent = 12;
 
   if (seatContexts.length > 1) {
     const previousSeat =
@@ -255,15 +275,37 @@ function getReachArea(
       getDistance(selectedSeat.point, previousSeat.point),
       getDistance(selectedSeat.point, nextSeat.point),
     ];
-    radiusPercent = Math.max(10, Math.min(20, Math.max(...neighborDistances) * 0.58));
+    baseRadiusPercent = Math.max(10, Math.min(20, Math.max(...neighborDistances) * 0.58));
   }
+
+  let radiusPercent = baseRadiusPercent;
+  const slotLightingRadiusPercent = Math.min(22, Math.max(12.5, baseRadiusPercent * 1.18 + 1.25));
+  if (seatSegment === 'top-row') {
+    radiusPercent = slotLightingRadiusPercent;
+  }
+
+  const seatLabel = selectedSeat.seat.label ?? 'Selected seat';
+  const highlightRadiusPercent = baseRadiusPercent;
+  const highlightWidthPercent =
+    highlightRadiusPercent * (seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 1.14 : 1.36) * 2;
+  const highlightHeightPercent =
+    (seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 0.72 : 0.96) *
+    highlightRadiusPercent *
+    2;
+  const rotationDeg = seatSegment === 'top-row' || seatSegment === 'bottom-row' ? 90 : 0;
 
   return {
     seatId: selectedSeatId,
     xPercent: selectedSeat.point.xPercent,
     yPercent: selectedSeat.point.yPercent,
     radiusPercent,
-    ariaLabel: `${selectedSeat.seat.label ?? 'Selected seat'} pickup reach`,
+    slotLightingRadiusPercent,
+    highlightWidthPercent,
+    highlightHeightPercent,
+    rotationDeg,
+    seatSegment,
+    ownershipLabel: `${seatLabel} currently owns the lit pickup reach.`,
+    ariaLabel: `${seatLabel} pickup reach. Plates inside this ring can be picked now.`,
   };
 }
 
@@ -364,6 +406,9 @@ export function buildBeltStageViewModel(
       const isWithinReach = reachArea
         ? getDistance(slotPoint, reachArea) <= reachArea.radiusPercent
         : false;
+      const isHighlightedByReach = reachArea
+        ? getDistance(slotPoint, reachArea) <= reachArea.slotLightingRadiusPercent
+        : false;
       const isPickable = !!slot.plate && isWithinReach && selectedSeatCanPick && !pendingAction;
       const plate = slot.plate
         ? buildPlateViewModel(
@@ -386,6 +431,7 @@ export function buildBeltStageViewModel(
         segment,
         plate,
         isWithinReach,
+        isHighlightedByReach,
         ariaLabel: `Slot ${positionIndex + 1}. ${plate?.ariaLabel ?? 'Empty slot'}`,
       };
     }),

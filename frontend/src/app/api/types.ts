@@ -2,6 +2,8 @@ import type { components } from './generated/openapi.types';
 
 export type BeltDto = components['schemas']['BeltDto'];
 export type BeltListDto = BeltDto[];
+export type BeltParamsDto = components['schemas']['BeltParamsDto'];
+export type BeltUpdateRequest = components['schemas']['BeltUpdateRequest'];
 export type CreatePlateAndPlaceOnBeltRequest =
   components['schemas']['CreatePlateAndPlaceOnBeltRequest'];
 export type CreatedPlatesOnBeltResponse = components['schemas']['CreatedPlatesOnBeltResponse'];
@@ -152,4 +154,31 @@ export interface OperatorPlacementViewModel {
   canSubmit: boolean;
   submitDisabledReason: string | null;
   submitSecondaryHint: string | null;
+}
+
+export interface BeltSpeedOption {
+  value: number;
+  label: string;
+  detail: string;
+}
+
+export interface BeltSpeedUpdateFeedback {
+  tone: 'success' | 'error';
+  title: string;
+  detail: string;
+  appliedSpeed: number | null;
+}
+
+export interface BeltSpeedDialogViewModel {
+  isOpen: boolean;
+  options: BeltSpeedOption[];
+  currentSpeed: number;
+  selectedSpeed: number;
+  currentSpeedLabel: string;
+  selectedSpeedLabel: string;
+  helperLabel: string;
+  canSubmit: boolean;
+  submitDisabledReason: string | null;
+  isSubmitting: boolean;
+  feedback: BeltSpeedUpdateFeedback | null;
 }
