@@ -98,103 +98,224 @@ textarea {
   z-index: 2;
 }
 
+.belt-stage__chef::before {
+  content: '';
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 4%;
+  height: 16%;
+  border-radius: 999px;
+  background: rgba(139, 102, 74, 0.16);
+  filter: blur(0.5rem);
+  z-index: -1;
+}
+
 .belt-stage__chef-hat,
 .belt-stage__chef-head,
 .belt-stage__chef-eyes,
 .belt-stage__chef-smile,
 .belt-stage__chef-body,
 .belt-stage__chef-scarf,
+.belt-stage__chef-apron,
 .belt-stage__chef-arms,
 .belt-stage__chef-knife,
-.belt-stage__prep {
+.belt-stage__prep,
+.belt-stage__board-handle,
+.belt-stage__board-groove,
+.belt-stage__board-salmon,
+.belt-stage__board-ginger,
+.belt-stage__board-rice,
+.belt-stage__board-garnish,
+.belt-stage__tray-handle,
+.belt-stage__tray-liner,
+.belt-stage__tray-piece {
   position: absolute;
   display: block;
 }
 
 .belt-stage__chef-hat {
-  inset: 0 16% auto;
-  height: 22%;
-  border-radius: 999px 999px 0.9rem 0.9rem;
+  inset: 0 17% auto;
+  height: 23%;
+  border-radius: 999px 999px 1rem 1rem;
   background:
-    radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.96) 0 35%, transparent 36%),
-    linear-gradient(180deg, #fffdf8 0%, #eee2d0 100%);
+    radial-gradient(circle at 30% 52%, rgba(255, 255, 255, 0.98) 0 20%, transparent 21%),
+    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.98) 0 30%, transparent 31%),
+    radial-gradient(circle at 72% 50%, rgba(255, 255, 255, 0.96) 0 20%, transparent 21%),
+    linear-gradient(180deg, #fffdf8 0%, #efe4d6 100%);
   box-shadow:
-    0 2px 0 rgba(92, 61, 47, 0.08),
-    0 10px 16px rgba(92, 61, 47, 0.08);
+    inset 0 -0.08rem 0 rgba(214, 196, 177, 0.86),
+    0 0.18rem 0 rgba(92, 61, 47, 0.08),
+    0 0.56rem 0.9rem rgba(92, 61, 47, 0.08);
+}
+
+.belt-stage__chef-hat::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 0;
+  height: 26%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f7f1ea 0%, #ddd0c3 100%);
 }
 
 .belt-stage__chef-head {
-  inset: 16% 31% auto;
-  height: 18%;
+  inset: 17% 30% auto;
+  height: 19%;
   border-radius: 999px;
-  background: linear-gradient(180deg, #f6d3b8 0%, #e7b18b 100%);
-  box-shadow: inset 0 -2px 0 rgba(155, 99, 67, 0.16);
+  background:
+    radial-gradient(circle at 25% 68%, rgba(231, 155, 136, 0.46) 0 11%, transparent 12%),
+    radial-gradient(circle at 75% 68%, rgba(231, 155, 136, 0.46) 0 11%, transparent 12%),
+    linear-gradient(180deg, #f6d5ba 0%, #e5b089 100%);
+  box-shadow:
+    inset 0 -0.12rem 0 rgba(155, 99, 67, 0.16),
+    0 0.18rem 0.32rem rgba(92, 61, 47, 0.12);
+}
+
+.belt-stage__chef-head::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 32% 66%, rgba(246, 177, 157, 0.3) 0 9%, transparent 10%),
+    radial-gradient(circle at 68% 66%, rgba(246, 177, 157, 0.3) 0 9%, transparent 10%);
 }
 
 .belt-stage__chef-eyes {
-  inset: 36% 23% auto;
-  height: 12%;
-  background:
-    radial-gradient(circle at 22% 50%, #4a352b 0 18%, transparent 19%),
-    radial-gradient(circle at 78% 50%, #4a352b 0 18%, transparent 19%);
+  left: 31%;
+  top: 39%;
+  width: 11%;
+  height: 9%;
+  border-radius: 0.24rem;
+  background: #4a352b;
+  box-shadow: 1.55rem 0 0 #4a352b;
 }
 
 .belt-stage__chef-smile {
-  left: 34%;
-  right: 34%;
-  bottom: 20%;
-  height: 14%;
-  border-bottom: 0.12rem solid rgba(92, 61, 47, 0.75);
+  left: 33%;
+  right: 33%;
+  bottom: 18%;
+  height: 18%;
+  border-bottom: 0.14rem solid rgba(92, 61, 47, 0.76);
   border-radius: 0 0 999px 999px;
 }
 
 .belt-stage__chef-body {
-  inset: 32% 16% 10%;
-  border-radius: 1.2rem 1.2rem 1rem 1rem;
+  inset: 33% 15% 9%;
+  border-radius: 1.4rem 1.4rem 1.2rem 1.2rem;
   background:
-    linear-gradient(180deg, #fffdf8 0%, #e9ddd0 100%),
-    linear-gradient(90deg, rgba(202, 51, 40, 0.18), transparent 30%);
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.68), transparent 24%),
+    linear-gradient(180deg, #fffdf8 0%, #e7ddd2 100%);
   box-shadow:
-    inset 0 -2px 0 rgba(92, 61, 47, 0.08),
-    inset 0 0 0 1px rgba(92, 61, 47, 0.08);
+    inset 0 -0.12rem 0 rgba(92, 61, 47, 0.1),
+    inset 0 0 0 1px rgba(92, 61, 47, 0.11),
+    0 0.4rem 0.62rem rgba(92, 61, 47, 0.12);
 }
 
 .belt-stage__chef-scarf {
-  inset: 11% 24% auto;
+  inset: 10% 24% auto;
   height: 11%;
   border-radius: 999px;
-  background: linear-gradient(180deg, #d75f4f 0%, #b83b32 100%);
-  box-shadow: 0 2px 0 rgba(92, 61, 47, 0.08);
+  background:
+    radial-gradient(circle at 28% 30%, rgba(255, 203, 190, 0.26), transparent 22%),
+    linear-gradient(180deg, #d86b58 0%, #b74639 100%);
+  box-shadow: 0 0.12rem 0 rgba(92, 61, 47, 0.08);
+}
+
+.belt-stage__chef-apron {
+  inset: 20% 12% 6%;
+  border-radius: 1.15rem 1.15rem 1.3rem 1.3rem;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.72), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(239, 231, 221, 0.98) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(207, 189, 171, 0.56),
+    inset 0 -0.1rem 0 rgba(207, 189, 171, 0.36),
+    0 0.12rem 0.26rem rgba(92, 61, 47, 0.05);
+}
+
+.belt-stage__chef-apron::after {
+  content: '';
+  position: absolute;
+  left: 34%;
+  right: 34%;
+  bottom: 14%;
+  height: 12%;
+  border-radius: 999px;
+  background: rgba(232, 221, 211, 0.64);
 }
 
 .belt-stage__chef-arms {
-  inset: 42% 0 28%;
+  inset: 43% 2% 23%;
+  background: none;
+}
+
+.belt-stage__chef-arms::before,
+.belt-stage__chef-arms::after {
+  content: '';
+  position: absolute;
+  width: 29%;
+  height: 62%;
   border-radius: 999px;
+  box-shadow: 0 0.14rem 0.28rem rgba(92, 61, 47, 0.08);
+}
+
+.belt-stage__chef-arms::before {
+  left: 5%;
+  top: 16%;
+  rotate: 20deg;
   background:
-    radial-gradient(circle at 18% 50%, #f6d3b8 0 12%, transparent 13%),
-    radial-gradient(circle at 82% 50%, #f6d3b8 0 12%, transparent 13%),
-    linear-gradient(180deg, rgba(92, 61, 47, 0.16) 0%, rgba(92, 61, 47, 0.05) 100%);
+    radial-gradient(circle at 26% 76%, rgba(240, 207, 171, 0.98) 0 20%, transparent 21%),
+    linear-gradient(180deg, rgba(246, 241, 235, 0.98) 0%, rgba(224, 214, 204, 0.94) 100%);
+}
+
+.belt-stage__chef-arms::after {
+  right: 2%;
+  top: 12%;
+  rotate: -26deg;
+  background:
+    radial-gradient(circle at 72% 76%, rgba(240, 207, 171, 0.98) 0 20%, transparent 21%),
+    linear-gradient(180deg, rgba(246, 241, 235, 0.98) 0%, rgba(224, 214, 204, 0.94) 100%);
 }
 
 .belt-stage__chef-knife {
-  right: 6%;
-  top: 54%;
-  width: 26%;
-  height: 6%;
-  rotate: -18deg;
+  right: 8%;
+  top: 59%;
+  width: 23%;
+  height: 6.5%;
+  rotate: -22deg;
   border-radius: 999px;
-  background: linear-gradient(90deg, #7b5845 0 34%, #ece9e2 34% 100%);
-  box-shadow: 0 4px 8px rgba(92, 61, 47, 0.12);
+  background: linear-gradient(90deg, #7b5845 0 34%, #f3eee8 34% 100%);
+  box-shadow: 0 0.22rem 0.36rem rgba(92, 61, 47, 0.16);
+  z-index: 3;
+}
+
+.belt-stage__chef-knife::after {
+  content: '';
+  position: absolute;
+  right: 4%;
+  top: 18%;
+  width: 26%;
+  height: 64%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.34);
 }
 
 .belt-stage__prep--board {
-  left: 18%;
-  bottom: 45%;
-  width: 18%;
-  height: 20%;
-  border-radius: 0.85rem;
-  background: linear-gradient(180deg, #d6a77e 0%, #bd8357 100%);
-  box-shadow: 0 6px 12px rgba(92, 61, 47, 0.1);
+  left: 17%;
+  bottom: 44%;
+  width: 20%;
+  height: 21%;
+  border-radius: 1.15rem 1.45rem 1.3rem 1.2rem;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 244, 229, 0.3), transparent 28%),
+    linear-gradient(180deg, #d6a77e 0%, #c58f63 62%, #b97f53 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 229, 0.34),
+    0 0.42rem 0 rgba(156, 103, 67, 0.82),
+    0 0.92rem 1rem rgba(92, 61, 47, 0.12);
 }
 
 .belt-stage__prep--board::before,
@@ -205,44 +326,147 @@ textarea {
 }
 
 .belt-stage__prep--board::before {
-  left: 12%;
-  top: 18%;
-  width: 30%;
-  height: 42%;
-  border-radius: 0.72rem;
-  background:
-    repeating-linear-gradient(
-      135deg,
-      rgba(255, 196, 176, 0.95) 0 0.22rem,
-      rgba(241, 123, 98, 0.95) 0.22rem 0.44rem
-    ),
-    linear-gradient(180deg, rgba(255, 172, 148, 0.98) 0%, rgba(231, 106, 83, 0.98) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 228, 218, 0.46),
-    0 0.18rem 0 rgba(92, 61, 47, 0.08);
+  inset: auto 10% -18% 14%;
+  height: 22%;
+  border-radius: 999px;
+  background: rgba(92, 61, 47, 0.14);
+  filter: blur(0.4rem);
 }
 
 .belt-stage__prep--board::after {
-  right: 9%;
-  top: 14%;
-  width: 46%;
-  height: 56%;
+  inset: 7% 7% auto auto;
+  width: 17%;
+  height: 22%;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 248, 242, 0.6), transparent 62%);
+}
+
+.belt-stage__board-handle {
+  left: -7%;
+  top: 28%;
+  width: 18%;
+  height: 44%;
+  border-radius: 999px 0.8rem 0.8rem 999px;
+  background: linear-gradient(180deg, #cc9c71 0%, #b47a4f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 229, 0.28),
+    0 0.28rem 0 rgba(156, 103, 67, 0.76);
+}
+
+.belt-stage__board-handle::before {
+  content: '';
+  position: absolute;
+  inset: 28% 30% 28% 22%;
+  border-radius: 999px;
+  background: rgba(173, 116, 76, 0.64);
+  box-shadow: inset 0 0 0 1px rgba(248, 221, 191, 0.16);
+}
+
+.belt-stage__board-groove {
+  inset: 8% 7% 10% 10%;
+  border-radius: 1rem 1.25rem 1.1rem 1rem;
+  border: 0.12rem solid rgba(172, 116, 75, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255, 241, 220, 0.06);
+}
+
+.belt-stage__board-salmon {
+  left: 16%;
+  top: 24%;
+  width: 33%;
+  height: 42%;
+  border-radius: 0.95rem 1.15rem 1rem 0.9rem;
   background:
-    radial-gradient(ellipse at 26% 72%, rgba(255, 248, 242, 0.98) 0 17%, transparent 18%),
-    radial-gradient(ellipse at 74% 72%, rgba(255, 248, 242, 0.98) 0 17%, transparent 18%),
-    radial-gradient(ellipse at 26% 34%, rgba(247, 140, 114, 0.98) 0 16%, transparent 17%),
-    radial-gradient(ellipse at 74% 34%, rgba(240, 211, 123, 0.98) 0 16%, transparent 17%),
-    radial-gradient(circle at 50% 88%, rgba(139, 187, 116, 0.98) 0 8%, transparent 9%);
+    radial-gradient(circle at 28% 20%, rgba(255, 227, 214, 0.3), transparent 22%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(250, 219, 204, 0.92) 0 0.24rem,
+      rgba(240, 143, 120, 0.92) 0.24rem 0.5rem
+    ),
+    linear-gradient(180deg, rgba(244, 159, 137, 0.98) 0%, rgba(235, 122, 95, 0.98) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 231, 222, 0.42),
+    0 0.2rem 0 rgba(156, 103, 67, 0.18);
+}
+
+.belt-stage__board-ginger {
+  left: 53%;
+  top: 23%;
+  width: 17%;
+  height: 17%;
+  border-radius: 999px 46% 999px 54%;
+  rotate: -8deg;
+  background:
+    radial-gradient(circle at 34% 34%, rgba(255, 217, 199, 0.38), transparent 34%),
+    linear-gradient(180deg, #f3a086 0%, #ea8667 100%);
+  box-shadow: 0 0.14rem 0 rgba(156, 103, 67, 0.14);
+}
+
+.belt-stage__board-rice {
+  top: 48%;
+  width: 18%;
+  height: 17%;
+  border-radius: 999px 999px 0.85rem 0.85rem;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.7), transparent 30%),
+    linear-gradient(180deg, #fffaf4 0%, #f1e7de 100%);
+  box-shadow:
+    inset 0 -0.08rem 0 rgba(193, 172, 158, 0.34),
+    0 0.14rem 0 rgba(156, 103, 67, 0.12);
+}
+
+.belt-stage__board-rice--left {
+  left: 52%;
+}
+
+.belt-stage__board-rice--right {
+  left: 73%;
+  width: 17%;
+}
+
+.belt-stage__board-garnish {
+  left: 68%;
+  top: 67%;
+  width: 14%;
+  height: 16%;
+}
+
+.belt-stage__board-garnish::before,
+.belt-stage__board-garnish::after {
+  content: '';
+  position: absolute;
+  display: block;
+  width: 48%;
+  height: 92%;
+  border-radius: 999px 999px 0.4rem 999px;
+  background: linear-gradient(180deg, #9dcb7d 0%, #7eb266 100%);
+  box-shadow: inset 0 -0.06rem 0 rgba(88, 132, 67, 0.3);
+}
+
+.belt-stage__board-garnish::before {
+  left: 8%;
+  rotate: -26deg;
+}
+
+.belt-stage__board-garnish::after {
+  right: 8%;
+  rotate: 21deg;
 }
 
 .belt-stage__prep--tray {
-  right: 15%;
-  bottom: 45%;
-  width: 18%;
-  height: 20%;
-  border-radius: 1rem;
-  background: linear-gradient(180deg, #6b5040 0%, #473228 100%);
-  box-shadow: 0 8px 14px rgba(92, 61, 47, 0.12);
+  right: 14%;
+  bottom: 44%;
+  width: 19%;
+  height: 21%;
+  border-radius: 1.1rem 1.2rem 1.1rem 1.15rem;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 243, 230, 0.12), transparent 24%),
+    radial-gradient(circle at 78% 16%, rgba(255, 248, 239, 0.08), transparent 18%),
+    linear-gradient(180deg, #735948 0%, #4b382d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 232, 0.1),
+    inset 0 -0.12rem 0 rgba(63, 47, 38, 0.42),
+    0 0.42rem 0 rgba(69, 51, 40, 0.86),
+    0 1rem 1.05rem rgba(92, 61, 47, 0.14);
 }
 
 .belt-stage__prep--tray::before,
@@ -253,31 +477,128 @@ textarea {
 }
 
 .belt-stage__prep--tray::before {
-  left: 11%;
-  top: 44%;
-  width: 18%;
-  height: 22%;
+  inset: auto 12% -16% 12%;
+  height: 20%;
   border-radius: 999px;
-  background: rgba(255, 248, 242, 0.98);
-  box-shadow:
-    2.1rem 0 0 rgba(255, 248, 242, 0.98),
-    4.2rem 0 0 rgba(255, 248, 242, 0.98),
-    inset 0 -0.08rem 0 rgba(154, 123, 97, 0.16);
+  background: rgba(69, 51, 40, 0.18);
+  filter: blur(0.38rem);
 }
 
 .belt-stage__prep--tray::after {
-  left: 9%;
-  top: 18%;
-  width: 22%;
+  right: 10%;
+  top: 12%;
+  width: 18%;
   height: 24%;
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(169, 207, 124, 0.96) 0%, rgba(130, 174, 90, 0.96) 100%),
-    linear-gradient(180deg, rgba(255, 159, 136, 0.96) 0%, rgba(240, 117, 93, 0.96) 100%),
-    linear-gradient(180deg, rgba(244, 223, 124, 0.96) 0%, rgba(223, 194, 92, 0.96) 100%);
+  background: radial-gradient(circle at 35% 35%, rgba(255, 251, 245, 0.28), transparent 64%);
+}
+
+.belt-stage__tray-handle {
+  left: -7%;
+  top: 28%;
+  width: 18%;
+  height: 44%;
+  border-radius: 999px 0.8rem 0.8rem 999px;
+  background: linear-gradient(180deg, #6d5444 0%, #553f33 100%);
   box-shadow:
-    2.1rem 0 0 rgba(240, 117, 93, 0.96),
-    4.2rem 0 0 rgba(223, 194, 92, 0.96);
+    inset 0 1px 0 rgba(255, 245, 232, 0.08),
+    0 0.28rem 0 rgba(69, 51, 40, 0.76);
+}
+
+.belt-stage__tray-handle::before {
+  content: '';
+  position: absolute;
+  inset: 28% 30% 28% 22%;
+  border-radius: 999px;
+  background: rgba(81, 60, 48, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 245, 232, 0.08);
+}
+
+.belt-stage__tray-liner {
+  inset: 11% 8% 13%;
+  border-radius: 0.95rem 1.05rem 0.95rem 1rem;
+  background: linear-gradient(180deg, rgba(103, 79, 65, 0.2) 0%, rgba(70, 53, 43, 0.14) 100%);
+  box-shadow:
+    inset 0 0 0 0.12rem rgba(255, 248, 240, 0.14),
+    inset 0 -0.18rem 0 rgba(56, 41, 34, 0.18),
+    inset 0 0.14rem 0 rgba(255, 248, 240, 0.04);
+}
+
+.belt-stage__tray-piece {
+  top: 22%;
+  width: 23%;
+  height: 50%;
+}
+
+.belt-stage__tray-piece::before,
+.belt-stage__tray-piece::after {
+  content: '';
+  position: absolute;
+  display: block;
+}
+
+.belt-stage__tray-piece::before {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 40%;
+  border-radius: 0.72rem;
+  box-shadow:
+    inset 0 0.06rem 0 rgba(255, 248, 240, 0.14),
+    0 0.12rem 0 rgba(56, 41, 34, 0.14);
+}
+
+.belt-stage__tray-piece::after {
+  left: 8%;
+  right: 8%;
+  bottom: 4%;
+  height: 36%;
+  border-radius: 999px 999px 0.78rem 0.78rem;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.74), transparent 28%),
+    linear-gradient(180deg, #fffaf4 0%, #efe4da 100%);
+  box-shadow:
+    inset 0 -0.08rem 0 rgba(193, 172, 158, 0.36),
+    0 0.1rem 0 rgba(56, 41, 34, 0.14);
+}
+
+.belt-stage__tray-piece--matcha {
+  left: 9%;
+  top: 20%;
+  width: 25%;
+  rotate: -2deg;
+}
+
+.belt-stage__tray-piece--matcha::before {
+  background:
+    radial-gradient(circle at 30% 28%, rgba(224, 244, 180, 0.24), transparent 24%),
+    linear-gradient(180deg, #b5d36d 0%, #9fbe59 100%);
+}
+
+.belt-stage__tray-piece--salmon {
+  left: 39%;
+  top: 23%;
+  width: 21.5%;
+  rotate: 1deg;
+}
+
+.belt-stage__tray-piece--salmon::before {
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 205, 184, 0.24), transparent 24%),
+    linear-gradient(180deg, #db7a5c 0%, #ca694c 100%);
+}
+
+.belt-stage__tray-piece--tamago {
+  left: 66%;
+  top: 19%;
+  width: 24%;
+  rotate: -1deg;
+}
+
+.belt-stage__tray-piece--tamago::before {
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 241, 178, 0.26), transparent 24%),
+    linear-gradient(180deg, #ddc95e 0%, #c6b04c 100%);
 }
 
 .belt-stage__track {

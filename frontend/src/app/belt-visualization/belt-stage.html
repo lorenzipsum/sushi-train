@@ -27,6 +27,7 @@
               </span>
               <span class="belt-stage__chef-body">
                 <span class="belt-stage__chef-scarf"></span>
+                <span class="belt-stage__chef-apron"></span>
               </span>
               <span class="belt-stage__chef-arms"></span>
               <span class="belt-stage__chef-knife"></span>
@@ -35,11 +36,25 @@
           <div
             class="belt-stage__prep belt-stage__prep--board"
             [attr.title]="stage().kitchen.accentLabels[0]"
-          ></div>
+          >
+            <span class="belt-stage__board-handle"></span>
+            <span class="belt-stage__board-groove"></span>
+            <span class="belt-stage__board-salmon"></span>
+            <span class="belt-stage__board-ginger"></span>
+            <span class="belt-stage__board-rice belt-stage__board-rice--left"></span>
+            <span class="belt-stage__board-rice belt-stage__board-rice--right"></span>
+            <span class="belt-stage__board-garnish"></span>
+          </div>
           <div
             class="belt-stage__prep belt-stage__prep--tray"
             [attr.title]="stage().kitchen.accentLabels[2]"
-          ></div>
+          >
+            <span class="belt-stage__tray-handle"></span>
+            <span class="belt-stage__tray-liner"></span>
+            <span class="belt-stage__tray-piece belt-stage__tray-piece--matcha"></span>
+            <span class="belt-stage__tray-piece belt-stage__tray-piece--salmon"></span>
+            <span class="belt-stage__tray-piece belt-stage__tray-piece--tamago"></span>
+          </div>
         </div>
 
         <div class="belt-stage__kitchen-stats" aria-label="Kitchen summary">
