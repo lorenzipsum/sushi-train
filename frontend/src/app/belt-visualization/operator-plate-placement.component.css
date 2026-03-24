@@ -122,6 +122,7 @@
 
 .operator-placement__field input,
 .operator-placement__field select {
+  box-sizing: border-box;
   width: 100%;
   padding: 0.68rem 0.8rem;
   border-radius: 0.9rem;
