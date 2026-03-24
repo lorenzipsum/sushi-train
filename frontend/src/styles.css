@@ -1435,3 +1435,152 @@ textarea {
     --stage-aspect-ratio: 11 / 5;
   }
 }
+
+.counter-stage__system-info-button:focus-visible,
+.counter-stage__system-info-close:focus-visible {
+  outline: 3px solid rgba(51, 64, 59, 0.22);
+  outline-offset: 3px;
+}
+
+.counter-stage__system-info-shell {
+  position: relative;
+}
+
+.counter-stage__system-info-button,
+.counter-stage__system-info-close {
+  border: none;
+  cursor: pointer;
+  font:
+    800 0.76rem/1 'Nunito Sans',
+    'Segoe UI',
+    sans-serif;
+}
+
+.counter-stage__system-info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 90, 69, 0.12);
+  background: rgba(255, 252, 247, 0.92);
+  box-shadow: 0 10px 20px rgba(123, 90, 69, 0.12);
+  color: #5c3d2f;
+}
+
+.counter-stage__system-info-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.counter-stage__system-info-card {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.6rem);
+  z-index: 4;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.95rem 1rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(123, 90, 69, 0.14);
+  background: linear-gradient(180deg, rgba(255, 250, 244, 0.99) 0%, rgba(255, 244, 233, 0.98) 100%);
+  box-shadow: 0 24px 40px rgba(92, 61, 47, 0.2);
+}
+
+.counter-stage__system-info-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.counter-stage__system-info-eyebrow,
+.counter-stage__system-info-summary,
+.counter-stage__system-info-row dt,
+.counter-stage__system-info-row dd {
+  margin: 0;
+  font-family: 'Nunito Sans', 'Segoe UI', sans-serif;
+}
+
+.counter-stage__system-info-eyebrow {
+  color: rgba(53, 80, 74, 0.78);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.counter-stage__system-info-header h2 {
+  margin: 0.18rem 0 0;
+  color: #24423b;
+  font:
+    800 1.02rem/1.1 'Baloo 2',
+    'Trebuchet MS',
+    sans-serif;
+}
+
+.counter-stage__system-info-summary {
+  margin-top: 0.3rem;
+  color: rgba(34, 48, 44, 0.76);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.counter-stage__system-info-close {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  background: rgba(255, 255, 255, 0.88);
+  color: #5c3d2f;
+}
+
+.counter-stage__system-info-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.95rem 0 0;
+}
+
+.counter-stage__system-info-row {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(123, 90, 69, 0.08);
+}
+
+.counter-stage__system-info-row dt {
+  color: rgba(92, 61, 47, 0.72);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.counter-stage__system-info-row dd {
+  color: #22302c;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  .counter-stage__system-info-button {
+    min-height: 2.2rem;
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .counter-stage__system-info-card {
+    right: 0;
+    width: min(18rem, calc(100vw - 1rem));
+  }
+}
+
+@media (max-width: 680px) and (orientation: portrait) {
+  .counter-stage__system-info-card {
+    width: min(calc(100vw - 1rem), 18rem);
+  }
+}

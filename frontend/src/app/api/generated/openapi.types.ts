@@ -152,6 +152,26 @@ export interface paths {
         patch: operations["updateBeltParameters"];
         trace?: never;
     };
+    "/api/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get backend version metadata
+         * @description Returns safe, read-only build and environment metadata for UI system info.
+         */
+        get: operations["getVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/seats/{id}": {
         parameters: {
             query?: never;
@@ -304,6 +324,22 @@ export interface paths {
          * @description Returns all seats of a belt with occupancy status.
          */
         get: operations["getSeatOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/belts/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["streamBeltEvents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -468,6 +504,13 @@ export interface components {
             /** Format: int32 */
             speedSlotsPerTick?: number;
         };
+        VersionInfo: {
+            service?: string;
+            version?: string;
+            commitSha?: string;
+            buildTime?: string;
+            environment?: string;
+        };
         PageMetadata: {
             /** Format: int64 */
             size?: number;
@@ -589,6 +632,10 @@ export interface components {
             /** Format: int32 */
             amount?: number;
             zero?: boolean;
+        };
+        SseEmitter: {
+            /** Format: int64 */
+            timeout?: number;
         };
     };
     responses: never;
@@ -1082,6 +1129,35 @@ export interface operations {
             };
         };
     };
+    getVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Version metadata returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionInfo"];
+                };
+            };
+            /** @description Unexpected server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getSeatStateAndOrderSummary: {
         parameters: {
             query?: never;
@@ -1438,6 +1514,28 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    streamBeltEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
                 };
             };
         };

@@ -496,9 +496,11 @@ app-selected-seat-detail {
 }
 
 .counter-stage__seat-tools {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  gap: 0.55rem;
   flex: 0 0 auto;
 }
 

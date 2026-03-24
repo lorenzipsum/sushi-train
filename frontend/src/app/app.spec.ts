@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './app';
+import { VersionApi } from './api/version.api';
 import { BeltVisualizationStore } from './belt-visualization/belt-visualization.store';
 import type { BeltStageViewModel } from './belt-visualization/belt-view-model';
 
@@ -139,6 +141,7 @@ function createStageViewModel(): BeltStageViewModel {
 
 describe('App', () => {
   let storeMock: BeltVisualizationStore;
+  let versionApiMock: VersionApi;
 
   beforeEach(async () => {
     storeMock = {
@@ -225,9 +228,24 @@ describe('App', () => {
       submitOperatorPlacement: vi.fn(),
     } as unknown as BeltVisualizationStore;
 
+    versionApiMock = {
+      getVersionInfo: vi.fn(() =>
+        of({
+          service: 'sushi-train-backend',
+          version: '0.2.0',
+          commitSha: 'abc1234',
+          buildTime: '2026-03-24T21:12:00Z',
+          environment: 'Local',
+        }),
+      ),
+    } as unknown as VersionApi;
+
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     }).compileComponents();
   });
 
@@ -289,7 +307,10 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(App);
@@ -314,7 +335,10 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(App);
@@ -426,7 +450,10 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(App);
@@ -454,7 +481,9 @@ describe('App', () => {
 
     expect(compiled.querySelector('.belt-speed-dialog')).toBeTruthy();
     expect(compiled.textContent).toContain('Current belt speed: Slow glide (1 slot per 500ms)');
-    expect((select.options[0] as HTMLOptionElement).text).toContain('Slow glide - 1 slot per 500ms');
+    expect((select.options[0] as HTMLOptionElement).text).toContain(
+      'Slow glide - 1 slot per 500ms',
+    );
     expect(compiled.textContent).not.toContain('Slow glide. 1 slot per 500ms');
     expect(select.value).toBe('2');
     expect(storeMock.selectBeltSpeed).toHaveBeenCalledWith(2);
@@ -498,7 +527,10 @@ describe('App', () => {
 
     return TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     })
       .compileComponents()
       .then(() => {
@@ -547,7 +579,10 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(App);
@@ -590,7 +625,10 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(App);
@@ -639,7 +677,10 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: BeltVisualizationStore, useValue: storeMock }],
+      providers: [
+        { provide: BeltVisualizationStore, useValue: storeMock },
+        { provide: VersionApi, useValue: versionApiMock },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(App);

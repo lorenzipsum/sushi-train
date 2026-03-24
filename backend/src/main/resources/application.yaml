@@ -28,6 +28,10 @@ management:
         enabled: true
 
 app:
+  version: ""
+  commit-sha: ""
+  build-time: ""
+  environment: ${APP_ENVIRONMENT:}
   plate-expiry:
     # Auto-expire old plates.
     enabled: true

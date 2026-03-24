@@ -23,6 +23,7 @@ export type PickPlateRequest = components['schemas']['PickPlateRequest'];
 export type PlateSnapshotDto = components['schemas']['PlateSnapshotDto'];
 export type PlateDto = components['schemas']['PlateDto'];
 export type ProblemDetail = components['schemas']['ProblemDetail'];
+export type VersionInfoDto = components['schemas']['VersionInfo'];
 export type SeatActionProblemDetail = ProblemDetail & {
   action?: string;
   errorCode?: string;

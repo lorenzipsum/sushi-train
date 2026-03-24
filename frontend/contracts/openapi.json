@@ -1,13 +1,40 @@
 {
   "openapi": "3.1.0",
-  "info": { "title": "OpenAPI definition", "version": "v0" },
-  "servers": [{ "url": "http://localhost:8088", "description": "Generated server url" }],
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8088",
+      "description": "Generated server url"
+    }
+  ],
   "tags": [
-    { "name": "Plates", "description": "Operations for managing plates on the sushi belt" },
-    { "name": "Seats", "description": "Operations for seat occupancy and ordering" },
-    { "name": "Menu Items", "description": "Operations for managing menu items" },
-    { "name": "Belts", "description": "Operations for managing belts" },
-    { "name": "Orders", "description": "Operations for listing orders" }
+    {
+      "name": "Version",
+      "description": "Build and version metadata"
+    },
+    {
+      "name": "Plates",
+      "description": "Operations for managing plates on the sushi belt"
+    },
+    {
+      "name": "Seats",
+      "description": "Operations for seat occupancy and ordering"
+    },
+    {
+      "name": "Menu Items",
+      "description": "Operations for managing menu items"
+    },
+    {
+      "name": "Belts",
+      "description": "Operations for managing belts"
+    },
+    {
+      "name": "Orders",
+      "description": "Operations for listing orders"
+    }
   ],
   "paths": {
     "/api/v1/seats/{id}/order-lines": {
@@ -21,12 +48,19 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/PickPlateRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PickPlateRequest"
+              }
+            }
           },
           "required": true
         },
@@ -34,14 +68,20 @@
           "201": {
             "description": "Plate picked and order line created",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SeatOrderDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatOrderDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid parameter (e.g., id is not a UUID) or validation failed",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -49,7 +89,9 @@
             "description": "Seat not found (or referenced plate not found)",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -57,7 +99,9 @@
             "description": "Seat not occupied or plate not pickable",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -65,7 +109,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -83,21 +129,30 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "201": {
             "description": "Seat occupied and new order created",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SeatStateDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatStateDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid parameter (e.g., id is not a UUID)",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -105,7 +160,9 @@
             "description": "Seat not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -113,7 +170,9 @@
             "description": "Seat already occupied",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -121,7 +180,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -139,21 +200,30 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Order checked out",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SeatOrderDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatOrderDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid parameter (e.g., id is not a UUID)",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -161,7 +231,9 @@
             "description": "Seat not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -169,7 +241,9 @@
             "description": "Seat not occupied",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -177,7 +251,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -195,7 +271,12 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "format": "int32", "default": 0, "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
           },
           {
             "name": "size",
@@ -214,14 +295,20 @@
           "200": {
             "description": "List of plates",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PagedPlateDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPlateDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid pagination parameters",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -229,7 +316,9 @@
             "description": "Unexpected error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -243,7 +332,11 @@
         "requestBody": {
           "description": "Plate creation request",
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CreatePlateRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlateRequest"
+              }
+            }
           },
           "required": true
         },
@@ -251,14 +344,20 @@
           "201": {
             "description": "Plate created",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PlateDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlateDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Bad request:\n- malformed JSON\n- bean validation failed\n",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -266,7 +365,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -285,7 +386,10 @@
             "in": "path",
             "description": "Plate id",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" },
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
             "example": "11111111-1111-1111-1111-111111111111"
           }
         ],
@@ -293,14 +397,20 @@
           "200": {
             "description": "Plate expired",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PlateDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlateDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid UUID format",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -308,7 +418,9 @@
             "description": "Plate not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -316,7 +428,9 @@
             "description": "Unexpected error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -334,13 +448,18 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreatePlateAndPlaceOnBeltRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlateAndPlaceOnBeltRequest"
+              }
             }
           },
           "required": true
@@ -350,7 +469,9 @@
             "description": "Plates created and placed",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CreatedPlatesOnBeltResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedPlatesOnBeltResponse"
+                }
               }
             }
           },
@@ -358,7 +479,9 @@
             "description": "Invalid parameter or validation failed",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -366,7 +489,9 @@
             "description": "Belt not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -374,7 +499,9 @@
             "description": "Not enough free slots available",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -382,7 +509,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -400,21 +529,30 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Belt found",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/FullBeltDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FullBeltDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid parameter (e.g., id is not a UUID)",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -422,7 +560,9 @@
             "description": "Belt not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -430,7 +570,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -446,12 +588,19 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/BeltUpdateRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeltUpdateRequest"
+              }
+            }
           },
           "required": true
         },
@@ -459,14 +608,20 @@
           "200": {
             "description": "Belt parameters updated",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/BeltParamsDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeltParamsDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid parameter (e.g., id is not a UUID) or validation failed",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -474,7 +629,9 @@
             "description": "Belt not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -482,7 +639,39 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/version": {
+      "get": {
+        "tags": ["Version"],
+        "summary": "Get backend version metadata",
+        "description": "Returns safe, read-only build and environment metadata for UI system info.",
+        "operationId": "getVersion",
+        "responses": {
+          "200": {
+            "description": "Version metadata returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionInfo"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -500,21 +689,30 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Seat state returned",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SeatOrderDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatOrderDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid parameter (e.g., id is not a UUID)",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -522,7 +720,9 @@
             "description": "Seat not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -530,7 +730,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -549,7 +751,10 @@
             "in": "path",
             "description": "Plate id",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" },
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
             "example": "11111111-1111-1111-1111-111111111111"
           }
         ],
@@ -557,14 +762,20 @@
           "200": {
             "description": "Plate found",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PlateDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlateDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid UUID format",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -572,7 +783,9 @@
             "description": "Plate not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -580,7 +793,9 @@
             "description": "Unexpected error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -598,7 +813,12 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "format": "int32", "default": 0, "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
           },
           {
             "name": "size",
@@ -618,7 +838,9 @@
             "description": "Orders returned",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PagedOrderSummaryDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/PagedOrderSummaryDto"
+                }
               }
             }
           },
@@ -626,7 +848,9 @@
             "description": "Invalid pagination parameters",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -634,7 +858,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -652,7 +878,12 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "format": "int32", "default": 0, "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
           },
           {
             "name": "size",
@@ -671,14 +902,20 @@
           "200": {
             "description": "Paginated list of menu items",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PagedMenuItemDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedMenuItemDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid pagination parameters",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -686,7 +923,9 @@
             "description": "Unexpected error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -704,21 +943,30 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Menu item found",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/MenuItemDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuItemDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid UUID format",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -726,7 +974,9 @@
             "description": "Menu item not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -734,7 +984,9 @@
             "description": "Unexpected error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -752,7 +1004,12 @@
             "description": "Belts returned",
             "content": {
               "application/json": {
-                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/BeltDto" } }
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BeltDto"
+                  }
+                }
               }
             }
           },
@@ -760,7 +1017,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -778,21 +1037,30 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Snapshot returned",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/BeltSnapshotDto" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeltSnapshotDto"
+                }
+              }
             }
           },
           "400": {
             "description": "Invalid parameter (e.g., id is not a UUID)",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -800,7 +1068,9 @@
             "description": "Belt not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -808,7 +1078,9 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           }
@@ -826,7 +1098,10 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -836,7 +1111,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/SeatStateDto" }
+                  "items": {
+                    "$ref": "#/components/schemas/SeatStateDto"
+                  }
                 }
               }
             }
@@ -845,7 +1122,9 @@
             "description": "Invalid parameter (e.g., id is not a UUID)",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -853,7 +1132,9 @@
             "description": "Belt not found",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
               }
             }
           },
@@ -861,7 +1142,38 @@
             "description": "Unexpected server error",
             "content": {
               "application/problem+json": {
-                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/belts/{id}/events": {
+      "get": {
+        "tags": ["Belts"],
+        "operationId": "streamBeltEvents",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/SseEmitter"
+                }
               }
             }
           }
@@ -873,57 +1185,131 @@
     "schemas": {
       "PickPlateRequest": {
         "type": "object",
-        "properties": { "plateId": { "type": "string", "format": "uuid" } },
+        "properties": {
+          "plateId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
         "required": ["plateId"]
       },
       "OrderLineDto": {
         "type": "object",
         "properties": {
-          "menuItemName": { "type": "string" },
-          "plateTier": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
-          "price": { "type": "integer", "format": "int32" }
+          "menuItemName": {
+            "type": "string"
+          },
+          "plateTier": {
+            "type": "string",
+            "enum": ["GREEN", "RED", "GOLD", "BLACK"]
+          },
+          "price": {
+            "type": "integer",
+            "format": "int32"
+          }
         }
       },
       "OrderSummaryDto": {
         "type": "object",
         "properties": {
-          "orderId": { "type": "string", "format": "uuid" },
-          "seatId": { "type": "string", "format": "uuid" },
-          "status": { "type": "string", "enum": ["OPEN", "CHECKED_OUT", "CANCELED"] },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "closedAt": { "type": "string", "format": "date-time" },
-          "lines": { "type": "array", "items": { "$ref": "#/components/schemas/OrderLineDto" } },
-          "totalPrice": { "type": "integer", "format": "int32" }
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seatId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["OPEN", "CHECKED_OUT", "CANCELED"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineDto"
+            }
+          },
+          "totalPrice": {
+            "type": "integer",
+            "format": "int32"
+          }
         }
       },
       "SeatOrderDto": {
         "type": "object",
         "properties": {
-          "seatId": { "type": "string", "format": "uuid" },
-          "label": { "type": "string" },
-          "positionIndex": { "type": "integer", "format": "int32" },
-          "isOccupied": { "type": "boolean" },
-          "orderSummary": { "$ref": "#/components/schemas/OrderSummaryDto" }
+          "seatId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "positionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isOccupied": {
+            "type": "boolean"
+          },
+          "orderSummary": {
+            "$ref": "#/components/schemas/OrderSummaryDto"
+          }
         }
       },
       "ProblemDetail": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "format": "uri" },
-          "title": { "type": "string" },
-          "status": { "type": "integer", "format": "int32" },
-          "detail": { "type": "string" },
-          "instance": { "type": "string", "format": "uri" },
-          "properties": { "type": "object", "additionalProperties": {} }
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri"
+          },
+          "properties": {
+            "type": "object",
+            "additionalProperties": {}
+          }
         }
       },
       "SeatStateDto": {
         "type": "object",
         "properties": {
-          "seatId": { "type": "string", "format": "uuid" },
-          "label": { "type": "string" },
-          "positionIndex": { "type": "integer", "format": "int32" },
-          "isOccupied": { "type": "boolean" }
+          "seatId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "positionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isOccupied": {
+            "type": "boolean"
+          }
         }
       },
       "CreatePlateRequest": {
@@ -960,13 +1346,34 @@
       "PlateDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "menuItemId": { "type": "string", "format": "uuid" },
-          "tierSnapshot": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
-          "priceAtCreation": { "type": "integer", "format": "int32" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "expiresAt": { "type": "string", "format": "date-time" },
-          "status": { "type": "string", "enum": ["CREATED", "ON_BELT", "PICKED", "EXPIRED"] }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "menuItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tierSnapshot": {
+            "type": "string",
+            "enum": ["GREEN", "RED", "GOLD", "BLACK"]
+          },
+          "priceAtCreation": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["CREATED", "ON_BELT", "PICKED", "EXPIRED"]
+          }
         },
         "required": [
           "createdAt",
@@ -981,33 +1388,73 @@
       "CreatePlateAndPlaceOnBeltRequest": {
         "type": "object",
         "properties": {
-          "menuItemId": { "type": "string", "format": "uuid" },
-          "numOfPlates": { "type": "integer", "format": "int32", "minimum": 1 },
-          "tierSnapshot": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
-          "priceAtCreation": { "type": "integer", "format": "int32", "minimum": 0 },
-          "expiresAt": { "type": "string", "format": "date-time" }
+          "menuItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "numOfPlates": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "tierSnapshot": {
+            "type": "string",
+            "enum": ["GREEN", "RED", "GOLD", "BLACK"]
+          },
+          "priceAtCreation": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
         "required": ["menuItemId"]
       },
       "CreatedPlatesOnBeltResponse": {
         "type": "object",
         "properties": {
-          "beltId": { "type": "string", "format": "uuid" },
-          "createdCount": { "type": "integer", "format": "int32" },
+          "beltId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "placedPlates": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PlacedPlateDto" }
+            "items": {
+              "$ref": "#/components/schemas/PlacedPlateDto"
+            }
           }
         }
       },
       "PlacedPlateDto": {
         "type": "object",
         "properties": {
-          "plateId": { "type": "string", "format": "uuid" },
-          "slotId": { "type": "string", "format": "uuid" },
-          "slotPositionIndex": { "type": "integer", "format": "int32" },
-          "menuItemId": { "type": "string", "format": "uuid" },
-          "expiresAt": { "type": "string", "format": "date-time" }
+          "plateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slotPositionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "menuItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "BeltUpdateRequest": {
@@ -1035,25 +1482,73 @@
       "BeltParamsDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "tickIntervalMs": { "type": "integer", "format": "int32" },
-          "speedSlotsPerTick": { "type": "integer", "format": "int32" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tickIntervalMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "speedSlotsPerTick": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "VersionInfo": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "commitSha": {
+            "type": "string"
+          },
+          "buildTime": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          }
         }
       },
       "PageMetadata": {
         "type": "object",
         "properties": {
-          "size": { "type": "integer", "format": "int64" },
-          "number": { "type": "integer", "format": "int64" },
-          "totalElements": { "type": "integer", "format": "int64" },
-          "totalPages": { "type": "integer", "format": "int64" }
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "PagedPlateDto": {
         "type": "object",
         "properties": {
-          "content": { "type": "array", "items": { "$ref": "#/components/schemas/PlateDto" } },
-          "page": { "$ref": "#/components/schemas/PageMetadata" }
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlateDto"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
+          }
         }
       },
       "PagedOrderSummaryDto": {
@@ -1061,112 +1556,267 @@
         "properties": {
           "content": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/OrderSummaryDto" }
+            "items": {
+              "$ref": "#/components/schemas/OrderSummaryDto"
+            }
           },
-          "page": { "$ref": "#/components/schemas/PageMetadata" }
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
+          }
         }
       },
       "MenuItemDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "defaultTier": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
-          "basePrice": { "type": "integer", "format": "int32" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "defaultTier": {
+            "type": "string",
+            "enum": ["GREEN", "RED", "GOLD", "BLACK"]
+          },
+          "basePrice": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
         "required": ["basePrice", "createdAt", "defaultTier", "id", "name"]
       },
       "PagedMenuItemDto": {
         "type": "object",
         "properties": {
-          "content": { "type": "array", "items": { "$ref": "#/components/schemas/MenuItemDto" } },
-          "page": { "$ref": "#/components/schemas/PageMetadata" }
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuItemDto"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
+          }
         }
       },
       "BeltDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "slotCount": { "type": "integer", "format": "int32" },
-          "baseRotationOffset": { "type": "integer", "format": "int32" },
-          "tickIntervalMs": { "type": "integer", "format": "int32" },
-          "speedSlotsPerTick": { "type": "integer", "format": "int32" },
-          "offsetStartedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slotCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseRotationOffset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tickIntervalMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "speedSlotsPerTick": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "offsetStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "BeltSlotDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "positionIndex": { "type": "integer", "format": "int32" },
-          "plateId": { "type": "string", "format": "uuid" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "positionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "plateId": {
+            "type": "string",
+            "format": "uuid"
+          }
         }
       },
       "FullBeltDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "slotCount": { "type": "integer", "format": "int32" },
-          "baseRotationOffset": { "type": "integer", "format": "int32" },
-          "tickIntervalMs": { "type": "integer", "format": "int32" },
-          "speedSlotsPerTick": { "type": "integer", "format": "int32" },
-          "slots": { "type": "array", "items": { "$ref": "#/components/schemas/BeltSlotDto" } },
-          "seats": { "type": "array", "items": { "$ref": "#/components/schemas/SeatDto" } },
-          "offsetStartedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slotCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseRotationOffset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tickIntervalMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "speedSlotsPerTick": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BeltSlotDto"
+            }
+          },
+          "seats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatDto"
+            }
+          },
+          "offsetStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "SeatDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "positionIndex": { "type": "integer", "format": "int32" },
-          "label": { "type": "string" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "positionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
+          }
         }
       },
       "BeltSlotSnapshotDto": {
         "type": "object",
         "properties": {
-          "slotId": { "type": "string", "format": "uuid" },
-          "positionIndex": { "type": "integer", "format": "int32" },
-          "plate": { "$ref": "#/components/schemas/PlateSnapshotDto" }
+          "slotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "positionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "plate": {
+            "$ref": "#/components/schemas/PlateSnapshotDto"
+          }
         }
       },
       "BeltSnapshotDto": {
         "type": "object",
         "properties": {
-          "beltId": { "type": "string", "format": "uuid" },
-          "beltName": { "type": "string" },
-          "beltSlotCount": { "type": "integer", "format": "int32" },
-          "beltBaseRotationOffset": { "type": "integer", "format": "int32" },
-          "beltOffsetStartedAt": { "type": "string", "format": "date-time" },
-          "beltTickIntervalMs": { "type": "integer", "format": "int32" },
-          "beltSpeedSlotsPerTick": { "type": "integer", "format": "int32" },
+          "beltId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "beltName": {
+            "type": "string"
+          },
+          "beltSlotCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "beltBaseRotationOffset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "beltOffsetStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "beltTickIntervalMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "beltSpeedSlotsPerTick": {
+            "type": "integer",
+            "format": "int32"
+          },
           "slots": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/BeltSlotSnapshotDto" }
+            "items": {
+              "$ref": "#/components/schemas/BeltSlotSnapshotDto"
+            }
           }
         }
       },
       "PlateSnapshotDto": {
         "type": "object",
         "properties": {
-          "plateId": { "type": "string", "format": "uuid" },
-          "menuItemId": { "type": "string", "format": "uuid" },
-          "menuItemName": { "type": "string" },
-          "tier": { "type": "string", "enum": ["GREEN", "RED", "GOLD", "BLACK"] },
-          "priceAtCreation": { "$ref": "#/components/schemas/YenAmount" },
-          "status": { "type": "string", "enum": ["CREATED", "ON_BELT", "PICKED", "EXPIRED"] },
-          "expiresAt": { "type": "string", "format": "date-time" }
+          "plateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "menuItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "menuItemName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string",
+            "enum": ["GREEN", "RED", "GOLD", "BLACK"]
+          },
+          "priceAtCreation": {
+            "$ref": "#/components/schemas/YenAmount"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["CREATED", "ON_BELT", "PICKED", "EXPIRED"]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "YenAmount": {
         "type": "object",
         "properties": {
-          "amount": { "type": "integer", "format": "int32" },
-          "zero": { "type": "boolean" }
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "zero": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SseEmitter": {
+        "type": "object",
+        "properties": {
+          "timeout": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     }

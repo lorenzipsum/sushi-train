@@ -149,7 +149,9 @@
                     <section
                       class="belt-speed-dialog__feedback"
                       [class.belt-speed-dialog__feedback--error]="speedFeedback.tone === 'error'"
-                      [class.belt-speed-dialog__feedback--success]="speedFeedback.tone === 'success'"
+                      [class.belt-speed-dialog__feedback--success]="
+                        speedFeedback.tone === 'success'
+                      "
                       aria-live="polite"
                     >
                       <h4>{{ speedFeedback.title }}</h4>
@@ -220,6 +222,58 @@
             >
               <span aria-hidden="true">?</span>
             </button>
+
+            <div class="counter-stage__system-info-shell">
+              <button
+                #systemInfoTrigger
+                type="button"
+                class="counter-stage__system-info-button"
+                aria-haspopup="dialog"
+                [attr.aria-expanded]="isSystemInfoOpen()"
+                aria-controls="system-info-card"
+                (click)="toggleSystemInfo()"
+              >
+                <span class="counter-stage__system-info-label">System</span>
+              </button>
+
+              @if (isSystemInfoOpen()) {
+                <section
+                  #systemInfoCard
+                  id="system-info-card"
+                  class="counter-stage__system-info-card"
+                  role="dialog"
+                  aria-modal="false"
+                  aria-labelledby="system-info-title"
+                  tabindex="-1"
+                >
+                  <header class="counter-stage__system-info-header">
+                    <div>
+                      <p class="counter-stage__system-info-eyebrow">System</p>
+                      <h2 id="system-info-title">{{ systemInfo().title }}</h2>
+                      <p class="counter-stage__system-info-summary">{{ systemInfo().summary }}</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="counter-stage__system-info-close"
+                      aria-label="Close system info"
+                      (click)="closeSystemInfo()"
+                    >
+                      Close
+                    </button>
+                  </header>
+
+                  <dl class="counter-stage__system-info-list">
+                    @for (item of systemInfo().items; track item.label) {
+                      <div class="counter-stage__system-info-row">
+                        <dt>{{ item.label }}</dt>
+                        <dd>{{ item.value }}</dd>
+                      </div>
+                    }
+                  </dl>
+                </section>
+              }
+            </div>
           </div>
         </div>
 

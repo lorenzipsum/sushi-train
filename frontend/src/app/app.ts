@@ -9,11 +9,14 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { take } from 'rxjs';
 
+import { VersionApi } from './api/version.api';
 import { BeltStageComponent } from './belt-visualization/belt-stage.component';
 import { BeltVisualizationStore } from './belt-visualization/belt-visualization.store';
 import { OperatorPlatePlacementComponent } from './belt-visualization/operator-plate-placement.component';
 import { SelectedSeatDetailComponent } from './belt-visualization/selected-seat-detail.component';
+import type { VersionInfoDto } from './api/types';
 
 interface HeroPresentation {
   title: string;
@@ -33,6 +36,19 @@ interface GuideItem {
   detail: string;
 }
 
+interface SystemInfoItem {
+  label: string;
+  value: string;
+}
+
+interface SystemInfoPresentation {
+  title: string;
+  summary: string;
+  items: SystemInfoItem[];
+}
+
+const FRONTEND_VERSION = '0.2.0';
+
 @Component({
   selector: 'app-root',
   imports: [BeltStageComponent, OperatorPlatePlacementComponent, SelectedSeatDetailComponent],
@@ -42,11 +58,16 @@ interface GuideItem {
 })
 export class App {
   protected readonly store = inject(BeltVisualizationStore);
+  private readonly versionApi = inject(VersionApi);
   protected readonly selectedSeatDetail = this.store.selectedSeatDetail;
   protected readonly operatorPlacement = this.store.operatorPlacement;
   protected readonly beltSpeedDialog = this.store.beltSpeedDialog;
   protected readonly isGuideOpen = signal(false);
+  protected readonly isSystemInfoOpen = signal(false);
   protected readonly beltSpeedSelect = viewChild<ElementRef<HTMLSelectElement>>('beltSpeedSelect');
+  protected readonly systemInfoCard = viewChild<ElementRef<HTMLElement>>('systemInfoCard');
+  protected readonly systemInfoTrigger =
+    viewChild<ElementRef<HTMLButtonElement>>('systemInfoTrigger');
   protected readonly guideItems: GuideItem[] = [
     {
       title: 'Seats',
@@ -81,6 +102,15 @@ export class App {
   protected readonly heroPresentation = computed<HeroPresentation>(() => ({
     title: 'Kaitenzushi',
     subtitle: 'Sushi Train Simulator, grab a seat and eat',
+  }));
+  protected readonly systemInfo = computed<SystemInfoPresentation>(() => ({
+    title: 'System Info',
+    summary: 'Build and environment details for the current UI session.',
+    items: [
+      { label: 'Frontend version', value: FRONTEND_VERSION },
+      { label: 'Backend version', value: this.resolveBackendVersionLabel() },
+      { label: 'Environment', value: this.resolveEnvironmentValue() },
+    ],
   }));
   protected readonly shellStateCard = computed<ShellStateCard | null>(() => {
     const fatalMessage = this.store.fatalMessage();
@@ -120,8 +150,18 @@ export class App {
 
   private lastFocusedElement: HTMLElement | null = null;
   private shouldRestoreDialogFocus = false;
+  private shouldRestoreSystemInfoFocus = false;
+  private readonly backendVersionInfoState = signal<VersionInfoDto | null>(null);
 
   constructor() {
+    this.versionApi
+      .getVersionInfo()
+      .pipe(take(1))
+      .subscribe({
+        next: (versionInfo) => this.backendVersionInfoState.set(versionInfo),
+        error: () => this.backendVersionInfoState.set(null),
+      });
+
     effect(() => {
       const dialog = this.beltSpeedDialog();
 
@@ -145,6 +185,18 @@ export class App {
         queueMicrotask(() => previousElement?.focus());
       }
     });
+
+    effect(() => {
+      if (this.isSystemInfoOpen()) {
+        queueMicrotask(() => this.systemInfoCard()?.nativeElement.focus());
+        return;
+      }
+
+      if (this.shouldRestoreSystemInfoFocus) {
+        this.shouldRestoreSystemInfoFocus = false;
+        queueMicrotask(() => this.systemInfoTrigger()?.nativeElement.focus());
+      }
+    });
   }
 
   protected openGuide(): void {
@@ -153,6 +205,20 @@ export class App {
 
   protected closeGuide(): void {
     this.isGuideOpen.set(false);
+  }
+
+  protected toggleSystemInfo(): void {
+    if (this.isSystemInfoOpen()) {
+      this.closeSystemInfo();
+      return;
+    }
+
+    this.shouldRestoreSystemInfoFocus = true;
+    this.isSystemInfoOpen.set(true);
+  }
+
+  protected closeSystemInfo(): void {
+    this.isSystemInfoOpen.set(false);
   }
 
   protected openBeltSpeedDialog(): void {
@@ -195,6 +261,11 @@ export class App {
 
   @HostListener('window:keydown', ['$event'])
   protected handleGlobalBeltSpeedKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.isSystemInfoOpen()) {
+      this.closeSystemInfo();
+      return;
+    }
+
     if (this.beltSpeedDialog()?.isOpen || event.defaultPrevented) {
       return;
     }
@@ -206,7 +277,12 @@ export class App {
     const target = event.target;
     if (target instanceof HTMLElement) {
       const tagName = target.tagName;
-      if (target.isContentEditable || tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') {
+      if (
+        target.isContentEditable ||
+        tagName === 'INPUT' ||
+        tagName === 'TEXTAREA' ||
+        tagName === 'SELECT'
+      ) {
         return;
       }
     }
@@ -223,6 +299,26 @@ export class App {
     }
   }
 
+  @HostListener('document:click', ['$event'])
+  protected handleDocumentClick(event: MouseEvent): void {
+    if (!this.isSystemInfoOpen()) {
+      return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      return;
+    }
+
+    const trigger = this.systemInfoTrigger()?.nativeElement;
+    const card = this.systemInfoCard()?.nativeElement;
+    if (trigger?.contains(target) || card?.contains(target)) {
+      return;
+    }
+
+    this.closeSystemInfo();
+  }
+
   private captureFocusedElement(): void {
     if (typeof document === 'undefined') {
       this.lastFocusedElement = null;
@@ -231,5 +327,34 @@ export class App {
 
     const activeElement = document.activeElement;
     this.lastFocusedElement = activeElement instanceof HTMLElement ? activeElement : null;
+  }
+
+  private resolveEnvironmentLabel(): string {
+    if (typeof window === 'undefined') {
+      return 'Unknown';
+    }
+
+    const hostname = window.location.hostname.toLowerCase();
+    if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'Local';
+    }
+
+    if (hostname.includes('staging') || hostname.includes('stage')) {
+      return 'Staging';
+    }
+
+    if (hostname.includes('dev')) {
+      return 'Development';
+    }
+
+    return 'Production';
+  }
+
+  private resolveBackendVersionLabel(): string {
+    return this.backendVersionInfoState()?.version ?? 'Unavailable in this build';
+  }
+
+  private resolveEnvironmentValue(): string {
+    return this.backendVersionInfoState()?.environment ?? this.resolveEnvironmentLabel();
   }
 }
