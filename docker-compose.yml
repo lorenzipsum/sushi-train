@@ -44,7 +44,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      API_UPSTREAM: ${FRONTEND_API_UPSTREAM:-backend:8080}
+      API_UPSTREAM_ORIGIN: ${FRONTEND_API_UPSTREAM_ORIGIN:-http://backend:8080}
     depends_on:
       backend:
         condition: service_healthy

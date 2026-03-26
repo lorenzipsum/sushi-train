@@ -1,0 +1,59 @@
+# Phase 2: Database Foundation
+
+## Agent Instructions
+
+- Read [deployment-plan.md](../deployment-plan.md) first.
+- Use `Locked Decisions`, `Completed Phases`, and prior phase outcomes as the source of truth.
+- Read the `Outcome` section in the most recently completed phase file before implementing this phase.
+- Update both this file and [deployment-plan.md](../deployment-plan.md) when the phase is done.
+
+## Prompt
+
+```text
+Context
+- Repo: `sushi-train`
+- Completed phases: Phase 0, Phase 1
+- Locked decisions:
+  - Use Render for frontend, backend, and postgres unless a concrete blocker appears
+  - Preserve same-origin `/api`
+  - Protect state-changing backend endpoints with a shared operator token
+  - Keep work phase-scoped only
+
+Task
+Implement Phase 2 only: database foundation.
+
+Goals
+- add the config/docs/code changes needed for the cloud Postgres setup
+- define env vars and secrets
+- ensure Flyway migration strategy is clear
+- define seed/demo-data behavior
+- keep this phase limited to DB foundation only
+
+Rules
+- do not start backend deployment
+- keep changes minimal and focused
+- stop after Phase 2
+- summarize exactly what changed
+- tell me exactly how to test this phase
+- tell me what I should verify before approving Phase 3
+```
+
+## Summary For Next Agent
+
+- This phase is about Postgres connectivity, migrations, and seed/demo-data only.
+- Avoid backend auth/protection logic and frontend routing changes here.
+- The result should clearly document required secrets and env vars.
+- Persist the actual phase result into this file before stopping.
+
+## Status
+
+- State: pending
+- Commit:
+- Verified:
+
+## Outcome
+
+- What changed:
+- What was intentionally deferred:
+- How to test:
+- Risks / follow-ups:

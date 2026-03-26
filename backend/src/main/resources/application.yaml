@@ -27,6 +27,10 @@ management:
       probes:
         enabled: true
 
+server:
+  # Respect reverse-proxy headers from the public frontend and cloud ingress.
+  forward-headers-strategy: framework
+
 app:
   version: ""
   commit-sha: ""
