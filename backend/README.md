@@ -60,11 +60,32 @@ Swagger UI (when enabled by active profile):
 ## Configuration Profiles
 
 - `local`: local datasource + Flyway + Swagger enabled.
+- `render`: cloud Postgres datasource + Flyway enabled.
 - `demo-mode`: enables console belt animation.
 - `show-sql`: verbose SQL logging.
 
 The Docker setup reads database and port settings from environment variables, which makes the same container images easier to reuse in cloud deployments.
 The backend also exposes Actuator health at `/actuator/health`, which is the intended probe endpoint for later cloud orchestration.
+
+### Render Database Profile
+
+For the public `dev` deployment, the backend can use the `render` profile with these required env vars:
+
+- `SPRING_PROFILES_ACTIVE=render`
+- `APP_ENVIRONMENT=dev`
+- `DB_URL=jdbc:postgresql://<host>:5432/<database>?sslmode=require`
+- `DB_USER=<user>`
+- `DB_PASSWORD=<password>`
+
+Optional pool tuning env vars:
+
+- `DB_MAX_POOL_SIZE`
+- `DB_MIN_IDLE`
+- `DB_CONNECTION_TIMEOUT_MS`
+- `DB_IDLE_TIMEOUT_MS`
+- `DB_MAX_LIFETIME_MS`
+
+Flyway remains enabled in this profile and will apply the existing schema and seed migrations on first startup against an empty database.
 
 ## Project Layout
 

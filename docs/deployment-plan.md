@@ -24,7 +24,7 @@ Recommended execution model:
 
 - [x] [Phase 0: Inspection And Recommendation](./deployment-phases/phase-0-inspection.md)
 - [x] [Phase 1: Deployment Foundation](./deployment-phases/phase-1-foundation.md)
-- [ ] [Phase 2: Database Foundation](./deployment-phases/phase-2-database.md)
+- [x] [Phase 2: Database Foundation](./deployment-phases/phase-2-database.md)
 - [ ] [Phase 3: Backend Deployment And Security](./deployment-phases/phase-3-backend.md)
 - [ ] [Phase 4: Frontend Deployment](./deployment-phases/phase-4-frontend.md)
 - [ ] [Phase 5: CI/CD](./deployment-phases/phase-5-cicd.md)
@@ -44,6 +44,7 @@ Fill this in after Phase 0 is approved. Future agents must treat this section as
 
 - Phase 0: Inspection And Recommendation
 - Phase 1: Deployment Foundation
+- Phase 2: Database Foundation
 
 ## Open Questions
 
@@ -51,7 +52,7 @@ Fill this in after Phase 0 is approved. Future agents must treat this section as
 
 ## Latest Approved Outcome
 
-Phase 1 established the deployment foundation on top of the Phase 0 baseline:
+Phase 2 established the cloud database foundation on top of the earlier phases:
 
 - Recommended provider setup: Render Postgres + Render backend web service + Render frontend web service.
 - Public entrypoint: frontend service.
@@ -59,6 +60,9 @@ Phase 1 established the deployment foundation on top of the Phase 0 baseline:
 - Backend runtime approach: keep Docker-based deployment to avoid platform JDK/runtime surprises and preserve Java 25 support.
 - Frontend proxy model: use a full upstream origin variable so local Docker and Render can share the same Nginx template.
 - Reverse-proxy handling: backend now explicitly respects forwarded headers from the frontend proxy/cloud ingress.
+- Backend database profile: a dedicated `render` profile now defines the cloud Postgres datasource and Hikari tuning inputs.
+- Database env model: backend runtime expects `DB_URL`, `DB_USER`, and `DB_PASSWORD`, with `DB_URL` supplied as a JDBC URL including `sslmode=require`.
+- Migration/seed strategy: Flyway remains the single bootstrap path; existing migrations seed menu items, belt, slots, and seats on a fresh database.
 - Security approach: require operator token on all state-changing backend endpoints; keep token out of public frontend code.
 - Persistence expectation: demo-grade free-tier persistence is acceptable, but not durable production-grade storage.
 - CI/CD direction: start from zero with root GitHub Actions workflows and gate deploys through CI.
