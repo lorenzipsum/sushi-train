@@ -10,7 +10,7 @@ Use this checklist to track the incremental Azure deployment work for Sushi-Trai
 - [x] 6. Prepare the backend for Azure runtime configuration.
 - [x] 7. Prepare containerization and deployment approach for the backend.
 - [x] 8. Prepare the frontend for Azure runtime/API integration.
-- [ ] 9. Add Terraform for Azure Container Apps environment.
+- [x] 9. Add Terraform for Azure Container Apps environment.
 - [ ] 10. Add Terraform for backend Azure Container App.
 - [ ] 11. Add Terraform for frontend Azure Container App.
 - [ ] 12. Create deployment workflow documentation, smoke-test guidance, and progress tracking.

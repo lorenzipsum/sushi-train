@@ -42,3 +42,28 @@ output "postgresql_database_name" {
   description = "Application database name created in Azure Database for PostgreSQL Flexible Server."
   value       = azurerm_postgresql_flexible_server_database.main.name
 }
+
+output "log_analytics_workspace_name" {
+  description = "Name of the Log Analytics workspace used by the Azure Container Apps environment."
+  value       = azurerm_log_analytics_workspace.main.name
+}
+
+output "container_app_environment_id" {
+  description = "Resource ID of the Azure Container Apps environment."
+  value       = azurerm_container_app_environment.main.id
+}
+
+output "container_app_environment_name" {
+  description = "Name of the Azure Container Apps environment."
+  value       = azurerm_container_app_environment.main.name
+}
+
+output "container_app_environment_default_domain" {
+  description = "Default domain of the Azure Container Apps environment."
+  value       = azurerm_container_app_environment.main.default_domain
+}
+
+output "container_app_environment_static_ip_address" {
+  description = "Static public IP address of the Azure Container Apps environment, when assigned by Azure."
+  value       = azurerm_container_app_environment.main.static_ip_address
+}

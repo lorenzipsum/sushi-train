@@ -118,6 +118,18 @@ variable "postgresql_allow_azure_services" {
   default     = true
 }
 
+variable "log_analytics_workspace_sku" {
+  description = "SKU for the Log Analytics workspace used by Azure Container Apps environment diagnostics."
+  type        = string
+  default     = "PerGB2018"
+}
+
+variable "log_analytics_retention_days" {
+  description = "Retention period in days for the Log Analytics workspace."
+  type        = number
+  default     = 30
+}
+
 variable "tags" {
   description = "Additional tags applied to supported Azure resources."
   type        = map(string)

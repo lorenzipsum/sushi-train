@@ -17,6 +17,8 @@ postgresql_storage_mb = 32768
 postgresql_backup_retention_days = 7
 postgresql_public_network_access_enabled = true
 postgresql_allow_azure_services = true
+log_analytics_workspace_sku = "PerGB2018"
+log_analytics_retention_days = 30
 
 tags = {
   owner   = "personal"

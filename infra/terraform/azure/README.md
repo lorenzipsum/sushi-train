@@ -22,6 +22,7 @@ At this stage, the directory is only responsible for:
 - Azure Resource Group creation
 - Azure Container Registry creation
 - Azure Database for PostgreSQL Flexible Server creation
+- Azure Container Apps environment creation
 - local-state-friendly ignore rules
 
 ## Directory Layout
@@ -74,6 +75,7 @@ Important:
 - The `subscription_id` passed to Terraform must match a subscription visible to the current Azure CLI login.
 - If Terraform reports that the subscription ID is not known by Azure CLI, either the ID is wrong or Azure CLI is currently set to a different account or tenant.
 - Running `terraform plan` without a local `terraform.tfvars` file will cause Terraform to prompt for required variables interactively.
+- The AzureRM provider is configured to auto-register `Microsoft.App` for Container Apps support.
 - `container_registry_name` must be globally unique in Azure and use only lowercase letters and digits.
 - `postgresql_server_name` must be globally unique in Azure.
 - Set `postgresql_administrator_password` in a local-only way before planning or applying.
@@ -130,6 +132,8 @@ The Terraform root currently manages:
 - one Azure Container Registry
 - one Azure Database for PostgreSQL Flexible Server
 - one application database inside that PostgreSQL server
+- one Log Analytics workspace for Container Apps diagnostics
+- one Azure Container Apps environment
 
 Current ACR defaults:
 
@@ -148,5 +152,16 @@ Current PostgreSQL defaults:
 - Azure-services firewall rule: enabled
 
 This is intentionally a low-complexity first database setup. It avoids private networking for now and keeps the server reachable from Azure-hosted application components with a simple public-network rule.
+
+The PostgreSQL server also ignores Azure-reported zone drift when no zone is explicitly managed in Terraform. This avoids unnecessary update attempts caused by Azure assigning or reporting an effective zone automatically.
+
+Current Container Apps environment defaults:
+
+- one shared Container Apps environment
+- one Log Analytics workspace backing environment diagnostics
+- no private networking
+- no workload profiles or custom networking yet
+
+This keeps the first application deployment path simpler. The actual backend and frontend Container Apps are intentionally left for the next steps.
 
 Resources should be added directly in this root configuration until the structure becomes hard to read. Only then should modularization be reconsidered.

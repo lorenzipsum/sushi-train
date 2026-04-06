@@ -259,6 +259,7 @@ It intentionally includes:
 - the Azure Resource Group as the first real managed resource
 - the Azure Container Registry as the second real managed resource
 - the Azure Database for PostgreSQL Flexible Server as the third real managed resource
+- the Azure Container Apps environment foundation as the fourth real managed resource area
 - outputs for immediately useful resource values
 - an example `terraform.tfvars` file for local execution
 - ignore rules for local Terraform state and working files
@@ -278,6 +279,8 @@ The Terraform root currently creates these Azure resources:
 - one Azure Container Registry
 - one Azure Database for PostgreSQL Flexible Server
 - one application database inside that PostgreSQL server
+- one Log Analytics workspace for Container Apps diagnostics
+- one Azure Container Apps environment
 
 Naming approach:
 
@@ -418,3 +421,35 @@ Why this approach is intentionally simple:
 - it keeps frontend application code free from Azure-specific API base URL logic
 - it preserves the local Docker Compose reverse-proxy model
 - it allows the same frontend image to be reused across local and Azure environments
+
+## Current Container Apps Environment Design
+
+The Azure Container Apps foundation is now defined as follows:
+
+- one shared Azure Container Apps environment
+- one Log Analytics workspace for environment diagnostics
+- same Azure region as the rest of the project resources
+- no VNet integration yet
+- no custom workload profile configuration yet
+
+Why this design is intentionally simple:
+
+- Container Apps requires an environment-level foundation before app resources can be added
+- using one shared environment for frontend and backend keeps the first deployment path easy to understand
+- avoiding custom networking and workload-profile decisions reduces setup complexity until the application deployment is working end to end
+
+## Swagger UI In Azure
+
+Accessing Swagger UI in Azure is technically possible later if the backend Container App is deployed with public ingress and Swagger is enabled for that runtime.
+
+For this project, the safer default is:
+
+- do not enable Swagger UI by default in Azure-facing runtime
+- keep it available locally
+- if needed for debugging, enable it deliberately in a dev-only deployment and not as a permanent public endpoint
+
+Reason:
+
+- Swagger UI publishes the API surface openly
+- for a personal project this is not catastrophic, but it is still unnecessary exposure for the default path
+- it is better to treat Swagger access as an explicit opt-in rather than a permanent public feature

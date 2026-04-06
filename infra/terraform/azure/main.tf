@@ -26,6 +26,12 @@ resource "azurerm_postgresql_flexible_server" "main" {
   geo_redundant_backup_enabled  = false
   public_network_access_enabled = var.postgresql_public_network_access_enabled
   tags                          = local.common_tags
+
+  # Azure may assign or later report the effective primary zone even when we do
+  # not manage zoning explicitly. Ignore that drift for this low-complexity setup.
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server_database" "main" {
@@ -42,4 +48,21 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_azure_service
   server_id        = azurerm_postgresql_flexible_server.main.id
   start_ip_address = "0.0.0.0"
   end_ip_address   = "0.0.0.0"
+}
+
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = local.log_analytics_workspace_name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = var.log_analytics_workspace_sku
+  retention_in_days   = var.log_analytics_retention_days
+  tags                = local.common_tags
+}
+
+resource "azurerm_container_app_environment" "main" {
+  name                       = local.container_app_environment_name
+  location                   = azurerm_resource_group.main.location
+  resource_group_name        = azurerm_resource_group.main.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  tags                       = local.common_tags
 }
