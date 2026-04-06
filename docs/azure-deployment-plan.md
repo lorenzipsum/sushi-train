@@ -243,6 +243,7 @@ It intentionally includes:
 - shared locals and common tags
 - the Azure Resource Group as the first real managed resource
 - the Azure Container Registry as the second real managed resource
+- the Azure Database for PostgreSQL Flexible Server as the third real managed resource
 - outputs for immediately useful resource values
 - an example `terraform.tfvars` file for local execution
 - ignore rules for local Terraform state and working files
@@ -259,6 +260,8 @@ The Terraform root currently creates only one Azure resource:
 
 - one Azure Resource Group
 - one Azure Container Registry
+- one Azure Database for PostgreSQL Flexible Server
+- one application database inside that PostgreSQL server
 
 Naming approach:
 
@@ -294,3 +297,32 @@ Why admin access is disabled by default:
 
 - later deployment steps should prefer explicit Azure identity-based access where practical
 - enabling the admin user too early would add convenience at the cost of a less disciplined baseline
+
+## Current PostgreSQL Design
+
+The Azure Database for PostgreSQL Flexible Server is intentionally configured with simple first-pass defaults:
+
+- explicit server name supplied by input variable
+- PostgreSQL version `17`
+- low-cost burstable SKU by default
+- one application database named `sushitrain`
+- public networking enabled
+- firewall rule allowing Azure services enabled by default
+- no private networking yet
+
+Why the server name is explicit:
+
+- the server name becomes part of the Azure-hosted database hostname
+- it must be globally unique
+- keeping it explicit makes troubleshooting and environment recognition easier
+
+Why public networking is used for now:
+
+- it keeps the first working deployment path simpler than introducing VNet integration immediately
+- it fits the stated goal of low complexity and fast iteration
+- it avoids premature network design before the application deployment path is working end to end
+
+Trade-off:
+
+- this is less restrictive than a private-network design
+- backend runtime configuration will need to handle Azure PostgreSQL connectivity explicitly, including SSL-related connection behavior in later steps

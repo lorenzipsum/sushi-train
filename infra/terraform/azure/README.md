@@ -21,6 +21,7 @@ At this stage, the directory is only responsible for:
 - shared locals and tags
 - Azure Resource Group creation
 - Azure Container Registry creation
+- Azure Database for PostgreSQL Flexible Server creation
 - local-state-friendly ignore rules
 
 ## Directory Layout
@@ -46,6 +47,12 @@ terraform plan -var-file="terraform.tfvars"
 terraform apply -var-file="terraform.tfvars"
 ```
 
+Recommended local secret file:
+
+- create `secrets.auto.tfvars` for sensitive values
+- Terraform loads `*.auto.tfvars` automatically
+- keep secrets out of `terraform.tfvars.example`
+
 Before running `plan` or `apply`:
 
 1. Sign in with Azure CLI.
@@ -68,6 +75,25 @@ Important:
 - If Terraform reports that the subscription ID is not known by Azure CLI, either the ID is wrong or Azure CLI is currently set to a different account or tenant.
 - Running `terraform plan` without a local `terraform.tfvars` file will cause Terraform to prompt for required variables interactively.
 - `container_registry_name` must be globally unique in Azure and use only lowercase letters and digits.
+- `postgresql_server_name` must be globally unique in Azure.
+- Set `postgresql_administrator_password` in a local-only way before planning or applying.
+
+Recommended local file option for the PostgreSQL administrator password:
+
+```hcl
+# secrets.auto.tfvars
+postgresql_administrator_password = "<your-strong-password>"
+```
+
+Terraform will load that file automatically.
+
+Alternative PowerShell option:
+
+```powershell
+$env:TF_VAR_postgresql_administrator_password = "<your-strong-password>"
+```
+
+The `.gitignore` in this directory ignores `*.auto.tfvars`, so the secret file stays local by default.
 
 ## Local State
 
@@ -93,8 +119,7 @@ The intended model is:
 
 Planned next infrastructure steps:
 
-1. Add Azure Database for PostgreSQL Flexible Server.
-2. Prepare backend and frontend deployment integration.
+1. Prepare backend and frontend deployment integration.
 
 ## Current Managed Resources
 
@@ -102,6 +127,8 @@ The Terraform root currently manages:
 
 - one Azure Resource Group
 - one Azure Container Registry
+- one Azure Database for PostgreSQL Flexible Server
+- one application database inside that PostgreSQL server
 
 Current ACR defaults:
 
@@ -109,5 +136,16 @@ Current ACR defaults:
 - admin user: disabled
 
 The registry name is kept as an explicit input instead of being auto-generated because Azure Container Registry names are globally unique and must remain readable during local learning and debugging.
+
+Current PostgreSQL defaults:
+
+- version: `17`
+- SKU: `B_Standard_B1ms`
+- storage: `32768` MB
+- backup retention: `7` days
+- public networking: enabled
+- Azure-services firewall rule: enabled
+
+This is intentionally a low-complexity first database setup. It avoids private networking for now and keeps the server reachable from Azure-hosted application components with a simple public-network rule.
 
 Resources should be added directly in this root configuration until the structure becomes hard to read. Only then should modularization be reconsidered.

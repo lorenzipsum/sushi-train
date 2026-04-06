@@ -6,6 +6,17 @@ resource_name_prefix = "sushitrain"
 container_registry_name = "sushitraindevacr2026a"
 container_registry_sku = "Basic"
 container_registry_admin_enabled = false
+postgresql_server_name = "sushitrain-dev-pg-2026a"
+postgresql_version = "17"
+postgresql_administrator_login = "sushitrainadmin"
+# Set this in your local terraform.tfvars or via TF_VAR_postgresql_administrator_password.
+# postgresql_administrator_password = "replace-with-a-strong-password"
+postgresql_database_name = "sushitrain"
+postgresql_sku_name = "B_Standard_B1ms"
+postgresql_storage_mb = 32768
+postgresql_backup_retention_days = 7
+postgresql_public_network_access_enabled = true
+postgresql_allow_azure_services = true
 
 tags = {
   owner   = "personal"
