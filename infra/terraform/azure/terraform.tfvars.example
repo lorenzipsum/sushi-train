@@ -1,0 +1,10 @@
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+location            = "swedencentral"
+project_name        = "sushi-train"
+environment_name    = "dev"
+resource_name_prefix = "sushitrain"
+
+tags = {
+  owner   = "personal"
+  purpose = "learning"
+}
