@@ -82,3 +82,34 @@ npm run api:types
 - The `008-realtime-belt-updates` planning artifacts were maintained above `frontend/`, so that feature does not have a dedicated `frontend/specs/008-realtime-belt-updates/` folder.
 - Unit tests are Vitest-based; there is no e2e framework configured in this workspace.
 - Production output is written to `dist/frontend/`.
+
+## Azure Runtime And API Integration
+
+The frontend is intentionally kept browser-simple:
+
+- browser API calls remain relative to `/api/...`
+- the production container serves the Angular app through Nginx
+- Nginx proxies `/api/*` to the backend using runtime environment variables
+
+Current runtime proxy variables:
+
+- `API_UPSTREAM_SCHEME`
+- `API_UPSTREAM`
+
+Local Docker Compose defaults:
+
+- `API_UPSTREAM_SCHEME=http`
+- `API_UPSTREAM=backend:8080`
+
+Azure-oriented example:
+
+- `API_UPSTREAM_SCHEME=https`
+- `API_UPSTREAM=<backend-container-app-hostname>`
+
+Why this approach is useful:
+
+- the Angular app does not need environment-specific API code
+- the same production frontend image can be reused locally and in Azure
+- HTTPS backend routing can be configured at runtime without rebuilding the frontend image
+
+The Nginx proxy configuration now also forwards the upstream host correctly and enables TLS server name indication for HTTPS backend targets, which is important for Azure Container Apps host-based routing.

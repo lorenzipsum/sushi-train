@@ -70,6 +70,7 @@ Common variables:
 - `FRONTEND_PORT` (default `4200`)
 - `BACKEND_PORT` (default `8088`)
 - `POSTGRES_PORT` (default `5432`)
+- `FRONTEND_API_UPSTREAM_SCHEME` (default `http`)
 - `FRONTEND_API_UPSTREAM` (default `backend:8080` inside Docker network)
 
 ## Docker Setup Notes
@@ -77,7 +78,7 @@ Common variables:
 - There is one compose file at repo root: `docker-compose.yml`.
 - Frontend container uses Nginx.
   - Serves Angular static files.
-  - Proxies `/api/*` to backend via `API_UPSTREAM`.
+  - Proxies `/api/*` to backend via `API_UPSTREAM_SCHEME` and `API_UPSTREAM`.
   - Disables proxy buffering for SSE.
 - Backend waits for Postgres health check before startup.
 - Frontend waits for backend health check before startup.

@@ -39,7 +39,7 @@ Expected traffic flow:
 - Local orchestration currently uses Docker Compose with backend, frontend, and PostgreSQL.
 - The backend already supports runtime datasource configuration through `DB_URL`, `DB_USER`, and `DB_PASSWORD`.
 - The backend exposes health at `/actuator/health`.
-- The frontend is served by Nginx and proxies `/api/` through `API_UPSTREAM`.
+- The frontend is served by Nginx and proxies `/api/` through runtime upstream scheme and host settings.
 - Frontend API calls are already built around relative `/api/...` paths, which is useful for cloud routing.
 - Flyway migrations are already part of backend startup.
 
@@ -387,3 +387,34 @@ Why the first backend scale choice is one replica:
 - it matches the stated minimal architecture goal
 - it avoids early autoscaling complexity
 - it keeps cost and runtime behavior easier to reason about during learning
+
+## Current Frontend Runtime And API Integration Design
+
+The frontend runtime and backend API integration approach is now defined as follows:
+
+- browser requests stay relative to `/api/...`
+- the frontend container keeps Nginx as the runtime reverse proxy
+- backend target selection is controlled by runtime environment variables
+- the proxy now supports both `http` and `https` backend targets
+- the proxy forwards the backend host correctly for host-based Azure routing
+
+Current runtime variables:
+
+- `API_UPSTREAM_SCHEME`
+- `API_UPSTREAM`
+
+Local default behavior:
+
+- `API_UPSTREAM_SCHEME=http`
+- `API_UPSTREAM=backend:8080`
+
+Azure-oriented behavior:
+
+- `API_UPSTREAM_SCHEME=https`
+- `API_UPSTREAM=<backend-container-app-hostname>`
+
+Why this approach is intentionally simple:
+
+- it keeps frontend application code free from Azure-specific API base URL logic
+- it preserves the local Docker Compose reverse-proxy model
+- it allows the same frontend image to be reused across local and Azure environments

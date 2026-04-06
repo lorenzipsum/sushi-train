@@ -6,11 +6,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-sushitrain}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sushitrain}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sushitrain} -d ${POSTGRES_DB:-sushitrain}"]
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-sushitrain} -d ${POSTGRES_DB:-sushitrain}',
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -30,13 +34,17 @@ services:
       DB_USER: ${DB_USER:-sushitrain}
       DB_PASSWORD: ${DB_PASSWORD:-sushitrain}
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/actuator/health >/dev/null || exit 1"]
+      test:
+        [
+          'CMD-SHELL',
+          'curl --fail --silent http://localhost:8080/actuator/health >/dev/null || exit 1',
+        ]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 20s
     ports:
-      - "${BACKEND_PORT:-8088}:8080"
+      - '${BACKEND_PORT:-8088}:8080'
     restart: unless-stopped
 
   frontend:
@@ -44,12 +52,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
+      API_UPSTREAM_SCHEME: ${FRONTEND_API_UPSTREAM_SCHEME:-http}
       API_UPSTREAM: ${FRONTEND_API_UPSTREAM:-backend:8080}
     depends_on:
       backend:
         condition: service_healthy
     ports:
-      - "${FRONTEND_PORT:-4200}:80"
+      - '${FRONTEND_PORT:-4200}:80'
     restart: unless-stopped
 
 volumes:
