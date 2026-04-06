@@ -13,9 +13,9 @@ Use this checklist to track the incremental Azure deployment work for Sushi-Trai
 - [x] 9. Add Terraform for Azure Container Apps environment.
 - [x] 10. Add Terraform for backend Azure Container App.
 - [x] 11. Add Terraform for frontend Azure Container App.
-- [ ] 12. Create deployment workflow documentation, smoke-test guidance, and progress tracking.
+- [x] 12. Create deployment workflow documentation, smoke-test guidance, and progress tracking.
 
 Current note:
 
-- Initial Azure operations runbook exists in `docs/azure-deploy-runbook.md` for infra and backend updates.
-- Step 12 remains open until the frontend deployment path and final end-to-end rollout guidance are documented too.
+- The Azure deployment workflow, smoke tests, troubleshooting notes, and rollout checklist now live in `docs/azure-deploy-runbook.md`.
+- The current local-Terraform Azure path is now documented end to end for infra, backend, frontend, and smoke-test verification.

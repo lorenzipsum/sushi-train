@@ -2,6 +2,8 @@
 
 This document is the operational reference for updating the current Azure deployment of Sushi-Train.
 
+Progress tracking for this Azure rollout lives in `docs/azure-progress.md`.
+
 Current scope:
 
 - Terraform-managed Azure infrastructure
@@ -23,6 +25,49 @@ The current Azure deployment consists of:
 - one frontend Azure Container App
 
 The backend is API-only. The frontend Container App is the intended browser entry point.
+
+## Release Checklist
+
+Use this checklist for a normal Azure rollout.
+
+### Infrastructure-only change
+
+1. Review the Terraform diff.
+2. Apply Terraform from `infra/terraform/azure`.
+3. Run the smoke tests in this document.
+
+Commands:
+
+```powershell
+cd infra/terraform/azure
+terraform plan -var-file="terraform.tfvars"
+terraform apply -var-file="terraform.tfvars"
+```
+
+### Backend release
+
+1. Pick a new backend image tag.
+2. Build the backend image.
+3. Log in to ACR.
+4. Push the backend image.
+5. Apply Terraform.
+6. Run backend and frontend smoke tests.
+
+### Frontend release
+
+1. Pick a new frontend image tag.
+2. Build the frontend image.
+3. Log in to ACR.
+4. Push the frontend image.
+5. Apply Terraform.
+6. Run backend and frontend smoke tests.
+
+### End-to-end verification
+
+1. Open the frontend URL.
+2. Confirm the UI loads.
+3. Confirm `${frontendUrl}/api/version` works through the proxy.
+4. Confirm `${backendUrl}/actuator/health` is healthy.
 
 ## Prerequisites
 

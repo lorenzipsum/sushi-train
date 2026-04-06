@@ -121,10 +121,10 @@ The intended model is:
 
 ## Incremental Delivery
 
-Planned next infrastructure steps:
+Implementation status:
 
-1. Prepare frontend runtime and API integration.
-2. Capture deployment workflow and smoke-test guidance.
+- backend and frontend Azure Container Apps are defined in this root
+- deployment workflow and smoke-test guidance are documented in `docs/azure-deploy-runbook.md`
 
 ## Current Managed Resources
 
@@ -195,5 +195,7 @@ Current frontend Container App defaults:
 - runtime proxy host is wired to the backend Container App FQDN
 
 Before applying the frontend Container App step, make sure the frontend image has been pushed to the configured Azure Container Registry.
+
+For end-to-end rollout steps and smoke-test commands, use `docs/azure-deploy-runbook.md` as the primary operational reference.
 
 Resources should be added directly in this root configuration until the structure becomes hard to read. Only then should modularization be reconsidered.

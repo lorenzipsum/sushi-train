@@ -128,6 +128,9 @@ Typical next step is to split deployment into:
 - [Architecture Overview](docs/architecture.md)
 - [Domain Events](docs/domain-events.md)
 - [Domain Model](docs/domain-model.md)
+- [Azure Deployment Plan](docs/azure-deployment-plan.md)
+- [Azure Deploy Runbook](docs/azure-deploy-runbook.md)
+- [Azure Progress](docs/azure-progress.md)
 
 ## License
 

@@ -247,6 +247,8 @@ Progress is tracked in [azure-progress.md](./azure-progress.md).
 
 Current operational rollout guidance lives in [azure-deploy-runbook.md](./azure-deploy-runbook.md).
 
+At this point, the originally planned twelve-step local Terraform path is documented end to end. Future work can refine the deployment flow, but the initial explicit Azure path now exists as a complete baseline.
+
 ## Current Terraform Structure
 
 The initial Terraform root now lives in `infra/terraform/azure`.
@@ -268,7 +270,6 @@ It intentionally includes:
 
 It intentionally does not yet include:
 
-- Azure Container Apps resources
 - remote state
 - modules
 - CI/CD automation
@@ -283,6 +284,8 @@ The Terraform root currently creates these Azure resources:
 - one application database inside that PostgreSQL server
 - one Log Analytics workspace for Container Apps diagnostics
 - one Azure Container Apps environment
+- one backend Azure Container App
+- one frontend Azure Container App
 
 Naming approach:
 
