@@ -110,6 +110,7 @@ Initial root files:
 - `variables.tf`
 - `locals.tf`
 - `main.tf`
+- `outputs.tf`
 - `terraform.tfvars.example`
 - `.gitignore`
 
@@ -240,13 +241,30 @@ It intentionally includes:
 - version and provider declarations
 - root input variables
 - shared locals and common tags
-- a placeholder root file for incremental resource additions
+- the Azure Resource Group as the first real managed resource
+- outputs for immediately useful resource values
 - an example `terraform.tfvars` file for local execution
 - ignore rules for local Terraform state and working files
 
 It intentionally does not yet include:
 
-- Azure resources
 - remote state
 - modules
 - CI/CD automation
+
+## Current Implemented Infrastructure
+
+The Terraform root currently creates only one Azure resource:
+
+- one Azure Resource Group
+
+Naming approach:
+
+- Resource Group name is derived from `resource_name_prefix` and `environment_name`
+- current pattern: `<resource_name_prefix>-<environment_name>-rg`
+
+Why start with only the Resource Group:
+
+- it provides a safe first end-to-end Terraform apply target
+- it establishes the location and tagging baseline for later resources
+- it keeps the first infrastructure change easy to review and easy to destroy if needed

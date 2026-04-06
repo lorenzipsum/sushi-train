@@ -1,3 +1,5 @@
-# Azure resources will be added here incrementally in later steps.
-# The root configuration intentionally starts empty so each resource
-# introduction stays easy to review and understand.
+resource "azurerm_resource_group" "main" {
+  name     = local.resource_group_name
+  location = var.location
+  tags     = local.common_tags
+}

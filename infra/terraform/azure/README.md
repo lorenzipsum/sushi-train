@@ -19,6 +19,7 @@ At this stage, the directory is only responsible for:
 - provider configuration
 - shared input variables
 - shared locals and tags
+- Azure Resource Group creation
 - local-state-friendly ignore rules
 
 ## Directory Layout
@@ -27,7 +28,8 @@ At this stage, the directory is only responsible for:
 - `providers.tf`: AzureRM provider configuration
 - `variables.tf`: root input variables
 - `locals.tf`: shared local values and tags
-- `main.tf`: placeholder root file for incremental resource additions
+- `main.tf`: root resources
+- `outputs.tf`: useful values from the current root resources
 - `terraform.tfvars.example`: example local variable values
 - `.gitignore`: ignores local Terraform working files and local state
 
@@ -37,9 +39,33 @@ Run Terraform from this directory:
 
 ```powershell
 cd infra/terraform/azure
+Copy-Item terraform.tfvars.example terraform.tfvars
 terraform init
 terraform plan -var-file="terraform.tfvars"
+terraform apply -var-file="terraform.tfvars"
 ```
+
+Before running `plan` or `apply`:
+
+1. Sign in with Azure CLI.
+2. Confirm which subscription Azure CLI is currently using.
+3. Put that same subscription ID into `terraform.tfvars`.
+
+Useful commands:
+
+```powershell
+az login
+az account show --output table
+az account list --output table
+az account set --subscription "<subscription-id-or-name>"
+az account show --query id --output tsv
+```
+
+Important:
+
+- The `subscription_id` passed to Terraform must match a subscription visible to the current Azure CLI login.
+- If Terraform reports that the subscription ID is not known by Azure CLI, either the ID is wrong or Azure CLI is currently set to a different account or tenant.
+- Running `terraform plan` without a local `terraform.tfvars` file will cause Terraform to prompt for required variables interactively.
 
 ## Local State
 
@@ -65,9 +91,8 @@ The intended model is:
 
 Planned next infrastructure steps:
 
-1. Add the Azure Resource Group.
-2. Add Azure Container Registry.
-3. Add Azure Database for PostgreSQL Flexible Server.
-4. Prepare backend and frontend deployment integration.
+1. Add Azure Container Registry.
+2. Add Azure Database for PostgreSQL Flexible Server.
+3. Prepare backend and frontend deployment integration.
 
 Resources should be added directly in this root configuration until the structure becomes hard to read. Only then should modularization be reconsidered.
