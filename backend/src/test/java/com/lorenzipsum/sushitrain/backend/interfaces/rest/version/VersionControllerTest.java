@@ -14,6 +14,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 
 @WebMvcTest(VersionController.class)
 @AutoConfigureRestTestClient
@@ -77,4 +78,21 @@ class VersionControllerTest {
         verify(versionInfoService).getVersionInfo();
         verifyNoMoreInteractions(versionInfoService);
     }
+
+        @Test
+        @DisplayName("GET / returns 404 ProblemDetail instead of 500")
+        void rootPath_returns404ProblemDetail() {
+                client.get()
+                                .uri("/")
+                                .exchange()
+                                .expectStatus().isNotFound()
+                                .expectHeader().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON)
+                                .expectBody()
+                                .jsonPath("$.title").isEqualTo("Resource not found")
+                                .jsonPath("$.status").isEqualTo(404)
+                                .jsonPath("$.type").isEqualTo("https://api.sushitrain/errors/not-found")
+                                .jsonPath("$.instance").isEqualTo("/");
+
+                verifyNoMoreInteractions(versionInfoService);
+        }
 }

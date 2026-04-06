@@ -23,6 +23,7 @@ At this stage, the directory is only responsible for:
 - Azure Container Registry creation
 - Azure Database for PostgreSQL Flexible Server creation
 - Azure Container Apps environment creation
+- Backend Azure Container App creation
 - local-state-friendly ignore rules
 
 ## Directory Layout
@@ -150,8 +151,11 @@ Current PostgreSQL defaults:
 - backup retention: `7` days
 - public networking: enabled
 - Azure-services firewall rule: enabled
+- allowlisted extensions: `uuid-ossp`
 
 This is intentionally a low-complexity first database setup. It avoids private networking for now and keeps the server reachable from Azure-hosted application components with a simple public-network rule.
+
+The extension allowlist is managed in Terraform through the `azure.extensions` server parameter so the existing Flyway migrations can run on Azure PostgreSQL without changing local development behavior.
 
 The PostgreSQL server also ignores Azure-reported zone drift when no zone is explicitly managed in Terraform. This avoids unnecessary update attempts caused by Azure assigning or reporting an effective zone automatically.
 
@@ -163,5 +167,17 @@ Current Container Apps environment defaults:
 - no workload profiles or custom networking yet
 
 This keeps the first application deployment path simpler. The actual backend and frontend Container Apps are intentionally left for the next steps.
+
+Current backend Container App defaults:
+
+- image repository: `sushi-train-backend`
+- image tag: `dev-latest`
+- public ingress enabled
+- target port: `8080`
+- one replica minimum and maximum
+- Swagger disabled by default in Azure runtime
+- ACR image pull through a dedicated user-assigned managed identity with `AcrPull`
+
+Before applying the backend Container App step, make sure the backend image has been pushed to the configured Azure Container Registry.
 
 Resources should be added directly in this root configuration until the structure becomes hard to read. Only then should modularization be reconsidered.

@@ -118,6 +118,12 @@ variable "postgresql_allow_azure_services" {
   default     = true
 }
 
+variable "postgresql_allowed_extensions" {
+  description = "PostgreSQL extensions to allowlist on Azure Flexible Server through the azure.extensions server parameter."
+  type        = list(string)
+  default     = ["uuid-ossp"]
+}
+
 variable "log_analytics_workspace_sku" {
   description = "SKU for the Log Analytics workspace used by Azure Container Apps environment diagnostics."
   type        = string
@@ -128,6 +134,66 @@ variable "log_analytics_retention_days" {
   description = "Retention period in days for the Log Analytics workspace."
   type        = number
   default     = 30
+}
+
+variable "backend_image_repository" {
+  description = "Repository name for the backend image stored in Azure Container Registry."
+  type        = string
+  default     = "sushi-train-backend"
+}
+
+variable "backend_image_tag" {
+  description = "Image tag for the backend container image in Azure Container Registry."
+  type        = string
+  default     = "dev-latest"
+}
+
+variable "backend_container_cpu" {
+  description = "CPU allocation for the backend Azure Container App."
+  type        = number
+  default     = 0.5
+}
+
+variable "backend_container_memory" {
+  description = "Memory allocation for the backend Azure Container App."
+  type        = string
+  default     = "1Gi"
+}
+
+variable "backend_min_replicas" {
+  description = "Minimum number of replicas for the backend Azure Container App."
+  type        = number
+  default     = 1
+}
+
+variable "backend_max_replicas" {
+  description = "Maximum number of replicas for the backend Azure Container App."
+  type        = number
+  default     = 1
+}
+
+variable "backend_ingress_external_enabled" {
+  description = "Whether the backend Azure Container App ingress is publicly reachable."
+  type        = bool
+  default     = true
+}
+
+variable "backend_target_port" {
+  description = "Container port exposed by the backend Azure Container App."
+  type        = number
+  default     = 8080
+}
+
+variable "backend_swagger_enabled" {
+  description = "Whether Swagger UI and API docs are enabled for the backend Azure runtime. Keep false by default."
+  type        = bool
+  default     = false
+}
+
+variable "backend_database_user_override" {
+  description = "Optional override for the backend database username used at runtime. Leave empty to use the PostgreSQL administrator login."
+  type        = string
+  default     = ""
 }
 
 variable "tags" {

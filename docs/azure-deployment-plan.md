@@ -245,6 +245,8 @@ Current sequence:
 
 Progress is tracked in [azure-progress.md](./azure-progress.md).
 
+Current operational rollout guidance lives in [azure-deploy-runbook.md](./azure-deploy-runbook.md).
+
 ## Current Terraform Structure
 
 The initial Terraform root now lives in `infra/terraform/azure`.
@@ -437,6 +439,38 @@ Why this design is intentionally simple:
 - Container Apps requires an environment-level foundation before app resources can be added
 - using one shared environment for frontend and backend keeps the first deployment path easy to understand
 - avoiding custom networking and workload-profile decisions reduces setup complexity until the application deployment is working end to end
+
+## Current Backend Container App Design
+
+The backend Azure Container App is now defined with these first-pass defaults:
+
+- image source: Azure Container Registry
+- image repository: `sushi-train-backend`
+- image tag: `dev-latest`
+- dedicated user-assigned identity for ACR pull
+- `AcrPull` role assignment scoped to the registry
+- public ingress enabled
+- target port `8080`
+- one minimum replica and one maximum replica
+- runtime profile: `azure`
+- database password injected as a Container App secret
+- Swagger disabled by default in Azure runtime
+
+Why this design is intentionally simple:
+
+- it avoids enabling the ACR admin user just to get image pulls working
+- it keeps image-pull authorization explicit and scoped
+- it preserves the earlier decision to keep the backend reachable for first-pass integration and smoke testing
+
+## Swagger UI In Azure
+
+The backend Container App design allows Swagger to be enabled later through a Terraform variable, but the default remains disabled.
+
+Recommendation:
+
+- keep `backend_swagger_enabled = false` as the default
+- if you need Swagger for debugging, enable it explicitly for the dev deployment only
+- do not treat public Swagger exposure as part of the default steady-state setup
 
 ## Swagger UI In Azure
 

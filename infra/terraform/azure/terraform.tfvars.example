@@ -19,6 +19,16 @@ postgresql_public_network_access_enabled = true
 postgresql_allow_azure_services = true
 log_analytics_workspace_sku = "PerGB2018"
 log_analytics_retention_days = 30
+backend_image_repository = "sushi-train-backend"
+backend_image_tag = "dev-latest"
+backend_container_cpu = 0.5
+backend_container_memory = "1Gi"
+backend_min_replicas = 1
+backend_max_replicas = 1
+backend_ingress_external_enabled = true
+backend_target_port = 8080
+backend_swagger_enabled = false
+backend_database_user_override = ""
 
 tags = {
   owner   = "personal"

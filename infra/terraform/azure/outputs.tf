@@ -67,3 +67,18 @@ output "container_app_environment_static_ip_address" {
   description = "Static public IP address of the Azure Container Apps environment, when assigned by Azure."
   value       = azurerm_container_app_environment.main.static_ip_address
 }
+
+output "backend_container_app_name" {
+  description = "Name of the backend Azure Container App."
+  value       = azurerm_container_app.backend.name
+}
+
+output "backend_container_app_latest_revision_fqdn" {
+  description = "Latest revision FQDN of the backend Azure Container App."
+  value       = azurerm_container_app.backend.latest_revision_fqdn
+}
+
+output "backend_container_app_url" {
+  description = "Public URL of the backend Azure Container App when external ingress is enabled."
+  value       = var.backend_ingress_external_enabled ? "https://${azurerm_container_app.backend.ingress[0].fqdn}" : null
+}

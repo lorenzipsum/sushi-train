@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;
 
@@ -57,6 +58,17 @@ public class ControllerAdvice {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         pd.setTitle(PROBLEM_404_TITLE);
         pd.setDetail(ex.getMessage());
+        pd.setType(URI.create(PROBLEM_404_URI));
+        pd.setInstance(URI.create(request.getRequestURI()));
+        return pd;
+    }
+
+    // 404: no controller mapping or static resource exists for the requested path
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle(PROBLEM_404_TITLE);
+        pd.setDetail("No resource exists for path '" + request.getRequestURI() + "'");
         pd.setType(URI.create(PROBLEM_404_URI));
         pd.setInstance(URI.create(request.getRequestURI()));
         return pd;
