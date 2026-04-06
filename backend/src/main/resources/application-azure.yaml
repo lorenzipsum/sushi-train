@@ -1,0 +1,21 @@
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:sushitrain}?sslmode=${DB_SSL_MODE:require}}
+    username: ${DB_USER:sushitrain}
+    password: ${DB_PASSWORD:sushitrain}
+    hikari:
+      pool-name: SushiTrainHikari
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:10}
+      minimum-idle: ${DB_MIN_IDLE:2}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          fetch_size: 50

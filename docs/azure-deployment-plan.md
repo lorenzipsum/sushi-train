@@ -197,8 +197,6 @@ Practical implication:
 
 ### Open Questions
 
-- Should the backend container app be public for the first iteration, or internal with only the frontend exposed publicly?
-- Should the backend be allowed to scale to zero for cost savings, or should it stay at one minimum replica to avoid cold starts?
 - Which Azure region offers acceptable cost and quota availability for this project?
 - Does Azure Database for PostgreSQL Flexible Server require any network choices that add complexity worth avoiding in the first pass?
 - Should Flyway run as part of backend startup in Azure exactly as it does locally, or should migration execution become a separate operational step later?
@@ -228,7 +226,24 @@ The plan therefore avoids introducing extra platforms, extra abstraction layers,
 
 ## Planned Implementation Sequence
 
-The intended incremental sequence is tracked in [azure-progress.md](./azure-progress.md).
+The implementation sequence has been revised so the plan explicitly includes the Terraform work that actually deploys the backend and frontend to Azure Container Apps.
+
+Current sequence:
+
+1. Prepare the project documentation and Azure deployment plan.
+2. Create the Terraform project structure.
+3. Add Terraform for Azure Resource Group.
+4. Add Terraform for Azure Container Registry.
+5. Add Terraform for Azure Database for PostgreSQL Flexible Server.
+6. Prepare the backend for Azure runtime configuration.
+7. Prepare containerization and deployment approach for the backend.
+8. Prepare the frontend for Azure runtime/API integration.
+9. Add Terraform for Azure Container Apps environment.
+10. Add Terraform for backend Azure Container App.
+11. Add Terraform for frontend Azure Container App.
+12. Create deployment workflow documentation, smoke-test guidance, and progress tracking.
+
+Progress is tracked in [azure-progress.md](./azure-progress.md).
 
 ## Current Terraform Structure
 
@@ -250,13 +265,14 @@ It intentionally includes:
 
 It intentionally does not yet include:
 
+- Azure Container Apps resources
 - remote state
 - modules
 - CI/CD automation
 
 ## Current Implemented Infrastructure
 
-The Terraform root currently creates only one Azure resource:
+The Terraform root currently creates these Azure resources:
 
 - one Azure Resource Group
 - one Azure Container Registry
@@ -326,3 +342,48 @@ Trade-off:
 
 - this is less restrictive than a private-network design
 - backend runtime configuration will need to handle Azure PostgreSQL connectivity explicitly, including SSL-related connection behavior in later steps
+
+## Current Backend Runtime Design
+
+The backend is now prepared for Azure runtime configuration with a dedicated `azure` Spring profile.
+
+Current approach:
+
+- local Docker Compose flow remains unchanged
+- Azure runtime uses a separate Spring profile instead of modifying the local profile
+- Azure database connectivity can be supplied either as:
+  - a composed JDBC connection using `DB_HOST`, `DB_PORT`, `DB_NAME`, and `DB_SSL_MODE`
+  - or an explicit `DB_URL`
+- the Azure profile defaults PostgreSQL SSL mode to `require`
+
+Why this approach is intentionally simple:
+
+- it keeps the existing local developer path stable
+- it avoids embedding Azure-only assumptions into the default local configuration
+- it keeps deployment-time wiring explicit and environment-variable driven
+
+## Current Backend Containerization And Deployment Design
+
+The backend containerization and first-pass deployment approach is now defined as follows:
+
+- backend image is built from `backend/Dockerfile`
+- the Dockerfile is version-agnostic and no longer depends on a hard-coded JAR file name
+- recommended ACR repository name: `sushi-train-backend`
+- recommended initial image tag for manual iteration: `dev-latest`
+- backend container app target port: `8080`
+- backend health endpoint: `/actuator/health`
+- backend runtime profile in Azure: `azure`
+- initial backend ingress choice: public
+- initial backend scale choice: one replica only
+
+Why the first backend ingress choice is public:
+
+- it reduces moving parts for the first working deployment path
+- it makes the frontend integration step easier to wire and test
+- it avoids adding internal-only networking complexity before the application is fully deployed
+
+Why the first backend scale choice is one replica:
+
+- it matches the stated minimal architecture goal
+- it avoids early autoscaling complexity
+- it keeps cost and runtime behavior easier to reason about during learning

@@ -10,6 +10,7 @@ This service is the domain and persistence layer of the Sushi Train application.
 It manages sushi belt behavior, seat occupancy, order lifecycle, and plate handling.
 
 It provides:
+
 - REST APIs for belts, seats, plates, menu items, and orders.
 - PostgreSQL persistence with Flyway migrations.
 - Scheduled jobs for operational consistency (for example plate expiry and data-integrity repair).
@@ -35,6 +36,7 @@ docker compose up --build
 ```
 
 Optional:
+
 - copy `.env.example` to `.env`
 - adjust database credentials, published ports, or Spring profile there
 
@@ -46,9 +48,11 @@ docker compose up --build
 ```
 
 Backend:
+
 - http://localhost:8088
 
 Swagger UI (when enabled by active profile):
+
 - http://localhost:8088/swagger-ui/index.html
 
 ### Option 2: Run directly with Maven
@@ -62,9 +66,89 @@ Swagger UI (when enabled by active profile):
 - `local`: local datasource + Flyway + Swagger enabled.
 - `demo-mode`: enables console belt animation.
 - `show-sql`: verbose SQL logging.
+- `azure`: Azure-oriented datasource config with SSL-enabled PostgreSQL connection defaults.
 
 The Docker setup reads database and port settings from environment variables, which makes the same container images easier to reuse in cloud deployments.
 The backend also exposes Actuator health at `/actuator/health`, which is the intended probe endpoint for later cloud orchestration.
+
+## Azure Runtime Configuration
+
+The backend now includes an `azure` Spring profile intended for Azure Container Apps plus Azure Database for PostgreSQL Flexible Server.
+
+Recommended runtime environment variables for Azure:
+
+- `SPRING_PROFILES_ACTIVE=azure`
+- `APP_ENVIRONMENT=azure`
+- `DB_HOST=<azure-postgresql-hostname>`
+- `DB_PORT=5432`
+- `DB_NAME=sushitrain`
+- `DB_USER=<database-username>`
+- `DB_PASSWORD=<database-password>`
+- `DB_SSL_MODE=require`
+
+Alternative:
+
+- provide the full JDBC URL through `DB_URL`
+- keep `DB_USER` and `DB_PASSWORD` as separate runtime values
+
+Azure profile behavior:
+
+- keeps Flyway enabled
+- keeps schema validation enabled
+- defaults PostgreSQL SSL mode to `require`
+- still allows overriding the full JDBC URL when needed
+
+This is intentionally additive to the existing local Docker Compose workflow. Local execution can keep using the current `demo-mode` or `local` setup without Azure-specific configuration.
+
+## Azure Containerization And Deployment Approach
+
+The backend Docker image is intended to be built locally, pushed to Azure Container Registry, and then used by Azure Container Apps.
+
+Current containerization approach:
+
+- backend image is built from `backend/Dockerfile`
+- the Docker build packages the Spring Boot application during the image build
+- the Dockerfile now copies the produced executable JAR without hard-coding the Maven project version
+- container listens on port `8080`
+- health endpoint remains `/actuator/health`
+
+Recommended image naming:
+
+- repository: `sushi-train-backend`
+- initial tag for manual iteration: `dev-latest`
+
+Example local build from the repository root:
+
+```powershell
+docker build -t <acr-login-server>/sushi-train-backend:dev-latest backend
+```
+
+Example push flow:
+
+```powershell
+az acr login --name <acr-name>
+docker push <acr-login-server>/sushi-train-backend:dev-latest
+```
+
+Initial Azure Container Apps assumptions for the backend:
+
+- one backend container app
+- one replica only
+- target port `8080`
+- runtime configuration injected through environment variables
+- image pulled from Azure Container Registry
+- public ingress for the first working deployment path
+
+Why public ingress is the first choice:
+
+- it keeps the first end-to-end deployment path simpler
+- it avoids introducing internal DNS and private ingress complexity too early
+- it allows the frontend integration step to target a clear backend base URL first
+
+Trade-off:
+
+- this is less restrictive than an internal-only backend setup
+- it can be revisited later after the frontend deployment path is stable
 
 ## Project Layout
 
@@ -108,9 +192,11 @@ src/main/resources
 ## E2E Scenario Script
 
 Script path:
+
 - `scripts/e2e-scenario.ps1`
 
 What it covers:
+
 - create batches of plates on the belt
 - occupy seats, pick plates, checkout
 - expire on-belt plates
@@ -118,6 +204,7 @@ What it covers:
 - change belt speed
 
 Prerequisites:
+
 - backend is running and reachable (default: `http://localhost:8088`)
 - belt, seats, and menu items are available (for example via `local` / `demo-mode`)
 
@@ -140,6 +227,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\e2e-scenario.ps1 -BaseUrl htt
 ```
 
 Optional parameters:
+
 - `-CreateBatches` (default `5`)
 - `-PlatesPerBatch` (default `10`)
 - `-PickCount` (default `5`)

@@ -119,7 +119,8 @@ The intended model is:
 
 Planned next infrastructure steps:
 
-1. Prepare backend and frontend deployment integration.
+1. Prepare frontend runtime and API integration.
+2. Capture deployment workflow and smoke-test guidance.
 
 ## Current Managed Resources
 
