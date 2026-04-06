@@ -20,6 +20,7 @@ At this stage, the directory is only responsible for:
 - shared input variables
 - shared locals and tags
 - Azure Resource Group creation
+- Azure Container Registry creation
 - local-state-friendly ignore rules
 
 ## Directory Layout
@@ -66,6 +67,7 @@ Important:
 - The `subscription_id` passed to Terraform must match a subscription visible to the current Azure CLI login.
 - If Terraform reports that the subscription ID is not known by Azure CLI, either the ID is wrong or Azure CLI is currently set to a different account or tenant.
 - Running `terraform plan` without a local `terraform.tfvars` file will cause Terraform to prompt for required variables interactively.
+- `container_registry_name` must be globally unique in Azure and use only lowercase letters and digits.
 
 ## Local State
 
@@ -91,8 +93,21 @@ The intended model is:
 
 Planned next infrastructure steps:
 
-1. Add Azure Container Registry.
-2. Add Azure Database for PostgreSQL Flexible Server.
-3. Prepare backend and frontend deployment integration.
+1. Add Azure Database for PostgreSQL Flexible Server.
+2. Prepare backend and frontend deployment integration.
+
+## Current Managed Resources
+
+The Terraform root currently manages:
+
+- one Azure Resource Group
+- one Azure Container Registry
+
+Current ACR defaults:
+
+- SKU: `Basic`
+- admin user: disabled
+
+The registry name is kept as an explicit input instead of being auto-generated because Azure Container Registry names are globally unique and must remain readable during local learning and debugging.
 
 Resources should be added directly in this root configuration until the structure becomes hard to read. Only then should modularization be reconsidered.

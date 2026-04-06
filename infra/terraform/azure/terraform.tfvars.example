@@ -3,6 +3,9 @@ location            = "switzerlandnorth"
 project_name        = "sushi-train"
 environment_name    = "dev"
 resource_name_prefix = "sushitrain"
+container_registry_name = "sushitraindevacr2026a"
+container_registry_sku = "Basic"
+container_registry_admin_enabled = false
 
 tags = {
   owner   = "personal"

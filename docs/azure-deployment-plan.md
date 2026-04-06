@@ -242,6 +242,7 @@ It intentionally includes:
 - root input variables
 - shared locals and common tags
 - the Azure Resource Group as the first real managed resource
+- the Azure Container Registry as the second real managed resource
 - outputs for immediately useful resource values
 - an example `terraform.tfvars` file for local execution
 - ignore rules for local Terraform state and working files
@@ -257,6 +258,7 @@ It intentionally does not yet include:
 The Terraform root currently creates only one Azure resource:
 
 - one Azure Resource Group
+- one Azure Container Registry
 
 Naming approach:
 
@@ -268,3 +270,27 @@ Why start with only the Resource Group:
 - it provides a safe first end-to-end Terraform apply target
 - it establishes the location and tagging baseline for later resources
 - it keeps the first infrastructure change easy to review and easy to destroy if needed
+
+## Current Container Registry Design
+
+The Azure Container Registry is intentionally configured with simple defaults:
+
+- explicit registry name supplied by input variable
+- `Basic` SKU by default
+- admin user disabled by default
+
+Why the registry name is explicit:
+
+- Azure Container Registry names must be globally unique
+- automatic name generation would hide an important deployment constraint
+- an explicit name is easier to reason about during local learning and troubleshooting
+
+Why `Basic` is the default:
+
+- it fits the low-cost direction of the project
+- it is sufficient for a first end-to-end deployment path
+
+Why admin access is disabled by default:
+
+- later deployment steps should prefer explicit Azure identity-based access where practical
+- enabling the admin user too early would add convenience at the cost of a less disciplined baseline
