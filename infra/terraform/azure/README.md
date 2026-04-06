@@ -24,6 +24,7 @@ At this stage, the directory is only responsible for:
 - Azure Database for PostgreSQL Flexible Server creation
 - Azure Container Apps environment creation
 - Backend Azure Container App creation
+- Frontend Azure Container App creation
 - local-state-friendly ignore rules
 
 ## Directory Layout
@@ -135,6 +136,8 @@ The Terraform root currently manages:
 - one application database inside that PostgreSQL server
 - one Log Analytics workspace for Container Apps diagnostics
 - one Azure Container Apps environment
+- one backend Azure Container App
+- one frontend Azure Container App
 
 Current ACR defaults:
 
@@ -166,7 +169,7 @@ Current Container Apps environment defaults:
 - no private networking
 - no workload profiles or custom networking yet
 
-This keeps the first application deployment path simpler. The actual backend and frontend Container Apps are intentionally left for the next steps.
+This keeps the first application deployment path simpler while still using one shared environment for both application containers.
 
 Current backend Container App defaults:
 
@@ -179,5 +182,18 @@ Current backend Container App defaults:
 - ACR image pull through a dedicated user-assigned managed identity with `AcrPull`
 
 Before applying the backend Container App step, make sure the backend image has been pushed to the configured Azure Container Registry.
+
+Current frontend Container App defaults:
+
+- image repository: `sushi-train-frontend`
+- image tag: `dev-latest`
+- public ingress enabled
+- target port: `80`
+- one replica minimum and maximum
+- ACR image pull through a dedicated user-assigned managed identity with `AcrPull`
+- runtime proxy scheme defaults to `https`
+- runtime proxy host is wired to the backend Container App FQDN
+
+Before applying the frontend Container App step, make sure the frontend image has been pushed to the configured Azure Container Registry.
 
 Resources should be added directly in this root configuration until the structure becomes hard to read. Only then should modularization be reconsidered.

@@ -196,6 +196,65 @@ variable "backend_database_user_override" {
   default     = ""
 }
 
+variable "frontend_image_repository" {
+  description = "Repository name for the frontend image stored in Azure Container Registry."
+  type        = string
+  default     = "sushi-train-frontend"
+}
+
+variable "frontend_image_tag" {
+  description = "Image tag for the frontend container image in Azure Container Registry."
+  type        = string
+  default     = "dev-latest"
+}
+
+variable "frontend_container_cpu" {
+  description = "CPU allocation for the frontend Azure Container App."
+  type        = number
+  default     = 0.25
+}
+
+variable "frontend_container_memory" {
+  description = "Memory allocation for the frontend Azure Container App."
+  type        = string
+  default     = "0.5Gi"
+}
+
+variable "frontend_min_replicas" {
+  description = "Minimum number of replicas for the frontend Azure Container App."
+  type        = number
+  default     = 1
+}
+
+variable "frontend_max_replicas" {
+  description = "Maximum number of replicas for the frontend Azure Container App."
+  type        = number
+  default     = 1
+}
+
+variable "frontend_ingress_external_enabled" {
+  description = "Whether the frontend Azure Container App ingress is publicly reachable."
+  type        = bool
+  default     = true
+}
+
+variable "frontend_target_port" {
+  description = "Container port exposed by the frontend Azure Container App."
+  type        = number
+  default     = 80
+}
+
+variable "frontend_api_upstream_scheme" {
+  description = "URL scheme used by the frontend runtime proxy when forwarding /api requests to the backend."
+  type        = string
+  default     = "https"
+
+  validation {
+    condition     = contains(["http", "https"], var.frontend_api_upstream_scheme)
+    error_message = "frontend_api_upstream_scheme must be either http or https."
+  }
+}
+
 variable "tags" {
   description = "Additional tags applied to supported Azure resources."
   type        = map(string)

@@ -80,10 +80,25 @@ resource "azurerm_user_assigned_identity" "backend_acr_pull" {
   tags                = local.common_tags
 }
 
+resource "azurerm_user_assigned_identity" "frontend_acr_pull" {
+  name                = local.frontend_acr_pull_identity_name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  tags                = local.common_tags
+}
+
 resource "azurerm_role_assignment" "backend_acr_pull" {
   scope                            = azurerm_container_registry.main.id
   role_definition_name             = "AcrPull"
   principal_id                     = azurerm_user_assigned_identity.backend_acr_pull.principal_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "frontend_acr_pull" {
+  scope                            = azurerm_container_registry.main.id
+  role_definition_name             = "AcrPull"
+  principal_id                     = azurerm_user_assigned_identity.frontend_acr_pull.principal_id
   principal_type                   = "ServicePrincipal"
   skip_service_principal_aad_check = true
 }
@@ -215,5 +230,90 @@ resource "azurerm_container_app" "backend" {
   depends_on = [
     azurerm_role_assignment.backend_acr_pull,
     azurerm_postgresql_flexible_server_configuration.allowed_extensions,
+  ]
+}
+
+resource "azurerm_container_app" "frontend" {
+  name                         = local.frontend_container_app_name
+  container_app_environment_id = azurerm_container_app_environment.main.id
+  resource_group_name          = azurerm_resource_group.main.name
+  revision_mode                = "Single"
+  tags                         = local.common_tags
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.frontend_acr_pull.id]
+  }
+
+  registry {
+    server   = azurerm_container_registry.main.login_server
+    identity = azurerm_user_assigned_identity.frontend_acr_pull.id
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = var.frontend_ingress_external_enabled
+    target_port                = var.frontend_target_port
+    transport                  = "http"
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  template {
+    min_replicas = var.frontend_min_replicas
+    max_replicas = var.frontend_max_replicas
+
+    container {
+      name   = "frontend"
+      image  = "${azurerm_container_registry.main.login_server}/${var.frontend_image_repository}:${var.frontend_image_tag}"
+      cpu    = var.frontend_container_cpu
+      memory = var.frontend_container_memory
+
+      env {
+        name  = "API_UPSTREAM_SCHEME"
+        value = var.frontend_api_upstream_scheme
+      }
+
+      env {
+        name  = "API_UPSTREAM"
+        value = azurerm_container_app.backend.ingress[0].fqdn
+      }
+
+      liveness_probe {
+        transport               = "HTTP"
+        port                    = var.frontend_target_port
+        path                    = "/"
+        interval_seconds        = 15
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      readiness_probe {
+        transport               = "HTTP"
+        port                    = var.frontend_target_port
+        path                    = "/"
+        interval_seconds        = 15
+        timeout                 = 5
+        failure_count_threshold = 3
+        success_count_threshold = 1
+      }
+
+      startup_probe {
+        transport               = "HTTP"
+        port                    = var.frontend_target_port
+        path                    = "/"
+        interval_seconds        = 10
+        timeout                 = 5
+        failure_count_threshold = 30
+      }
+    }
+  }
+
+  depends_on = [
+    azurerm_role_assignment.frontend_acr_pull,
+    azurerm_container_app.backend,
   ]
 }

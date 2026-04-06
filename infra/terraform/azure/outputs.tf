@@ -82,3 +82,18 @@ output "backend_container_app_url" {
   description = "Public URL of the backend Azure Container App when external ingress is enabled."
   value       = var.backend_ingress_external_enabled ? "https://${azurerm_container_app.backend.ingress[0].fqdn}" : null
 }
+
+output "frontend_container_app_name" {
+  description = "Name of the frontend Azure Container App."
+  value       = azurerm_container_app.frontend.name
+}
+
+output "frontend_container_app_latest_revision_fqdn" {
+  description = "Latest revision FQDN of the frontend Azure Container App."
+  value       = azurerm_container_app.frontend.latest_revision_fqdn
+}
+
+output "frontend_container_app_url" {
+  description = "Public URL of the frontend Azure Container App when external ingress is enabled."
+  value       = var.frontend_ingress_external_enabled ? "https://${azurerm_container_app.frontend.ingress[0].fqdn}" : null
+}

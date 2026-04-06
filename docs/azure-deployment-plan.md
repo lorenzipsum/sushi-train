@@ -487,3 +487,25 @@ Reason:
 - Swagger UI publishes the API surface openly
 - for a personal project this is not catastrophic, but it is still unnecessary exposure for the default path
 - it is better to treat Swagger access as an explicit opt-in rather than a permanent public feature
+
+## Current Frontend Container App Design
+
+The frontend Azure Container App is now defined with these first-pass defaults:
+
+- image source: Azure Container Registry
+- image repository: `sushi-train-frontend`
+- image tag: `dev-latest`
+- dedicated user-assigned identity for ACR pull
+- `AcrPull` role assignment scoped to the registry
+- public ingress enabled
+- target port `80`
+- one minimum replica and one maximum replica
+- runtime proxy scheme: `https`
+- runtime proxy host wired to the backend Container App FQDN
+
+Why this design is intentionally simple:
+
+- it keeps the frontend browser-facing entry point public and predictable
+- it reuses the Nginx reverse-proxy runtime model already used locally
+- it avoids introducing Azure-specific API base URL logic into the Angular application
+- it keeps frontend-to-backend wiring explicit through runtime environment variables

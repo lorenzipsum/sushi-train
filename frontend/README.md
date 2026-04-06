@@ -106,6 +106,16 @@ Azure-oriented example:
 - `API_UPSTREAM_SCHEME=https`
 - `API_UPSTREAM=<backend-container-app-hostname>`
 
+Initial Azure Container App assumptions:
+
+- one frontend container app
+- one replica only
+- target port `80`
+- runtime proxy scheme `https`
+- runtime proxy host derived from the backend Container App FQDN
+- image pulled from Azure Container Registry
+- public ingress for the first working browser-facing deployment path
+
 Why this approach is useful:
 
 - the Angular app does not need environment-specific API code
