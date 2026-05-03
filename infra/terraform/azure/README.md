@@ -2,6 +2,8 @@
 
 This directory contains the initial Terraform root configuration for deploying Sushi-Train to Azure.
 
+For day-to-day command workflows (`Deploy`, `Update`, `Remove`), use `OPERATIONS.md` in this same directory.
+
 The structure is intentionally small and explicit:
 
 - one Terraform root
@@ -11,7 +13,7 @@ The structure is intentionally small and explicit:
 
 ## Purpose
 
-This scaffold exists to make local Terraform execution predictable and easy to understand before any real Azure resources are introduced.
+This scaffold keeps local Terraform execution predictable and easy to understand for the current Azure resources managed in this root.
 
 At this stage, the directory is only responsible for:
 

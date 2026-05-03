@@ -7,90 +7,24 @@ It includes a Spring Boot backend, an Angular frontend, and PostgreSQL, with Doc
 
 Current release: `0.2.0` (tag: `v0.2.0`)
 
-## What It Does
-
-- Simulates one or more sushi belts with rotating slots and plates
-- Supports seat occupancy, plate pickup, and checkout flows
-- Exposes a REST API for all core operations
-- Streams belt UI refresh events via Server-Sent Events (SSE) with polling fallback in the frontend
-
-## Tech Stack
+## Overview
 
 - Backend: Spring Boot 4, Java 25, Maven
-- Frontend: Angular 21, TypeScript, Nginx (for static hosting + API reverse proxy)
-- Database: PostgreSQL 17, Flyway migrations
-- Local orchestration: Docker Compose
+- Frontend: Angular 21, TypeScript, Nginx
+- Database: PostgreSQL 17 with Flyway migrations
+- Run options: local without Docker, local with Docker Compose, or Azure with Terraform
 
-## Repository Structure
+## How To Run
 
-```text
-sushi-train/
-|-- backend/            Spring Boot application
-|-- frontend/           Angular application
-|-- docs/               Architecture and domain docs
-|-- docker-compose.yml  Root compose file (backend + frontend + postgres)
-`-- README.md
-```
+Sushi-Train supports three run modes:
 
-## Quick Start (Docker Compose)
+- locally without Docker
+- locally with Docker Compose
+- on Azure with Terraform
 
-1. Clone the repository.
+For daily development, use local execution or Docker Compose. Use Terraform only when you want the Azure-hosted setup.
 
-```bash
-git clone https://github.com/lorenzipsum/sushi-train.git
-cd sushi-train
-```
-
-2. Create local compose environment file.
-
-```bash
-cp .env.example .env
-```
-
-3. Start all services.
-
-```bash
-docker compose up --build
-```
-
-4. Open the app.
-
-- Frontend: <http://localhost:4200>
-- Backend API base: <http://localhost:8088/api/v1>
-- Swagger UI: <http://localhost:8088/swagger-ui/index.html>
-- Actuator health: <http://localhost:8088/actuator/health>
-
-## Environment Files
-
-- `.env.example`: template with all compose variables and defaults
-- `.env`: local values loaded automatically by Docker Compose
-
-Common variables:
-
-- `FRONTEND_PORT` (default `4200`)
-- `BACKEND_PORT` (default `8088`)
-- `POSTGRES_PORT` (default `5432`)
-- `FRONTEND_API_UPSTREAM_SCHEME` (default `http`)
-- `FRONTEND_API_UPSTREAM` (default `backend:8080` inside Docker network)
-
-## Docker Setup Notes
-
-- There is one compose file at repo root: `docker-compose.yml`.
-- Frontend container uses Nginx.
-  - Serves Angular static files.
-  - Proxies `/api/*` to backend via `API_UPSTREAM_SCHEME` and `API_UPSTREAM`.
-  - Disables proxy buffering for SSE.
-- Backend waits for Postgres health check before startup.
-- Frontend waits for backend health check before startup.
-
-If `docker compose up` fails with a container name conflict (for example `sushi-train-postgres` already exists), stop and remove old containers first:
-
-```bash
-docker compose down --remove-orphans
-docker rm -f sushi-train-postgres
-```
-
-## Run Without Docker (Optional)
+### Locally Without Docker
 
 Backend:
 
@@ -109,25 +43,66 @@ npm start
 
 For non-Docker local frontend development, `npm start` uses `proxy.conf.json` to route API calls to the backend.
 
-## Cloud Readiness
+### Locally With Docker Compose
 
-The current setup is a good base for cloud deployment:
+```bash
+git clone https://github.com/lorenzipsum/sushi-train.git
+cd sushi-train
+```
 
-- Stateless frontend served by Nginx
-- Backend and database separated by service boundaries
-- Runtime config injected via environment variables
+```bash
+cp .env.example .env
+```
 
-Typical next step is to split deployment into:
+```bash
+docker compose up --build
+```
 
-- Managed Postgres
-- Backend service
-- Frontend static hosting or container service
+Open:
+
+- Frontend: <http://localhost:4200>
+- Backend API base: <http://localhost:8088/api/v1>
+- Swagger UI: <http://localhost:8088/swagger-ui/index.html>
+- Actuator health: <http://localhost:8088/actuator/health>
+
+If `docker compose up` fails with container name conflicts, run:
+
+```bash
+docker compose down --remove-orphans
+docker rm -f sushi-train-postgres
+```
+
+Environment files:
+
+- `.env.example`: template with all compose variables and defaults
+- `.env`: local values loaded automatically by Docker Compose
+
+### On Azure With Terraform
+
+The Azure Terraform root lives in [infra/terraform/azure](infra/terraform/azure).
+
+Use this path when you want the full Azure-hosted stack.
+
+- Terraform operations (`Deploy`, `Update`, `Remove`): [infra/terraform/azure/OPERATIONS.md](infra/terraform/azure/OPERATIONS.md)
+- Terraform structure and variables: [infra/terraform/azure/README.md](infra/terraform/azure/README.md)
+- Rollout and smoke tests: [docs/azure-deploy-runbook.md](docs/azure-deploy-runbook.md)
+
+Quick Terraform commands from repository root:
+
+```powershell
+terraform -chdir=infra/terraform/azure init
+terraform -chdir=infra/terraform/azure plan -var-file="terraform.tfvars"
+terraform -chdir=infra/terraform/azure apply -var-file="terraform.tfvars"
+terraform -chdir=infra/terraform/azure destroy -var-file="terraform.tfvars"
+```
 
 ## Documentation
 
 - [Architecture Overview](docs/architecture.md)
 - [Domain Events](docs/domain-events.md)
 - [Domain Model](docs/domain-model.md)
+- [Terraform Operations (Azure)](infra/terraform/azure/OPERATIONS.md)
+- [Terraform Azure Root](infra/terraform/azure/README.md)
 - [Azure Deployment Plan](docs/azure-deployment-plan.md)
 - [Azure Deploy Runbook](docs/azure-deploy-runbook.md)
 - [Azure Progress](docs/azure-progress.md)

@@ -1,12 +1,16 @@
 # Azure Deployment Plan
 
+Status: historical planning record. The Terraform implementation described here has been completed.
+
 ## Purpose
 
 Prepare Sushi-Train for a simple, incremental deployment to Azure using Terraform Community Edition from a local Windows laptop.
 
 The goal of this effort is to reach a first working end-to-end deployment path that is easy to understand, cheap to run, and straightforward to evolve later.
 
-This planning document is intentionally limited to step 1. It records the target architecture, constraints, assumptions, and the implementation path before Terraform resources are introduced.
+This planning document is intentionally limited to the initial planning phase. It records the target architecture, constraints, assumptions, and the original implementation path.
+
+For current operational commands, use `infra/terraform/azure/OPERATIONS.md`.
 
 ## Target Architecture
 
@@ -248,6 +252,8 @@ Progress is tracked in [azure-progress.md](./azure-progress.md).
 Current operational rollout guidance lives in [azure-deploy-runbook.md](./azure-deploy-runbook.md).
 
 At this point, the originally planned twelve-step local Terraform path is documented end to end. Future work can refine the deployment flow, but the initial explicit Azure path now exists as a complete baseline.
+
+For current day-to-day operations, this file should be treated as design history while `infra/terraform/azure/OPERATIONS.md` remains the command source of truth.
 
 ## Current Terraform Structure
 

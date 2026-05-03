@@ -2,6 +2,12 @@
 
 This document is the operational reference for updating the current Azure deployment of Sushi-Train.
 
+Command source of truth:
+
+- `infra/terraform/azure/OPERATIONS.md` for deploy, update, remove, and laptop-state transition flows.
+
+This runbook focuses on rollout checklists, smoke tests, and troubleshooting.
+
 Progress tracking for this Azure rollout lives in `docs/azure-progress.md`.
 
 Current scope:
@@ -33,16 +39,8 @@ Use this checklist for a normal Azure rollout.
 ### Infrastructure-only change
 
 1. Review the Terraform diff.
-2. Apply Terraform from `infra/terraform/azure`.
+2. Run the `Update` flow in `infra/terraform/azure/OPERATIONS.md`.
 3. Run the smoke tests in this document.
-
-Commands:
-
-```powershell
-cd infra/terraform/azure
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
-```
 
 ### Backend release
 
@@ -111,12 +109,7 @@ terraform output frontend_container_app_url
 
 Use this when only Terraform-managed infrastructure changed and no new application image is required.
 
-From `infra/terraform/azure`:
-
-```powershell
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
-```
+Use the Terraform-only `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 Use this workflow for changes such as:
 
@@ -157,12 +150,9 @@ backend_image_tag = "2026-04-06-fix-root-404"
 
 ### Step 2: Build The Backend Image
 
-From the repository root:
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
-```powershell
-$acrLoginServer = terraform -chdir=infra/terraform/azure output -raw container_registry_login_server
-docker build -t ${acrLoginServer}/sushi-train-backend:2026-04-06-fix-root-404 backend
-```
+From the repository root, use the same tag in both Terraform vars and Docker image push commands.
 
 Concrete example for the current environment:
 
@@ -172,12 +162,7 @@ docker build -t sushitraindevacr2026a.azurecr.io/sushi-train-backend:dev-latest 
 
 ### Step 3: Log In To Azure Container Registry
 
-From the repository root:
-
-```powershell
-$acrName = terraform -chdir=infra/terraform/azure output -raw container_registry_name
-az acr login --name $acrName
-```
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 Concrete example for the current environment:
 
@@ -187,12 +172,7 @@ az acr login --name sushitraindevacr2026a
 
 ### Step 4: Push The Backend Image
 
-From the repository root:
-
-```powershell
-$acrLoginServer = terraform -chdir=infra/terraform/azure output -raw container_registry_login_server
-docker push ${acrLoginServer}/sushi-train-backend:2026-04-06-fix-root-404
-```
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 Concrete example for the current environment:
 
@@ -202,12 +182,7 @@ docker push sushitraindevacr2026a.azurecr.io/sushi-train-backend:dev-latest
 
 ### Step 5: Apply Terraform
 
-From `infra/terraform/azure`:
-
-```powershell
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
-```
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 This creates a new backend Container App revision pointing at the new image tag.
 
@@ -228,13 +203,7 @@ If only Terraform-managed backend settings changed, for example:
 
 then no image rebuild is required.
 
-Run only:
-
-```powershell
-cd infra/terraform/azure
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
-```
+Run the Terraform-only `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 ## Workflow D: Frontend Application Change
 
@@ -260,12 +229,9 @@ frontend_image_tag = "2026-04-06-frontend-release-1"
 
 ### Step 2: Build The Frontend Image
 
-From the repository root:
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
-```powershell
-$acrLoginServer = terraform -chdir=infra/terraform/azure output -raw container_registry_login_server
-docker build -t ${acrLoginServer}/sushi-train-frontend:2026-04-06-frontend-release-1 frontend
-```
+From the repository root, use the same tag in both Terraform vars and Docker image push commands.
 
 Concrete example for the current environment:
 
@@ -275,12 +241,7 @@ docker build -t sushitraindevacr2026a.azurecr.io/sushi-train-frontend:dev-latest
 
 ### Step 3: Log In To Azure Container Registry
 
-From the repository root:
-
-```powershell
-$acrName = terraform -chdir=infra/terraform/azure output -raw container_registry_name
-az acr login --name $acrName
-```
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 Concrete example for the current environment:
 
@@ -290,12 +251,7 @@ az acr login --name sushitraindevacr2026a
 
 ### Step 4: Push The Frontend Image
 
-From the repository root:
-
-```powershell
-$acrLoginServer = terraform -chdir=infra/terraform/azure output -raw container_registry_login_server
-docker push ${acrLoginServer}/sushi-train-frontend:2026-04-06-frontend-release-1
-```
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 Concrete example for the current environment:
 
@@ -305,12 +261,7 @@ docker push sushitraindevacr2026a.azurecr.io/sushi-train-frontend:dev-latest
 
 ### Step 5: Apply Terraform
 
-From `infra/terraform/azure`:
-
-```powershell
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
-```
+Use the image-update `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 This creates a new frontend Container App revision pointing at the new image tag.
 
@@ -331,13 +282,7 @@ If only Terraform-managed frontend settings changed, for example:
 
 then no image rebuild is required.
 
-Run only:
-
-```powershell
-cd infra/terraform/azure
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
-```
+Run the Terraform-only `Update` flow from `infra/terraform/azure/OPERATIONS.md`.
 
 ## Smoke Tests
 
@@ -405,8 +350,7 @@ Current expected state:
 Recovery:
 
 ```powershell
-cd infra/terraform/azure
-terraform apply -var-file="terraform.tfvars"
+terraform -chdir=infra/terraform/azure apply -var-file="terraform.tfvars"
 ```
 
 ### Backend URL Returns 500 For `/` Or `/swagger-ui/index.html`
